@@ -7,6 +7,8 @@ set_target_properties(darcel PROPERTIES
   STATIC_LIBRARY_FLAGS_RELEASE "${CMAKE_LIBRARY_FLAGS}"
   OUTPUT_NAME darcel)
 
+target_include_directories(darcel PUBLIC data_types)
+
 install(TARGETS darcel CONFIGURATIONS Debug
   DESTINATION $ENV{LIB_INSTALL_DIRECTORY}/debug)
 install(TARGETS darcel CONFIGURATIONS Release RelWithDebInfo
