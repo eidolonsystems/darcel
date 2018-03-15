@@ -1,10 +1,7 @@
-#ifndef AIVREN_HPP
-#define AIVREN_HPP
-#include <boost/multiprecision/cpp_dec_float.hpp>
+#ifndef DARCEL_HPP
+#define DARCEL_HPP
 
-namespace Aivren {
-  using Decimal = boost::multiprecision::cpp_dec_float_50;
-  struct Exchange;
+namespace darcel {
 }
 
 #endif
