@@ -1,1 +1,1 @@
-CALL %~dp0../../../../darcel/build/windows/set_env.bat
+CALL %~dp0../../../../library/build/windows/set_env.bat
