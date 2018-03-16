@@ -19,7 +19,7 @@ let cores="`grep -c "processor" < /proc/cpuinfo` / 2 + 1"
 let mem="`grep -oP "MemTotal: +\K([[:digit:]]+)(?=.*)" < /proc/meminfo` / 4194304"
 let jobs="$(($cores<$mem?$cores:$mem))"
 
-pushd $directory/../../darcel/build/posix
+pushd $directory/../../library/build/posix
 ./build.sh $config
 popd
 export -f build_function

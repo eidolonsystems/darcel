@@ -8,7 +8,7 @@ then
 else
   build_type=$1
 fi
-pushd $directory/../../darcel/build/posix/
+pushd $directory/../../library/build/posix/
 ./run_cmake.sh $build_type
 popd
 
