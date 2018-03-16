@@ -30,12 +30,6 @@ TEST_CASE("test_operation_stream", "[operation]") {
     ss << p;
     REQUIRE(ss.str() == "/");
   }
-  SECTION("Assign") {
-    operation p(operation::symbol::ASSIGN);
-    stringstream ss;
-    ss << p;
-    REQUIRE(ss.str() == "=");
-  }
   SECTION("Less") {
     operation p(operation::symbol::LESS);
     stringstream ss;
@@ -101,7 +95,6 @@ TEST_CASE("test_parse_operation", "[operation]") {
     REQUIRE(parse_operation("-") == operation::symbol::MINUS);
     REQUIRE(parse_operation("*") == operation::symbol::TIMES);
     REQUIRE(parse_operation("/") == operation::symbol::DIVIDE);
-    REQUIRE(parse_operation("=") == operation::symbol::ASSIGN);
     REQUIRE(parse_operation("<") == operation::symbol::LESS);
     REQUIRE(parse_operation("<=") == operation::symbol::LESS_OR_EQUAL);
     REQUIRE(parse_operation("==") == operation::symbol::EQUAL);

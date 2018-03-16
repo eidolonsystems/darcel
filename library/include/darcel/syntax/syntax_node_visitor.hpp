@@ -9,7 +9,13 @@ namespace darcel {
     public:
       virtual ~syntax_node_visitor() = default;
 
+      virtual void visit(const bind_variable_statement& node);
+
+      virtual void visit(const call_expression& node);
+
       virtual void visit(const expression& node);
+
+      virtual void visit(const literal_expression& node);
 
       virtual void visit(const statement& node);
 
@@ -17,7 +23,7 @@ namespace darcel {
 
       virtual void visit(const terminal_node& node);
 
-      virtual void visit(const void_expression& node);
+      virtual void visit(const variable_expression& node);
 
     protected:
 

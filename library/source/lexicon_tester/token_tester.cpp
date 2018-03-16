@@ -7,10 +7,10 @@ using namespace std;
 
 TEST_CASE("test_token_stream", "[token]") {
   SECTION("Keyword") {
-    token t(keyword::word::DEFINE, 0, 0);
+    token t(keyword::word::LET, 0, 0);
     stringstream ss;
     ss << t;
-    REQUIRE(ss.str() == "def");
+    REQUIRE(ss.str() == "let");
   }
   SECTION("Punctuation") {
     token t(punctuation::mark::DOT, 0, 0);

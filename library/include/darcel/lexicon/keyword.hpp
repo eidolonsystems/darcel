@@ -18,29 +18,8 @@ namespace darcel {
       //! The list of keywords.
       enum class word {
 
-        //! def
-        DEFINE,
-
         //! let
-        LET,
-
-        //! if
-        IF,
-
-        //! else
-        ELSE,
-
-        //! else if
-        ELSE_IF,
-
-        //! end
-        END,
-
-        //! return
-        RETURN,
-
-        //! _
-        IGNORE,
+        LET
       };
 
       //! Constructs a keyword.
@@ -80,35 +59,8 @@ namespace darcel {
     \return The keyword that was parsed.
   */
   inline std::optional<keyword> parse_keyword(lexical_iterator& cursor) {
-    if(prefix_match(cursor, "def")) {
-      return keyword::word::DEFINE;
-    } else if(prefix_match(cursor, "let")) {
+    if(prefix_match(cursor, "let")) {
       return keyword::word::LET;
-    } else if(prefix_match(cursor, "if")) {
-      return keyword::word::IF;
-    } else if(prefix_match(cursor, "end")) {
-      return keyword::word::END;
-    } else if(prefix_match(cursor, "return")) {
-      return keyword::word::RETURN;
-    } else if(prefix_match(cursor, "_")) {
-      return keyword::word::IGNORE;
-    }
-    auto c = cursor;
-    if(prefix_match(c, "else")) {
-      while(!c.is_empty() && std::isspace(*c)) {
-        ++c;
-      }
-      if(c.is_empty()) {
-        return std::nullopt;
-      } else if(prefix_match(c, "if")) {
-        cursor = c;
-        return keyword::word::ELSE_IF;
-      } else if(*c != 'i' ||
-          c.get_size_remaining() > 1 && *(c + 1) != 'f' ||
-          c.get_size_remaining() > 2) {
-        cursor = c;
-        return keyword::word::ELSE;
-      }
     }
     return std::nullopt;
   }
@@ -125,22 +77,8 @@ namespace darcel {
 
   inline std::ostream& operator <<(std::ostream& out, const keyword& value) {
     switch(value.get_word()) {
-      case keyword::word::DEFINE:
-        return out << "def";
       case keyword::word::LET:
         return out << "let";
-      case keyword::word::IF:
-        return out << "if";
-      case keyword::word::ELSE:
-        return out << "else";
-      case keyword::word::ELSE_IF:
-        return out << "else if";
-      case keyword::word::END:
-        return out << "end";
-      case keyword::word::RETURN:
-        return out << "return";
-      case keyword::word::IGNORE:
-        return out << "_";
       default:
         throw std::runtime_error("Invalid keyword.");
     }

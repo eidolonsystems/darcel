@@ -29,11 +29,11 @@ TEST_CASE("test_identifier_token_parser", "[token_parser]") {
 
 TEST_CASE("test_spaces_token_parser", "[token_parser]") {
   token_parser parser;
-  parser.feed("   \nreturn  \n  \r\n   return ");
+  parser.feed("   \nlet  \n  \r\n   let ");
   {
     auto t = parser.parse_token();
     REQUIRE(t.has_value());
-    REQUIRE(match(*t, keyword(keyword::word::RETURN)));
+    REQUIRE(match(*t, keyword(keyword::word::LET)));
     REQUIRE(t->get_line_number() == 1);
     REQUIRE(t->get_column_number() == 0);
   }
@@ -42,12 +42,12 @@ TEST_CASE("test_spaces_token_parser", "[token_parser]") {
     REQUIRE(t.has_value());
     REQUIRE(match(*t, terminal::type::new_line));
     REQUIRE(t->get_line_number() == 1);
-    REQUIRE(t->get_column_number() == 8);
+    REQUIRE(t->get_column_number() == 5);
   }
   {
     auto t = parser.parse_token();
     REQUIRE(t.has_value());
-    REQUIRE(match(*t, keyword(keyword::word::RETURN)));
+    REQUIRE(match(*t, keyword(keyword::word::LET)));
     REQUIRE(t->get_line_number() == 3);
     REQUIRE(t->get_column_number() == 3);
   }

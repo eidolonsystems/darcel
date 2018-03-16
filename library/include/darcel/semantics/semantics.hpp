@@ -4,6 +4,7 @@
 
 namespace darcel {
   class element;
+  class variable;
 }
 
 #endif

@@ -28,9 +28,6 @@ namespace darcel {
         //! '/'
         DIVIDE,
 
-        //! '='
-        ASSIGN,
-
         //! '<'
         LESS,
 
@@ -75,8 +72,7 @@ namespace darcel {
     \param c The character to test.
   */
   inline bool is_operation_delimiter(char c) {
-    return c == '+' || c == '-' || c == '*' || c == '-' || c == '=' ||
-      c == '<' || c == '>';
+    return c == '+' || c == '-' || c == '*' || c == '-' || c == '<' || c == '>';
   }
 
   //! Parses an operation.
@@ -129,9 +125,6 @@ namespace darcel {
           if(*cursor == '/') {
             return operation::symbol::DIVIDE;
           }
-          if(*cursor == '=') {
-            return operation::symbol::ASSIGN;
-          }
           if(*cursor == '<') {
             return operation::symbol::LESS;
           }
@@ -158,15 +151,6 @@ namespace darcel {
       lexical_iterator(source.data(), source.size() + 1));
   }
 
-  //! Tests if an operation represents assignment (=, +=, etc...).
-  /*!
-    \param operation The operation to test.
-    \return <code>true</code> iff the operation is an assignment.
-  */
-  inline bool is_assignment(operation o) {
-    return o.get_symbol() == operation::symbol::ASSIGN;
-  }
-
   inline std::ostream& operator <<(std::ostream& out, const operation& value) {
     switch(value.get_symbol()) {
       case operation::symbol::PLUS:
@@ -177,8 +161,6 @@ namespace darcel {
         return out << '*';
       case operation::symbol::DIVIDE:
         return out << '/';
-      case operation::symbol::ASSIGN:
-        return out << '=';
       case operation::symbol::LESS:
         return out << '<';
       case operation::symbol::LESS_OR_EQUAL:
