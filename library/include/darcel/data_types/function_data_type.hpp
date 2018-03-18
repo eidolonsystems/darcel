@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 #include "darcel/data_types/data_type.hpp"
+#include "darcel/data_types/data_type_visitor.hpp"
 #include "darcel/data_types/data_types.hpp"
 
 namespace darcel {
@@ -39,6 +40,8 @@ namespace darcel {
       const location& get_location() const override final;
 
       const std::string& get_name() const override final;
+
+      void apply(data_type_visitor& visitor) const override final;
 
     protected:
       bool is_equal(const data_type& rhs) const override final;
@@ -87,6 +90,10 @@ namespace darcel {
     return m_name;
   }
 
+  inline void function_data_type::apply(data_type_visitor& visitor) const {
+    visitor.visit(*this);
+  }
+
   inline bool function_data_type::is_equal(const data_type& rhs) const {
     auto& f = static_cast<const function_data_type&>(rhs);
     if(*m_return_type != *f.get_return_type() ||
@@ -99,6 +106,10 @@ namespace darcel {
       }
     }
     return true;
+  }
+
+  inline void data_type_visitor::visit(const function_data_type& node) {
+    visit(static_cast<const data_type&>(node));
   }
 }
 

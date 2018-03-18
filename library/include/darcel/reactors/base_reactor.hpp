@@ -5,12 +5,11 @@
 
 namespace darcel {
 
-  //! \brief The untyped base class of a reactor.
+  //! The untyped base class of a reactor.
   class base_reactor {
     public:
 
-      //! \brief Lists the types of updates a reactor can undergo after a
-      //!        commit.
+      //! Lists the types of updates a reactor can undergo after a commit.
       enum class update {
 
         //! No update.

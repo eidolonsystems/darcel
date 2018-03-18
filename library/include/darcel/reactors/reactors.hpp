@@ -5,6 +5,7 @@ namespace darcel {
   class base_reactor;
   template<typename T> class constant_reactor;
   template<typename T> class reactor;
+  class reactor_translator;
 }
 
 #endif

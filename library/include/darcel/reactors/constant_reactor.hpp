@@ -8,7 +8,7 @@
 
 namespace darcel {
 
-  //! \brief Evaluates to a constant.
+  //! Evaluates to a constant.
   template<typename T>
   class constant_reactor : public reactor<T> {
     public:

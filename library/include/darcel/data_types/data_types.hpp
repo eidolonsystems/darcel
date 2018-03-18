@@ -5,6 +5,7 @@
 namespace darcel {
   class bool_data_type;
   class data_type;
+  class data_type_visitor;
   class float_data_type;
   class function_data_type;
   class integer_data_type;

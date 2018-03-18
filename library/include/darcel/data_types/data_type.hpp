@@ -25,6 +25,12 @@ namespace darcel {
       */
       bool operator !=(const data_type& rhs) const;
 
+      //! Applies a data type visitor to this instance.
+      /*!
+        \param visitor The visitor to apply.
+      */
+      virtual void apply(data_type_visitor& visitor) const = 0;
+
     protected:
 
       //! Tests if two data types are identical.
