@@ -69,10 +69,11 @@ namespace darcel {
     scope.add(float_data_type::get_instance());
     scope.add(integer_data_type::get_instance());
     scope.add(text_data_type::get_instance());
-    {
+    for(auto& t : std::vector<std::shared_ptr<data_type>>{
+        integer_data_type::get_instance(), float_data_type::get_instance()}) {
       std::vector<function_data_type::parameter> parameters;
-      parameters.push_back({"lhs", integer_data_type::get_instance()});
-      parameters.push_back({"rhs", integer_data_type::get_instance()});
+      parameters.push_back({"lhs", t});
+      parameters.push_back({"rhs", t});
       std::vector<std::shared_ptr<data_type>> types;
       std::transform(parameters.begin(), parameters.end(),
         std::back_inserter(types),
@@ -86,6 +87,22 @@ namespace darcel {
           integer_data_type::get_instance()));
         scope.add(f);
       }
+    }
+    {
+      std::vector<function_data_type::parameter> parameters;
+      parameters.push_back({"lhs", text_data_type::get_instance()});
+      parameters.push_back({"rhs", text_data_type::get_instance()});
+      std::vector<std::shared_ptr<data_type>> types;
+      std::transform(parameters.begin(), parameters.end(),
+        std::back_inserter(types),
+        [] (auto& p) {
+          return p.m_type;
+        });
+      auto name = get_decorated_name(op::ADD, types);
+      auto f = std::make_shared<variable>(location::global(), name,
+        std::make_shared<function_data_type>(parameters,
+        integer_data_type::get_instance()));
+      scope.add(f);
     }
   }
 
