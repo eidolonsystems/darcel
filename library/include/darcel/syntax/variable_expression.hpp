@@ -20,9 +20,6 @@ namespace darcel {
       */
       variable_expression(location l, std::shared_ptr<variable> v);
 
-      //! Returns the name of the variable to evaluate.
-      const std::string& get_name() const;
-
       //! Returns the variable to evaluate.
       const std::shared_ptr<variable>& get_variable() const;
 
@@ -31,7 +28,6 @@ namespace darcel {
       void apply(syntax_node_visitor& visitor) const override final;
 
     private:
-      std::string m_name;
       std::shared_ptr<variable> m_variable;
   };
 
@@ -39,10 +35,6 @@ namespace darcel {
       std::shared_ptr<variable> v)
       : expression(std::move(l)),
         m_variable(std::move(v)) {}
-
-  inline const std::string& variable_expression::get_name() const {
-    return m_name;
-  }
 
   inline const std::shared_ptr<variable>& variable_expression::
       get_variable() const {

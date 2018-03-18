@@ -50,7 +50,10 @@ namespace darcel {
         OR,
 
         //! 'not'
-        NOT
+        NOT,
+
+        //! '='
+        ASSIGN
       };
 
       //! Constructs an operation.
@@ -72,7 +75,8 @@ namespace darcel {
     \param c The character to test.
   */
   inline bool is_operation_delimiter(char c) {
-    return c == '+' || c == '-' || c == '*' || c == '-' || c == '<' || c == '>';
+    return c == '+' || c == '-' || c == '*' || c == '-' || c == '<' ||
+      c == '>' || c == '=';
   }
 
   //! Parses an operation.
@@ -131,6 +135,9 @@ namespace darcel {
           if(*cursor == '>') {
             return operation::symbol::GREATER;
           }
+          if(*cursor == '=') {
+            return operation::symbol::ASSIGN;
+          }
           return static_cast<operation::symbol>(-1);
         }();
       if(symbol != static_cast<operation::symbol>(-1)) {
@@ -177,6 +184,8 @@ namespace darcel {
         return out << "or";
       case operation::symbol::NOT:
         return out << "not";
+      case operation::symbol::ASSIGN:
+        return out << "=";
       default:
         throw std::runtime_error("Invalid operation.");
     }

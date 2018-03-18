@@ -1,11 +1,13 @@
 #ifndef DARCEL_SYNTAX_PARSER_HPP
 #define DARCEL_SYNTAX_PARSER_HPP
+#include <deque>
 #include <memory>
 #include <optional>
 #include <string>
 #include <type_traits>
 #include <vector>
 #include "darcel/lexicon/token.hpp"
+#include "darcel/semantics/scope.hpp"
 #include "darcel/syntax/expression.hpp"
 #include "darcel/syntax/statement.hpp"
 #include "darcel/syntax/syntax_error_code.hpp"
@@ -23,7 +25,13 @@ namespace darcel {
     public:
 
       //! Constructs a default syntax parser.
-      syntax_parser() = default;
+      syntax_parser();
+
+      //! Constructs a syntax parser within an existing scope.
+      /*!
+        \param s The top-level scope.
+      */
+      syntax_parser(std::unique_ptr<scope> s);
 
       //! Feeds this parser a token.
       /*!
@@ -42,11 +50,15 @@ namespace darcel {
       std::unique_ptr<syntax_node> parse_node();
 
     private:
+      std::deque<std::unique_ptr<scope>> m_scopes;
       std::vector<token> m_tokens;
       token_iterator m_cursor;
 
       syntax_parser(const syntax_parser&) = delete;
       syntax_parser& operator =(const syntax_parser&) = delete;
+      scope& get_current_scope();
+      scope& push_scope();
+      void pop_scope();
       token_iterator get_next_terminal(token_iterator cursor) const;
       std::unique_ptr<syntax_node> parse_node(token_iterator& cursor);
       std::unique_ptr<terminal_node> parse_terminal_node(
@@ -148,6 +160,16 @@ namespace darcel {
     cursor = c;
   }
 
+  inline syntax_parser::syntax_parser() {
+    auto s = std::make_unique<scope>();
+    populate_global_scope(*s);
+    m_scopes.push_back(std::move(s));
+  }
+
+  inline syntax_parser::syntax_parser(std::unique_ptr<scope> s) {
+    m_scopes.push_back(std::move(s));
+  }
+
   inline void syntax_parser::feed(token t) {
     auto position = &*m_cursor - m_tokens.data();
     m_tokens.push_back(std::move(t));
@@ -161,6 +183,19 @@ namespace darcel {
 
   inline std::unique_ptr<syntax_node> syntax_parser::parse_node() {
     return parse_node(m_cursor);
+  }
+
+  inline scope& syntax_parser::get_current_scope() {
+    return *m_scopes.front();
+  }
+
+  inline scope& syntax_parser::push_scope() {
+    m_scopes.push_back(std::make_unique<scope>());
+    return get_current_scope();
+  }
+
+  inline void syntax_parser::pop_scope() {
+    m_scopes.pop_back();
   }
 
   inline token_iterator syntax_parser::get_next_terminal(

@@ -3,6 +3,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include "darcel/data_types/function_data_type.hpp"
 #include "darcel/syntax/expression.hpp"
 #include "darcel/syntax/syntax.hpp"
 #include "darcel/syntax/syntax_node_visitor.hpp"
@@ -56,9 +57,9 @@ namespace darcel {
 
   inline const std::shared_ptr<data_type>& call_expression::
       get_data_type() const {
-
-    // TODO
-    return nullptr;
+    auto function_type = std::static_pointer_cast<function_data_type>(
+      m_callable->get_data_type());
+    return function_type->get_return_type();
   }
 
   inline void call_expression::apply(syntax_node_visitor& visitor) const {

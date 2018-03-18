@@ -81,21 +81,20 @@ TEST_CASE("test_parsing_literal_expression", "[syntax_parser]") {
   auto literal = dynamic_cast<literal_expression*>(expression.get());
   REQUIRE(literal != nullptr);
   REQUIRE(literal->get_literal().get_value() == "123");
-  REQUIRE(*literal->get_literal().get_type() == *scalar_data_type::get_int());
+  REQUIRE(*literal->get_literal().get_type() == integer_data_type());
 }
 
-TEST_CASE("test_parsing_let_expression", "[syntax_parser]") {
+TEST_CASE("test_parsing_bind_variable_statement", "[syntax_parser]") {
   syntax_parser p;
   feed(p, "let x = 321");
   auto expression = p.parse_node();
-  auto let = dynamic_cast<let_expression*>(expression.get());
-  REQUIRE(let != nullptr);
-  REQUIRE(let->get_name() == "x");
+  auto bind = dynamic_cast<bind_variable_statement*>(expression.get());
+  REQUIRE(bind != nullptr);
+  REQUIRE(bind->get_variable()->get_name() == "x");
   auto initializer = dynamic_cast<const literal_expression*>(
-    &let->get_initializer());
+    &bind->get_expression());
   REQUIRE(initializer->get_literal().get_value() == "321");
-  REQUIRE(*initializer->get_literal().get_type() ==
-    *scalar_data_type::get_int());
+  REQUIRE(*initializer->get_literal().get_type() == integer_data_type());
 }
 
 TEST_CASE("test_parsing_variable_expression", "[syntax_parser]") {
@@ -105,7 +104,9 @@ TEST_CASE("test_parsing_variable_expression", "[syntax_parser]") {
   auto expression = p.parse_node();
   auto variable = dynamic_cast<variable_expression*>(expression.get());
   REQUIRE(variable != nullptr);
-  REQUIRE(variable->get_name() == "y");
+  REQUIRE(variable->get_variable()->get_name() == "y");
+  REQUIRE(*variable->get_variable()->get_data_type() ==
+    *bool_data_type::get_instance());
 }
 
 TEST_CASE("test_parsing_no_line_break", "[syntax_parser]") {
@@ -127,8 +128,8 @@ TEST_CASE("test_incremental_parsing", "[syntax_parser]") {
     incremental_feed(p, "let x ");
     REQUIRE_THROWS(p.parse_node());
     feed(p, "= false");
-    auto expression = p.parse_node();
-    auto let = dynamic_cast<let_expression*>(expression.get());
+    auto statement = p.parse_node();
+    auto bind = dynamic_cast<bind_variable_statement*>(statement.get());
   }
 }
 
@@ -163,107 +164,4 @@ TEST_CASE("test_parsing_with_line_continuations", "[syntax_parser]") {
     feed(p, "let x = 1 +\n 2 * 3");
     auto e = p.parse_node();
   }
-}
-
-TEST_CASE("test_parsing_if_statement", "[syntax_parser]") {
-  SECTION("Parse empty if statement.") {
-    syntax_parser p;
-    feed(p, "if true:\nend");
-    auto n = p.parse_node();
-    auto e = dynamic_cast<const if_statement*>(n.get());
-    REQUIRE(e != nullptr);
-  }
-  SECTION("Parse if statement.") {
-    syntax_parser p;
-    feed(p, "if true\n: 123 end");
-    auto n = p.parse_node();
-    auto e = dynamic_cast<const if_statement*>(n.get());
-    REQUIRE(e != nullptr);
-  }
-  SECTION("Parse if/else statement.") {
-    syntax_parser p;
-    feed(p, "if true\n: 123 else: false end");
-    auto n = p.parse_node();
-    auto e = dynamic_cast<const if_statement*>(n.get());
-    REQUIRE(e != nullptr);
-  }
-  SECTION("Parse if/else if statement.") {
-    syntax_parser p;
-    feed(p, "if true\n: 123 else if false: 321 end");
-    auto n = p.parse_node();
-    auto e = dynamic_cast<const if_statement*>(n.get());
-    REQUIRE(e != nullptr);
-  }
-  SECTION("Parse if/else if/else statement.") {
-    syntax_parser p;
-    feed(p, "if true\n: 123 else if false: 321 else: 789 end");
-    auto n = p.parse_node();
-    auto e = dynamic_cast<const if_statement*>(n.get());
-    REQUIRE(e != nullptr);
-  }
-}
-
-TEST_CASE("test_parsing_function_definition", "[syntax_parser]") {
-  SECTION("Parse function with empty body.") {
-    syntax_parser p;
-    feed(p, "def f(): end");
-    auto n = p.parse_node();
-    auto e = dynamic_cast<const function_definition*>(n.get());
-    REQUIRE(e != nullptr);
-  }
-  SECTION("Parse function with empty body.") {
-    syntax_parser p;
-    feed(p, "def f():\nend");
-    auto n = p.parse_node();
-    auto e = dynamic_cast<const function_definition*>(n.get());
-    REQUIRE(e != nullptr);
-  }
-  SECTION("Parse single parameter function with empty body.") {
-    syntax_parser p;
-    feed(p, "def f(x: Int): end");
-    auto n = p.parse_node();
-    auto e = dynamic_cast<const function_definition*>(n.get());
-    REQUIRE(e != nullptr);
-  }
-  SECTION("Parse duplicate parameter names.") {
-    syntax_parser p;
-    feed(p, "def f(x: Int, x: Char): end");
-    REQUIRE_THROWS(p.parse_node());
-  }
-}
-
-TEST_CASE("test_parsing_return_statement", "[syntax_parser]") {
-  SECTION("Parse a Void return statement.") {
-    syntax_parser p;
-    feed(p, "return");
-    auto n = p.parse_node();
-    auto e = dynamic_cast<const return_statement*>(n.get());
-    REQUIRE(e != nullptr);
-    REQUIRE(dynamic_cast<const void_expression*>(&e->get_result()) != nullptr);
-  }
-  SECTION("Parse a return statement with a value.") {
-    syntax_parser p;
-    feed(p, "return 123");
-    auto n = p.parse_node();
-    auto e = dynamic_cast<const return_statement*>(n.get());
-    REQUIRE(e != nullptr);
-    REQUIRE(dynamic_cast<const literal_expression*>(&e->get_result()) !=
-      nullptr);
-  }
-}
-
-TEST_CASE("test_parsing_function_call", "[syntax_parser]") {
-  syntax_parser p;
-  feed(p, "x(1, 2, 3)");
-  auto n = p.parse_node();
-  auto e = dynamic_cast<const call_expression*>(n.get());
-  REQUIRE(e != nullptr);
-}
-
-TEST_CASE("test_parsing_assignment", "[syntax_parser]") {
-  syntax_parser p;
-  feed(p, "x = 123");
-  auto n = p.parse_node();
-  auto e = dynamic_cast<const assignment_statement*>(n.get());
-  REQUIRE(e != nullptr);
 }

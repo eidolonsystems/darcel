@@ -78,6 +78,12 @@ TEST_CASE("test_operation_stream", "[operation]") {
     ss << p;
     REQUIRE(ss.str() == "not");
   }
+  SECTION("Assign") {
+    operation p(operation::symbol::ASSIGN);
+    stringstream ss;
+    ss << p;
+    REQUIRE(ss.str() == "=");
+  }
 }
 
 TEST_CASE("test_operation_equality", "[operation]") {
@@ -103,6 +109,7 @@ TEST_CASE("test_parse_operation", "[operation]") {
     REQUIRE(parse_operation("and") == operation::symbol::AND);
     REQUIRE(parse_operation("or") == operation::symbol::OR);
     REQUIRE(parse_operation("not") == operation::symbol::NOT);
+    REQUIRE(parse_operation("=") == operation::symbol::ASSIGN);
   }
   SECTION("Delimiters") {
     REQUIRE(parse_operation("+5") == operation::symbol::PLUS);

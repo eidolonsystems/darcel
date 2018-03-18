@@ -197,6 +197,30 @@ namespace darcel {
     }
     throw std::runtime_error("Invalid operation specified.");
   }
+
+  //! Returns an operation's decorated name.
+  /*!
+    \param o The operation.
+    \param parameters The data types corresponding to the operation's
+           parameters
+    \return The unique name for the operation and parameters.
+  */
+  inline std::string get_decorated_name(op o,
+      const std::vector<std::shared_ptr<data_type>>& parameters) {
+    auto name = get_function_name(o);
+    name += "(";
+    auto is_first = true;
+    for(auto& parameter : parameters) {
+      if(!is_first) {
+        name += ", ";
+      } else {
+        is_first = false;
+      }
+      name += parameter->get_name();
+    }
+    name += ")";
+    return name;
+  }
 }
 
 #endif

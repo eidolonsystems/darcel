@@ -40,10 +40,14 @@ namespace darcel {
     if(!name.has_value()) {
       return nullptr;
     }
-    auto v = std::make_unique<variable_expression>(cursor.get_location(),
-      std::move(*name));
+    auto v = get_current_scope().find<variable>(*name);
+    if(v == nullptr) {
+      return nullptr;
+    }
+    auto node = std::make_unique<variable_expression>(cursor.get_location(),
+      std::move(v));
     cursor = c;
-    return v;
+    return node;
   }
 
   inline std::unique_ptr<expression> syntax_parser::parse_expression_term(
@@ -79,9 +83,21 @@ namespace darcel {
           expressions.pop_back();
           --arity;
         }
-        auto& function_name = get_function_name(o.m_op);
+        std::vector<std::shared_ptr<data_type>> types;
+        std::transform(parameters.begin(), parameters.end(),
+          std::back_inserter(types),
+          [] (auto& p) {
+            return p->get_data_type();
+          });
+        auto& function_name = get_decorated_name(o.m_op, types);
+        auto& callable = get_current_scope().find<variable>(function_name);
+        if(callable == nullptr) {
+
+          // TODO
+          throw std::runtime_error("Syntax error.");
+        }
         auto call = std::make_unique<call_expression>(o.m_location,
-          std::make_unique<variable_expression>(o.m_location, function_name),
+          std::make_unique<variable_expression>(o.m_location, callable),
           std::move(parameters));
         expressions.push_back(std::move(call));
       };
