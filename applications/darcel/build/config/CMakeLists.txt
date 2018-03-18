@@ -3,6 +3,7 @@ project(darcel)
 
 include_directories(./../../include)
 include_directories($ENV{DARCEL_INCLUDE_PATH})
+include_directories($ENV{TCLAP_INCLUDE_PATH})
 
 set(CMAKE_BUILD_TYPE $ENV{PROJECT_BUILD_TYPE})
 set(CMAKE_LIBRARY_FLAGS "")

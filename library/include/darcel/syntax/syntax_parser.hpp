@@ -252,6 +252,9 @@ namespace darcel {
 
   inline std::unique_ptr<syntax_node> syntax_parser::parse_node(
       token_iterator& cursor) {
+    if(cursor.is_empty()) {
+      return nullptr;
+    }
     if(auto node = parse_statement(cursor)) {
       if(!cursor.is_empty() && match(*cursor, terminal::type::new_line)) {
         ++cursor;
