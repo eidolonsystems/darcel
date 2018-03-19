@@ -17,9 +17,8 @@ namespace darcel {
       //! Builds a reactor from a syntax node.
       /*!
         \param node The node to translate into a reactor.
-        \return The reactor represented by the syntax node.
       */
-      std::shared_ptr<base_reactor> translate(const syntax_node& node);
+      void translate(const syntax_node& node);
 
       //! Returns the main reactor.
       const std::shared_ptr<base_reactor>& get_main() const;
@@ -39,19 +38,8 @@ namespace darcel {
       std::shared_ptr<base_reactor> m_main;
   };
 
-  //! Builds a reactor from a syntax node.
-  /*!
-    \param node The node to translate into a reactor.
-    \return The reactor represented by the syntax node.
-  */
-  inline std::shared_ptr<base_reactor> translate(const syntax_node& node) {
-    return reactor_translator().translate(node);
-  }
-
-  inline std::shared_ptr<base_reactor> reactor_translator::translate(
-      const syntax_node& node) {
+  inline void reactor_translator::translate(const syntax_node& node) {
     node.apply(*this);
-    return m_reactor;
   }
 
   inline const std::shared_ptr<base_reactor>&
@@ -60,7 +48,8 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const bind_variable_statement& node) {
-    auto translation = translate(node.get_expression());
+    node.get_expression().apply(*this);
+    auto translation = std::move(m_reactor);
     m_variables[node.get_variable()] = translation;
     if(node.get_variable()->get_name() == "main") {
       m_main = translation;
@@ -68,6 +57,7 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const call_expression& node) {
+    node.get_callable().apply(*this);
   }
 
   inline void reactor_translator::visit(const literal_expression& node) {
