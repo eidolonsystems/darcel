@@ -47,6 +47,31 @@ namespace darcel {
       base_reactor(const base_reactor&) = delete;
       base_reactor& operator =(const base_reactor&) = delete;
   };
+
+  //! Combines two reactor updates together.
+  /*!
+    \param lhs The update to modify.
+    \param rhs The update to combine with lhs.
+    \return <i>lhs</i>.
+  */
+  inline base_reactor::update combine(base_reactor::update& lhs,
+      base_reactor::update rhs) {
+    lhs = static_cast<base_reactor::update>(
+      static_cast<int>(lhs) | static_cast<int>(rhs));
+    return lhs;
+  }
+
+  //! Returns <code>true</code> iff a reactor update represents its completion.
+  inline bool is_complete(base_reactor::update update) {
+    return (static_cast<int>(update) &
+      static_cast<int>(base_reactor::update::COMPLETE)) != 0;
+  }
+
+  //! Returns <code>true</code> iff a reactor update has an evaluation.
+  inline bool has_eval(base_reactor::update update) {
+    return (static_cast<int>(update) &
+      static_cast<int>(base_reactor::update::EVAL)) != 0;
+  }
 }
 
 #endif
