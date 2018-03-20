@@ -9,7 +9,7 @@
 #include "darcel/reactors/reactor.hpp"
 #include "darcel/reactors/reactor_unavailable_exception.hpp"
 #include "darcel/reactors/reactors.hpp"
-#include "darcel/utilities/expect.hpp"
+#include "darcel/utilities/maybe.hpp"
 
 namespace darcel {
 
@@ -19,7 +19,7 @@ namespace darcel {
   template<typename T>
   struct function_evaluation {
     using type = T;
-    std::optional<expect<type>> m_value;
+    std::optional<maybe<type>> m_value;
     base_reactor::update m_update;
 
     //! Constructs an uninitialized evaluation.
@@ -29,7 +29,7 @@ namespace darcel {
     /*!
       \param value The value returned by the function.
     */
-    function_evaluation(expect<type> value);
+    function_evaluation(maybe<type> value);
 
     //! Constructs an evaluation resulting in a value and an EVAL.
     /*!
@@ -41,7 +41,7 @@ namespace darcel {
     /*!
       \param value The value returned by the function.
     */
-    function_evaluation(std::optional<expect<type>> value);
+    function_evaluation(std::optional<maybe<type>> value);
 
     //! Constructs an evaluation resulting in a value and an EVAL.
     /*!
@@ -54,14 +54,14 @@ namespace darcel {
       \param value The value returned by the function.
       \param update The type of update.
     */
-    function_evaluation(expect<type> value, base_reactor::update update);
+    function_evaluation(maybe<type> value, base_reactor::update update);
 
     //! Constructs an evaluation resulting in a value and an update.
     /*!
       \param value The value returned by the function.
       \param update The type of update.
     */
-    function_evaluation(std::optional<expect<type>> value,
+    function_evaluation(std::optional<maybe<type>> value,
       base_reactor::update update);
 
     //! Constructs an evaluation resulting in a value and an update.
@@ -109,7 +109,7 @@ namespace details {
       return reactor->eval();
     }
 
-    expect<void> operator ()(const base_reactor* reactor) const {
+    maybe<void> operator ()(const base_reactor* reactor) const {
 
       // TODO: Find a way to evaluate this.
       return {};
@@ -170,11 +170,11 @@ namespace details {
   template<typename F, typename... P>
   class function_reactor : public reactor<
       typename details::function_reactor_type<details::invocation_type_t<F,
-      const expect<reactor_type_t<P>>&...>>::type> {
+      const maybe<reactor_type_t<P>>&...>>::type> {
     public:
       using type = typename reactor<
         typename details::function_reactor_type<details::invocation_type_t<
-        F, const expect<reactor_type_t<P>>&...>>::type>::type;
+        F, const maybe<reactor_type_t<P>>&...>>::type>::type;
 
       //! The type of function to apply.
       using function = F;
@@ -195,7 +195,7 @@ namespace details {
       function m_function;
       std::tuple<P...> m_parameters;
       std::optional<commit_reactor> m_commit_reactor;
-      expect<type> m_value;
+      maybe<type> m_value;
       int m_current_sequence;
       base_reactor::update m_update;
       base_reactor::update m_state;
@@ -221,7 +221,7 @@ namespace details {
     \param update The state of the reactor.
   */
   template<typename T>
-  auto make_function_evaluation(expect<T> value, base_reactor::update update) {
+  auto make_function_evaluation(maybe<T> value, base_reactor::update update) {
     return function_evaluation<T>(std::move(value), update);
   }
 
@@ -231,7 +231,7 @@ namespace details {
     \param update The state of the reactor.
   */
   template<typename T>
-  auto make_function_evaluation(std::optional<expect<T>> value,
+  auto make_function_evaluation(std::optional<maybe<T>> value,
       base_reactor::update update) {
     return function_evaluation<T>(std::move(value), update);
   }
@@ -251,16 +251,16 @@ namespace details {
       : m_update(base_reactor::update::NONE) {}
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(expect<type> value)
+  function_evaluation<T>::function_evaluation(maybe<type> value)
       : m_value(std::move(value)),
         m_update(base_reactor::update::EVAL) {}
 
   template<typename T>
   function_evaluation<T>::function_evaluation(type value)
-      : function_evaluation(expect<type>(std::move(value))) {}
+      : function_evaluation(maybe<type>(std::move(value))) {}
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(std::optional<expect<type>> value)
+  function_evaluation<T>::function_evaluation(std::optional<maybe<type>> value)
       : m_value(std::move(value)) {
     if(m_value.has_value()) {
       m_update = base_reactor::update::EVAL;
@@ -271,10 +271,10 @@ namespace details {
 
   template<typename T>
   function_evaluation<T>::function_evaluation(std::optional<type> value)
-      : function_evaluation(std::optional<expect<type>>(std::move(value))) {}
+      : function_evaluation(std::optional<maybe<type>>(std::move(value))) {}
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(expect<type> value,
+  function_evaluation<T>::function_evaluation(maybe<type> value,
       base_reactor::update update)
       : m_value(std::move(value)),
         m_update(update) {
@@ -282,7 +282,7 @@ namespace details {
   }
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(std::optional<expect<type>> value,
+  function_evaluation<T>::function_evaluation(std::optional<maybe<type>> value,
       base_reactor::update update)
       : m_value(std::move(value)),
         m_update(update) {
@@ -296,8 +296,8 @@ namespace details {
   template<typename T>
   function_evaluation<T>::function_evaluation(std::optional<type> value,
       base_reactor::update update)
-      : function_evaluation(std::optional<expect<type>>(
-          expect<type>(std::move(value))), update) {}
+      : function_evaluation(std::optional<maybe<type>>(
+          maybe<type>(std::move(value))), update) {}
 
   template<typename T>
   function_evaluation<T>::function_evaluation(base_reactor::update update)

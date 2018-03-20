@@ -29,7 +29,7 @@ namespace darcel {
           std::shared_ptr<base_reactor>>& parameters) const override final {
         auto lhs = std::static_pointer_cast<reactor<T>>(parameters[0]);
         auto rhs = std::static_pointer_cast<reactor<U>>(parameters[1]);
-        return add(lhs, rhs);
+        return std::static_pointer_cast<base_reactor>(add(lhs, rhs));
       }
   };
 }

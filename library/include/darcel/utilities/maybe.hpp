@@ -1,5 +1,5 @@
-#ifndef DARCEL_EXPECT_HPP
-#define DARCEL_EXPECT_HPP
+#ifndef DARCEL_MAYBE_HPP
+#define DARCEL_MAYBE_HPP
 #include <exception>
 #include <variant>
 #include "darcel/utilities/utilities.hpp"
@@ -10,32 +10,32 @@ namespace darcel {
       \tparam T The type of value to store.
    */
   template<typename T>
-  class expect {
+  class maybe {
     public:
 
       //! The type of value to store.
       using type = T;
 
-      //! Constructs an expect.
-      expect() = default;
+      //! Constructs a maybe.
+      maybe() = default;
 
-      //! Constructs an expect with a normal value.
+      //! Constructs a maybe with a normal value.
       /*!
         \param value The value to store.
       */
-      expect(const type& value);
+      maybe(const type& value);
 
-      //! Constructs an expect with a normal value.
+      //! Constructs a maybe with a normal value.
       /*!
         \param value The value to store.
       */
-      expect(type&& value);
+      maybe(type&& value);
 
-      //! Constructs an expect with an exception.
+      //! Constructs a maybe with an exception.
       /*!
         \param exception The exception to throw.
       */
-      expect(const std::exception_ptr& exception);
+      maybe(const std::exception_ptr& exception);
 
       //! Implicitly converts to the underlying value.
       operator const type& () const;
@@ -56,30 +56,30 @@ namespace darcel {
       std::exception_ptr get_exception() const;
 
       template<typename U>
-      expect& operator =(const expect<U>& rhs);
+      maybe& operator =(const maybe<U>& rhs);
 
       template<typename U>
-      expect& operator =(expect<U>&& rhs);
+      maybe& operator =(maybe<U>&& rhs);
 
       template<typename U>
-      expect& operator =(const U& rhs);
+      maybe& operator =(const U& rhs);
 
       template<typename U>
-      expect& operator =(U&& rhs);
+      maybe& operator =(U&& rhs);
 
     private:
-      template<typename> friend class expect;
+      template<typename> friend class maybe;
       std::variant<type, std::exception_ptr> m_value;
   };
 
   template<>
-  class expect<void> {
+  class maybe<void> {
     public:
       using type = void;
 
-      expect() = default;
+      maybe() = default;
 
-      expect(const std::exception_ptr& exception);
+      maybe(const std::exception_ptr& exception);
 
       bool has_exception() const;
 
@@ -97,7 +97,7 @@ namespace darcel {
     \return The result of <i>f</i>.
   */
   template<typename F>
-  expect<std::invoke_result_t<F>> try_call(F&& f) {
+  maybe<std::invoke_result_t<F>> try_call(F&& f) {
     try {
       return f();
     } catch(...) {
@@ -106,34 +106,34 @@ namespace darcel {
   };
 
   template<typename T>
-  expect<T>::expect(const type& value)
+  maybe<T>::maybe(const type& value)
       : m_value(value) {}
 
   template<typename T>
-  expect<T>::expect(type&& value)
+  maybe<T>::maybe(type&& value)
       : m_value(std::move(value)) {}
 
   template<typename T>
-  expect<T>::expect(const std::exception_ptr& exception)
+  maybe<T>::maybe(const std::exception_ptr& exception)
       : m_value(exception) {}
 
   template<typename T>
-  expect<T>::operator const typename expect<T>::type& () const {
+  maybe<T>::operator const typename maybe<T>::type& () const {
     return get();
   }
 
   template<typename T>
-  bool expect<T>::has_value() const {
+  bool maybe<T>::has_value() const {
     return m_value.index() == 0;
   }
 
   template<typename T>
-  bool expect<T>::has_exception() const {
+  bool maybe<T>::has_exception() const {
     return m_value.index() == 1;
   }
 
   template<typename T>
-  const typename expect<T>::type& expect<T>::get() const {
+  const typename maybe<T>::type& maybe<T>::get() const {
     if(has_value()) {
       return std::get<type>(m_value);
     }
@@ -142,7 +142,7 @@ namespace darcel {
   }
 
   template<typename T>
-  typename expect<T>::type& expect<T>::get() {
+  typename maybe<T>::type& maybe<T>::get() {
     if(has_value()) {
       return std::get<type>(m_value);
     }
@@ -151,7 +151,7 @@ namespace darcel {
   }
 
   template<typename T>
-  std::exception_ptr expect<T>::get_exception() const {
+  std::exception_ptr maybe<T>::get_exception() const {
     if(has_exception()) {
       return std::get<std::exception_ptr>(m_value);
     }
@@ -160,46 +160,46 @@ namespace darcel {
 
   template<typename T>
   template<typename U>
-  expect<T>& expect<T>::operator =(const expect<U>& rhs) {
+  maybe<T>& maybe<T>::operator =(const maybe<U>& rhs) {
     m_value = rhs.m_value;
     return *this;
   }
 
   template<typename T>
   template<typename U>
-  expect<T>& expect<T>::operator =(expect<U>&& rhs) {
+  maybe<T>& maybe<T>::operator =(maybe<U>&& rhs) {
     m_value = std::move(rhs.m_value);
     return *this;
   }
 
   template<typename T>
   template<typename U>
-  expect<T>& expect<T>::operator =(const U& rhs) {
+  maybe<T>& maybe<T>::operator =(const U& rhs) {
     m_value = rhs;
     return *this;
   }
 
   template<typename T>
   template<typename U>
-  expect<T>& expect<T>::operator =(U&& rhs) {
+  maybe<T>& maybe<T>::operator =(U&& rhs) {
     m_value = std::move(rhs);
     return *this;
   }
 
-  inline expect<void>::expect(const std::exception_ptr& exception)
+  inline maybe<void>::maybe(const std::exception_ptr& exception)
       : m_exception(exception) {}
 
-  inline bool expect<void>::has_exception() const {
+  inline bool maybe<void>::has_exception() const {
     return m_exception != std::exception_ptr();
   }
 
-  inline void expect<void>::get() const {
+  inline void maybe<void>::get() const {
     if(m_exception != std::exception_ptr()) {
       std::rethrow_exception(m_exception);
     }
   }
 
-  inline std::exception_ptr expect<void>::get_exception() const {
+  inline std::exception_ptr maybe<void>::get_exception() const {
     return m_exception;
   }
 }

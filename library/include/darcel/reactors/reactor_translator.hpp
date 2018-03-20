@@ -110,6 +110,7 @@ namespace darcel {
     if(node.get_variable()->get_name() == "add(Text, Text)") {
       m_evaluation = std::make_shared<
         add_reactor_builder<std::string, std::string>>();
+      return;
     }
     m_evaluation = m_variables[node.get_variable()];
   }

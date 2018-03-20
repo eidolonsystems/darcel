@@ -2,7 +2,7 @@
 #define DARCEL_UTILITIES_HPP
 
 namespace darcel {
-  template<typename T> class expect;
+  template<typename T> class maybe;
 }
 
 #endif
