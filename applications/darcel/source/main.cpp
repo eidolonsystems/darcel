@@ -1,6 +1,7 @@
 #include <fstream>
 #include <tclap/CmdLine.h>
 #include "darcel/lexicon/token_parser.hpp"
+#include "darcel/reactors/reactor_executor.hpp"
 #include "darcel/reactors/reactor_translator.hpp"
 #include "darcel/syntax/syntax_parser.hpp"
 #include "darcel/version.hpp"
@@ -44,6 +45,7 @@ int main(int argc, const char** argv) {
     cerr << "Main reactor undefined." << endl;
     return -1;
   }
-  main_reactor->commit(0);
+  reactor_executor executor(main_reactor);
+  executor.execute();
   cout << static_cast<reactor<string>*>(&*main_reactor)->eval() << endl;
 }

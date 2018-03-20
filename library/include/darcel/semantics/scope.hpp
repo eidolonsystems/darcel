@@ -83,8 +83,7 @@ namespace darcel {
       for(auto& o : {op::ADD, op::SUBTRACT, op::MULTIPLY, op::DIVIDE}) {
         auto name = get_decorated_name(o, types);
         auto f = std::make_shared<variable>(location::global(), name,
-          std::make_shared<function_data_type>(parameters,
-          integer_data_type::get_instance()));
+          std::make_shared<function_data_type>(parameters, t));
         scope.add(f);
       }
     }
@@ -101,7 +100,7 @@ namespace darcel {
       auto name = get_decorated_name(op::ADD, types);
       auto f = std::make_shared<variable>(location::global(), name,
         std::make_shared<function_data_type>(parameters,
-        integer_data_type::get_instance()));
+        text_data_type::get_instance()));
       scope.add(f);
     }
   }
