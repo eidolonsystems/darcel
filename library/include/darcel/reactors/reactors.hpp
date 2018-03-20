@@ -6,6 +6,7 @@ namespace darcel {
   class commit_reactor;
   template<typename T> class constant_reactor;
   template<typename T> class reactor;
+  class reactor_builder;
   class reactor_error;
   class reactor_exception;
   class reactor_translator;

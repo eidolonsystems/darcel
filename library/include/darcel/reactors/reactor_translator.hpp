@@ -3,7 +3,10 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include "darcel/reactors/constant_reactor.hpp"
+#include "darcel/reactors/operators.hpp"
+#include "darcel/reactors/reactor_builder.hpp"
 #include "darcel/reactors/reactors.hpp"
 #include "darcel/syntax/syntax_nodes.hpp"
 #include "darcel/syntax/syntax_node_visitor.hpp"
@@ -13,6 +16,10 @@ namespace darcel {
   //! Implements a syntax visitor to translate a node into a reactor.
   class reactor_translator : private syntax_node_visitor {
     public:
+
+      //! A variant over the types of values produced by an expression.
+      using value = std::variant<std::shared_ptr<base_reactor>,
+        std::shared_ptr<reactor_builder>>;
 
       //! Builds a reactor from a syntax node.
       /*!
@@ -32,10 +39,12 @@ namespace darcel {
       void visit(const variable_expression& node) override final;
 
     private:
-      std::unordered_map<std::shared_ptr<variable>,
-        std::shared_ptr<base_reactor>> m_variables;
-      std::shared_ptr<base_reactor> m_reactor;
+      std::unordered_map<std::shared_ptr<variable>, value> m_variables;
+      value m_evaluation;
       std::shared_ptr<base_reactor> m_main;
+
+      std::shared_ptr<base_reactor> evaluate_reactor(const expression& e);
+      std::shared_ptr<reactor_builder> evaluate_builder(const expression& e);
   };
 
   inline void reactor_translator::translate(const syntax_node& node) {
@@ -48,8 +57,7 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const bind_variable_statement& node) {
-    node.get_expression().apply(*this);
-    auto translation = std::move(m_reactor);
+    auto translation = evaluate_reactor(node.get_expression());
     m_variables[node.get_variable()] = translation;
     if(node.get_variable()->get_name() == "main") {
       m_main = translation;
@@ -57,7 +65,12 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const call_expression& node) {
-    node.get_callable().apply(*this);
+    auto builder = evaluate_builder(node.get_callable());
+    std::vector<std::shared_ptr<base_reactor>> parameters;
+    for(auto& parameter : node.get_parameters()) {
+      parameters.push_back(evaluate_reactor(*parameter));
+    }
+    m_evaluation = builder->build(parameters);
   }
 
   inline void reactor_translator::visit(const literal_expression& node) {
@@ -90,11 +103,27 @@ namespace darcel {
     };
     literal_visitor v(node.get_literal());
     node.get_data_type()->apply(v);
-    m_reactor = std::move(v.m_reactor);
+    m_evaluation = std::move(v.m_reactor);
   }
 
   inline void reactor_translator::visit(const variable_expression& node) {
-    m_reactor = m_variables[node.get_variable()];
+    if(node.get_variable()->get_name() == "add(Text, Text)") {
+      m_evaluation = std::make_shared<
+        add_reactor_builder<std::string, std::string>>();
+    }
+    m_evaluation = m_variables[node.get_variable()];
+  }
+
+  inline std::shared_ptr<base_reactor> reactor_translator::evaluate_reactor(
+      const expression& e) {
+    e.apply(*this);
+    return std::get<std::shared_ptr<base_reactor>>(m_evaluation);
+  }
+
+  inline std::shared_ptr<reactor_builder> reactor_translator::evaluate_builder(
+      const expression& e) {
+    e.apply(*this);
+    return std::get<std::shared_ptr<reactor_builder>>(m_evaluation);
   }
 }
 
