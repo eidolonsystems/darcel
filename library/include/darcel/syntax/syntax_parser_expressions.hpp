@@ -83,14 +83,20 @@ namespace darcel {
           expressions.pop_back();
           --arity;
         }
-        std::vector<std::shared_ptr<data_type>> types;
+        auto& function_name = get_function_name(o.m_op);
+        auto f = get_current_scope().find<function>(function_name);
+        if(f == nullptr) {
+
+          // TODO
+          throw std::runtime_error("Syntax error.");
+        }
+        std::vector<function_data_type::parameter> types;
         std::transform(parameters.begin(), parameters.end(),
           std::back_inserter(types),
           [] (auto& p) {
-            return p->get_data_type();
+            return function_data_type::parameter("", p->get_data_type());
           });
-        auto& function_name = get_decorated_name(o.m_op, types);
-        auto& callable = get_current_scope().find<variable>(function_name);
+        auto callable = find_overload(*f, types);
         if(callable == nullptr) {
 
           // TODO

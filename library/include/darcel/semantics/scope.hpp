@@ -8,6 +8,7 @@
 #include "darcel/data_types/integer_data_type.hpp"
 #include "darcel/data_types/text_data_type.hpp"
 #include "darcel/semantics/element.hpp"
+#include "darcel/semantics/function.hpp"
 #include "darcel/semantics/semantics.hpp"
 #include "darcel/semantics/variable.hpp"
 #include "darcel/syntax/ops.hpp"
@@ -46,11 +47,11 @@ namespace darcel {
 
       //! Adds an element to this scope.
       /*!
-        \param element The element to add.
+        \param e The element to add.
         \return <code>true</code> iff the element was added, otherwise an
                 element with the same name already exists.
       */
-      bool add(std::shared_ptr<element> element);
+      bool add(std::shared_ptr<element> e);
 
     private:
       const scope* m_parent;
@@ -81,7 +82,7 @@ namespace darcel {
           return p.m_type;
         });
       for(auto& o : {op::ADD, op::SUBTRACT, op::MULTIPLY, op::DIVIDE}) {
-        auto name = get_decorated_name(o, types);
+        auto name = get_function_name(o);
         auto f = std::make_shared<variable>(location::global(), name,
           std::make_shared<function_data_type>(parameters, t));
         scope.add(f);
@@ -97,7 +98,7 @@ namespace darcel {
         [] (auto& p) {
           return p.m_type;
         });
-      auto name = get_decorated_name(op::ADD, types);
+      auto name = get_function_name(op::ADD);
       auto f = std::make_shared<variable>(location::global(), name,
         std::make_shared<function_data_type>(parameters,
         text_data_type::get_instance()));
@@ -116,14 +117,14 @@ namespace darcel {
   }
 
   inline std::shared_ptr<element> scope::find(const std::string& name) const {
-    auto element = m_elements.find(name);
-    if(element == m_elements.end()) {
+    auto e = m_elements.find(name);
+    if(e == m_elements.end()) {
       if(m_parent == nullptr) {
         return nullptr;
       }
       return m_parent->find(name);
     }
-    return element->second;
+    return e->second;
   }
 
   template<typename T>
@@ -134,16 +135,29 @@ namespace darcel {
 
   inline std::shared_ptr<element> scope::find_within(
       const std::string& name) const {
-    auto element = m_elements.find(name);
-    if(element == m_elements.end()) {
+    auto e = m_elements.find(name);
+    if(e == m_elements.end()) {
       return nullptr;
     }
-    return element->second;
+    return e->second;
   }
 
-  inline bool scope::add(std::shared_ptr<element> element) {
-    return m_elements.try_emplace(
-      element->get_name(), std::move(element)).second;
+  inline bool scope::add(std::shared_ptr<element> e) {
+    if(auto v = std::dynamic_pointer_cast<variable>(e)) {
+      if(std::dynamic_pointer_cast<function_data_type>(v->get_data_type())) {
+        auto f = m_elements.find(e->get_name());
+        if(f == m_elements.end()) {
+          auto g = std::make_shared<function>(std::move(v));
+          return m_elements.insert(std::make_pair(g->get_name(), g)).second;
+        } else if(auto g = std::dynamic_pointer_cast<function>(f->second)) {
+          g->add(std::move(v));
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+    return m_elements.try_emplace(e->get_name(), e).second;
   }
 }
 

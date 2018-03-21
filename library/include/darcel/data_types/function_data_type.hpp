@@ -21,6 +21,9 @@ namespace darcel {
 
         //! The parameter's type.
         std::shared_ptr<data_type> m_type;
+
+        //! Constructs a parameter.
+        parameter(std::string name, std::shared_ptr<data_type> type);
       };
 
       //! Constructs a function data type.
@@ -51,6 +54,24 @@ namespace darcel {
       std::shared_ptr<data_type> m_return_type;
       std::string m_name;
   };
+
+  //! Makes a function data type.
+  /*!
+    \param parameters The function's parameters.
+    \param return_type The return type.
+  */
+  inline std::shared_ptr<function_data_type> make_function_data_type(
+      std::initializer_list<function_data_type::parameter> parameters,
+      std::shared_ptr<data_type> return_type) {
+    return std::make_shared<function_data_type>(
+      std::vector<function_data_type::parameter>(std::move(parameters)),
+      std::move(return_type));
+  }
+
+  inline function_data_type::parameter::parameter(std::string name,
+      std::shared_ptr<data_type> type)
+      : m_name(std::move(name)),
+        m_type(std::move(type)) {}
 
   inline function_data_type::function_data_type(
       std::vector<parameter> parameters, std::shared_ptr<data_type> return_type)

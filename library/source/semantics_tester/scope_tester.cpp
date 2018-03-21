@@ -27,3 +27,15 @@ TEST_CASE("test_scope_lookup", "[scope]") {
     REQUIRE(abc->get_name() == "abc");
   }
 }
+
+TEST_CASE("test_scope_function_overloads", "[scope]") {
+  scope s1;
+  {
+    REQUIRE(s1.add(std::make_shared<variable>(location::global(), "f",
+      make_function_data_type({{"a", integer_data_type::get_instance()}},
+      integer_data_type::get_instance()))));
+    REQUIRE(s1.add(std::make_shared<variable>(location::global(), "f",
+      make_function_data_type({{"a", text_data_type::get_instance()}},
+      integer_data_type::get_instance()))));
+  }
+}

@@ -9,9 +9,8 @@ using namespace darcel;
 using namespace std;
 
 TEST_CASE("test_call_expression", "[call_expression]") {
-  vector<function_data_type::parameter> type_parameters;
-  type_parameters.push_back({"a", integer_data_type::get_instance()});
-  auto f_type = std::make_shared<function_data_type>(type_parameters,
+  auto f_type = make_function_data_type(
+    {{"a", integer_data_type::get_instance()}},
     integer_data_type::get_instance());
   auto f = std::make_shared<variable>(location::global(), "f", f_type);
   auto callable = std::make_unique<variable_expression>(location::global(), f);
