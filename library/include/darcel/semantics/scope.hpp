@@ -75,29 +75,36 @@ namespace darcel {
       std::vector<function_data_type::parameter> parameters;
       parameters.push_back({"lhs", t});
       parameters.push_back({"rhs", t});
-      std::vector<std::shared_ptr<data_type>> types;
-      std::transform(parameters.begin(), parameters.end(),
-        std::back_inserter(types),
-        [] (auto& p) {
-          return p.m_type;
-        });
       for(auto& o : {op::ADD, op::SUBTRACT, op::MULTIPLY, op::DIVIDE}) {
-        auto name = get_function_name(o);
-        auto f = std::make_shared<variable>(location::global(), name,
+        auto f = std::make_shared<variable>(location::global(),
+          get_function_name(o),
           std::make_shared<function_data_type>(parameters, t));
         scope.add(f);
       }
+    }
+    for(auto& t : std::vector<std::shared_ptr<data_type>>{
+        bool_data_type::get_instance(), integer_data_type::get_instance(),
+        float_data_type::get_instance(), text_data_type::get_instance()}) {
+      std::vector<function_data_type::parameter> parameters;
+      parameters.push_back({"v", t});
+      auto f = std::make_shared<variable>(location::global(), "print",
+        std::make_shared<function_data_type>(parameters, t));
+      scope.add(f);
+    }
+    for(auto& t : std::vector<std::shared_ptr<data_type>>{
+        bool_data_type::get_instance(), integer_data_type::get_instance(),
+        float_data_type::get_instance(), text_data_type::get_instance()}) {
+      std::vector<function_data_type::parameter> parameters;
+      parameters.push_back({"initial", t});
+      parameters.push_back({"continuation", t});
+      auto f = std::make_shared<variable>(location::global(), "chain",
+        std::make_shared<function_data_type>(parameters, t));
+      scope.add(f);
     }
     {
       std::vector<function_data_type::parameter> parameters;
       parameters.push_back({"lhs", text_data_type::get_instance()});
       parameters.push_back({"rhs", text_data_type::get_instance()});
-      std::vector<std::shared_ptr<data_type>> types;
-      std::transform(parameters.begin(), parameters.end(),
-        std::back_inserter(types),
-        [] (auto& p) {
-          return p.m_type;
-        });
       auto name = get_function_name(op::ADD);
       auto f = std::make_shared<variable>(location::global(), name,
         std::make_shared<function_data_type>(parameters,

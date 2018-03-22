@@ -7,6 +7,7 @@
 #include "darcel/syntax/arity_syntax_error.hpp"
 #include "darcel/syntax/bind_variable_statement.hpp"
 #include "darcel/syntax/call_expression.hpp"
+#include "darcel/syntax/function_expression.hpp"
 #include "darcel/syntax/literal_expression.hpp"
 #include "darcel/syntax/ops.hpp"
 #include "darcel/syntax/redefinition_syntax_error.hpp"
@@ -17,6 +18,23 @@
 #include "darcel/syntax/variable_expression.hpp"
 
 namespace darcel {
+  inline std::unique_ptr<function_expression>
+      syntax_parser::parse_function_expression(token_iterator& cursor) {
+    auto c = cursor;
+    auto name = try_parse_identifier(c);
+    if(!name.has_value()) {
+      return nullptr;
+    }
+    auto f = get_current_scope().find<function>(*name);
+    if(f == nullptr) {
+      return nullptr;
+    }
+    auto node = std::make_unique<function_expression>(cursor.get_location(),
+      std::move(f));
+    cursor = c;
+    return node;
+  }
+
   inline std::unique_ptr<literal_expression> syntax_parser::
       parse_literal_expression(token_iterator& cursor) {
     return std::visit(
@@ -52,7 +70,9 @@ namespace darcel {
 
   inline std::unique_ptr<expression> syntax_parser::parse_expression_term(
       token_iterator& cursor) {
-    if(auto node = parse_literal_expression(cursor)) {
+    if(auto node = parse_function_expression(cursor)) {
+      return node;
+    } else if(auto node = parse_literal_expression(cursor)) {
       return node;
     } else if(auto node = parse_variable_expression(cursor)) {
       return node;
@@ -145,6 +165,18 @@ namespace darcel {
           }
           auto callable = std::move(expressions.back());
           expressions.pop_back();
+          if(auto f = dynamic_cast<const function_expression*>(
+              callable.get())) {
+            std::vector<function_data_type::parameter> types;
+            std::transform(parameters.begin(), parameters.end(),
+              std::back_inserter(types),
+              [] (auto& p) {
+                return function_data_type::parameter("", p->get_data_type());
+              });
+            auto overload = find_overload(*f->get_function(), types);
+            callable = std::make_unique<variable_expression>(
+              f->get_location(), std::move(overload));
+          }
           auto call = std::make_unique<call_expression>(call_location,
             std::move(callable), std::move(parameters));
           expressions.push_back(std::move(call));

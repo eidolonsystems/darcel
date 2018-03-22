@@ -6,6 +6,7 @@ namespace darcel {
   class bind_variable_statement;
   class call_expression;
   class expression;
+  class function_expression;
   class literal_expression;
   class redefinition_syntax_error;
   class statement;

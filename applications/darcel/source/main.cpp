@@ -37,15 +37,15 @@ int main(int argc, const char** argv) {
     sp.feed(*t);
   }
   reactor_translator rt;
+  trigger t;
   while(auto s = sp.parse_node()) {
-    rt.translate(*s);
+    rt.translate(*s, t);
   }
   auto main_reactor = rt.get_main();
   if(main_reactor == nullptr) {
     cerr << "Main reactor undefined." << endl;
     return -1;
   }
-  reactor_executor executor(main_reactor);
+  reactor_executor executor(main_reactor, t);
   executor.execute();
-  cout << static_cast<reactor<string>*>(&*main_reactor)->eval() << endl;
 }

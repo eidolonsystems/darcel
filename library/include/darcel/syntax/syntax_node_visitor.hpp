@@ -15,6 +15,8 @@ namespace darcel {
 
       virtual void visit(const expression& node);
 
+      virtual void visit(const function_expression& node);
+
       virtual void visit(const literal_expression& node);
 
       virtual void visit(const statement& node);

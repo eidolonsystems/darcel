@@ -4,6 +4,7 @@
 #include <utility>
 #include "darcel/reactors/constant_reactor.hpp"
 #include "darcel/reactors/reactor.hpp"
+#include "darcel/reactors/reactor_builder.hpp"
 #include "darcel/reactors/reactors.hpp"
 #include "darcel/reactors/trigger.hpp"
 #include "darcel/utilities/maybe.hpp"
@@ -49,18 +50,6 @@ namespace darcel {
       base_reactor::update m_state;
   };
 
-  //! Makes a chain_reactor.
-  /*!
-    \param initial The reactor to initially evaluate to.
-    \param continuation The reactor to evaluate to thereafter.
-    \param trigger The trigger used to transition between reactors.
-  */
-  template<typename T>
-  auto make_chain_reactor(std::shared_ptr<reactor<T>> initial,
-      std::shared_ptr<reactor<T>> continuation, trigger& t) {
-    return make_chain_reactor(std::move(initial), std::move(continuation), t);
-  }
-
   //! Makes a chain reactor.
   /*!
     \param initial The reactor to initially evaluate to.
@@ -75,6 +64,36 @@ namespace darcel {
     return std::make_shared<chain_reactor<type>>(
       std::forward<decltype(initial_reactor)>(initial_reactor),
       std::forward<decltype(continuation_reactor)>(continuation_reactor), t);
+  }
+
+  //! Makes a chain_reactor.
+  /*!
+    \param initial The reactor to initially evaluate to.
+    \param continuation The reactor to evaluate to thereafter.
+    \param trigger The trigger used to transition between reactors.
+  */
+  template<typename T>
+  auto make_chain_reactor(std::shared_ptr<reactor<T>> initial,
+      std::shared_ptr<reactor<T>> continuation, trigger& t) {
+    return chain(std::move(initial), std::move(continuation), t);
+  }
+
+  //! Builds a chain reactor.
+  template<typename T>
+  class chain_reactor_builder : public reactor_builder {
+    public:
+      std::shared_ptr<base_reactor> build(
+        const std::vector<std::shared_ptr<base_reactor>>& parameters,
+        trigger& t) const override final;
+  };
+
+  template<typename T>
+  std::shared_ptr<base_reactor> chain_reactor_builder<T>::build(
+      const std::vector<std::shared_ptr<base_reactor>>& parameters,
+      trigger& t) const {
+    return make_chain_reactor(
+      std::static_pointer_cast<reactor<T>>(parameters[0]),
+      std::static_pointer_cast<reactor<T>>(parameters[1]), t);
   }
 
   template<typename T>

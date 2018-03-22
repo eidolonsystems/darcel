@@ -26,7 +26,8 @@ namespace darcel {
   class add_reactor_builder : public reactor_builder {
     public:
       std::shared_ptr<base_reactor> build(const std::vector<
-          std::shared_ptr<base_reactor>>& parameters) const override final {
+          std::shared_ptr<base_reactor>>& parameters,
+          trigger& t) const override final {
         auto lhs = std::static_pointer_cast<reactor<T>>(parameters[0]);
         auto rhs = std::static_pointer_cast<reactor<U>>(parameters[1]);
         return add(lhs, rhs);
