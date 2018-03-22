@@ -33,6 +33,9 @@ namespace darcel {
       */
       syntax_parser(std::unique_ptr<scope> s);
 
+      //! Returns the top-level scope.
+      const scope& get_scope() const;
+
       //! Feeds this parser a token.
       /*!
         \param t The token to feed.
@@ -170,6 +173,10 @@ namespace darcel {
 
   inline syntax_parser::syntax_parser(std::unique_ptr<scope> s) {
     m_scopes.push_back(std::move(s));
+  }
+
+  inline const scope& syntax_parser::get_scope() const {
+    return *m_scopes.front();
   }
 
   inline void syntax_parser::feed(token t) {

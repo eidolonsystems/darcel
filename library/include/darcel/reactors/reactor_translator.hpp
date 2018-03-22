@@ -12,6 +12,7 @@
 #include "darcel/reactors/reactor_builder.hpp"
 #include "darcel/reactors/reactors.hpp"
 #include "darcel/reactors/trigger.hpp"
+#include "darcel/semantics/scope.hpp"
 #include "darcel/syntax/syntax_nodes.hpp"
 #include "darcel/syntax/syntax_node_visitor.hpp"
 
@@ -25,12 +26,19 @@ namespace darcel {
       using value = std::variant<std::shared_ptr<base_reactor>,
         std::shared_ptr<reactor_builder>>;
 
+      //! Constructs a reactor translator given a scope containing all of the
+      //! built-in global definitions.
+      /*!
+        \param s The scope the node belongs to.
+        \param t The trigger used to indicate reactor updates.
+      */
+      reactor_translator(const scope& s, trigger& t);
+
       //! Builds a reactor from a syntax node.
       /*!
         \param node The node to translate into a reactor.
-        \param t The trigger used to indicate reactor updates.
       */
-      void translate(const syntax_node& node, trigger& t);
+      void translate(const syntax_node& node);
 
       //! Returns the main reactor.
       const std::shared_ptr<base_reactor>& get_main() const;
@@ -44,6 +52,7 @@ namespace darcel {
       void visit(const variable_expression& node) override final;
 
     private:
+      const scope* m_scope;
       trigger* m_trigger;
       std::unordered_map<std::shared_ptr<variable>, value> m_variables;
       value m_evaluation;
@@ -53,9 +62,81 @@ namespace darcel {
       std::shared_ptr<reactor_builder> evaluate_builder(const expression& e);
   };
 
-  inline void reactor_translator::translate(const syntax_node& node,
-      trigger& t) {
-    m_trigger = &t;
+  inline reactor_translator::reactor_translator(const scope& s, trigger& t)
+      : m_scope(&s),
+        m_trigger(&t) {
+    auto add = m_scope->find<function>("add");
+    if(add != nullptr) {
+      for(auto& overload : add->get_overloads()) {
+        auto signature = std::static_pointer_cast<function_data_type>(
+          overload->get_data_type());
+        if(signature->get_parameters().size() == 2) {
+          if(*signature->get_parameters()[0].m_type == integer_data_type() &&
+              *signature->get_parameters()[1].m_type == integer_data_type()) {
+            m_variables[overload] =
+              std::make_shared<add_reactor_builder<int, int>>();
+          } else if(
+              *signature->get_parameters()[0].m_type == float_data_type() &&
+              *signature->get_parameters()[1].m_type == float_data_type()) {
+            m_variables[overload] =
+              std::make_shared<add_reactor_builder<double, double>>();
+          } else if(
+              *signature->get_parameters()[0].m_type == text_data_type() &&
+              *signature->get_parameters()[1].m_type == text_data_type()) {
+            m_variables[overload] =
+              std::make_shared<add_reactor_builder<std::string, std::string>>();
+          }
+        }
+      }
+    }
+    auto chain = m_scope->find<function>("chain");
+    if(add != nullptr) {
+      for(auto& overload : add->get_overloads()) {
+        auto signature = std::static_pointer_cast<function_data_type>(
+          overload->get_data_type());
+        if(signature->get_parameters().size() == 2) {
+          if(*signature->get_parameters()[0].m_type == integer_data_type() &&
+              *signature->get_parameters()[1].m_type == integer_data_type()) {
+            m_variables[overload] =
+              std::make_shared<chain_reactor_builder<int>>();
+          } else if(
+              *signature->get_parameters()[0].m_type == float_data_type() &&
+              *signature->get_parameters()[1].m_type == float_data_type()) {
+            m_variables[overload] =
+              std::make_shared<chain_reactor_builder<double>>();
+          } else if(
+              *signature->get_parameters()[0].m_type == text_data_type() &&
+              *signature->get_parameters()[1].m_type == text_data_type()) {
+            m_variables[overload] =
+              std::make_shared<chain_reactor_builder<std::string>>();
+          }
+        }
+      }
+    }
+    auto print = m_scope->find<function>("print");
+    if(print != nullptr) {
+      for(auto& overload : add->get_overloads()) {
+        auto signature = std::static_pointer_cast<function_data_type>(
+          overload->get_data_type());
+        if(signature->get_parameters().size() == 1) {
+          if(*signature->get_parameters()[0].m_type == integer_data_type()) {
+            m_variables[overload] =
+              std::make_shared<ostream_reactor_builder<int>>(std::cout);
+          } else if(*signature->get_parameters()[0].m_type ==
+              float_data_type()) {
+            m_variables[overload] =
+              std::make_shared<ostream_reactor_builder<double>>(std::cout);
+          } else if(*signature->get_parameters()[0].m_type ==
+              text_data_type()) {
+            m_variables[overload] =
+              std::make_shared<ostream_reactor_builder<std::string>>(std::cout);
+          }
+        }
+      }
+    }
+  }
+
+  inline void reactor_translator::translate(const syntax_node& node) {
     node.apply(*this);
   }
 
@@ -115,57 +196,6 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const variable_expression& node) {
-    if(node.get_variable()->get_name() == "add") {
-      auto signature = std::dynamic_pointer_cast<function_data_type>(
-        node.get_variable()->get_data_type());
-      if(signature != nullptr && signature->get_parameters().size() == 2) {
-        if(*signature->get_parameters()[0].m_type == integer_data_type()) {
-          m_evaluation = std::make_shared<add_reactor_builder<int, int>>();
-          return;
-        } else if(*signature->get_parameters()[0].m_type == float_data_type()) {
-          m_evaluation = std::make_shared<
-            add_reactor_builder<double, double>>();
-          return;
-        } else if(*signature->get_parameters()[0].m_type == text_data_type()) {
-          m_evaluation = std::make_shared<
-            add_reactor_builder<std::string, std::string>>();
-          return;
-        }
-      }
-    } else if(node.get_variable()->get_name() == "chain") {
-      auto signature = std::dynamic_pointer_cast<function_data_type>(
-        node.get_variable()->get_data_type());
-      if(signature != nullptr && signature->get_parameters().size() == 2) {
-        if(*signature->get_parameters()[0].m_type == integer_data_type()) {
-          m_evaluation = std::make_shared<chain_reactor_builder<int>>();
-          return;
-        } else if(*signature->get_parameters()[0].m_type == float_data_type()) {
-          m_evaluation = std::make_shared<chain_reactor_builder<double>>();
-          return;
-        } else if(*signature->get_parameters()[0].m_type == text_data_type()) {
-          m_evaluation = std::make_shared<chain_reactor_builder<std::string>>();
-          return;
-        }
-      }
-    } else if(node.get_variable()->get_name() == "print") {
-      auto signature = std::dynamic_pointer_cast<function_data_type>(
-        node.get_variable()->get_data_type());
-      if(signature != nullptr && signature->get_parameters().size() == 1) {
-        if(*signature->get_parameters()[0].m_type == integer_data_type()) {
-          m_evaluation = std::make_shared<ostream_reactor_builder<int>>(
-            std::cout);
-          return;
-        } else if(*signature->get_parameters()[0].m_type == float_data_type()) {
-          m_evaluation = std::make_shared<ostream_reactor_builder<double>>(
-            std::cout);
-          return;
-        } else if(*signature->get_parameters()[0].m_type == text_data_type()) {
-          m_evaluation = std::make_shared<ostream_reactor_builder<std::string>>(
-            std::cout);
-          return;
-        }
-      }
-    }
     m_evaluation = m_variables[node.get_variable()];
   }
 

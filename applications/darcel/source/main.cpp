@@ -36,11 +36,11 @@ int main(int argc, const char** argv) {
   while(auto t = tp.parse_token())  {
     sp.feed(*t);
   }
-  reactor_translator rt;
   trigger t;
+  reactor_translator rt(sp.get_scope(), t);
   try {
     while(auto s = sp.parse_node()) {
-      rt.translate(*s, t);
+      rt.translate(*s);
     }
   } catch(const syntax_error& e) {
     std::cerr << e.get_location().get_line_number() << ":" <<
