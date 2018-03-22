@@ -106,9 +106,8 @@ namespace darcel {
         auto& function_name = get_function_name(o.m_op);
         auto f = get_current_scope().find<function>(function_name);
         if(f == nullptr) {
-
-          // TODO
-          throw std::runtime_error("Syntax error.");
+          throw syntax_error(syntax_error_code::FUNCTION_NOT_FOUND,
+            o.m_location);
         }
         std::vector<function_data_type::parameter> types;
         std::transform(parameters.begin(), parameters.end(),
@@ -118,9 +117,8 @@ namespace darcel {
           });
         auto callable = find_overload(*f, types);
         if(callable == nullptr) {
-
-          // TODO
-          throw std::runtime_error("Syntax error.");
+          throw syntax_error(syntax_error_code::FUNCTION_NOT_FOUND,
+            o.m_location);
         }
         auto call = std::make_unique<call_expression>(o.m_location,
           std::make_unique<variable_expression>(o.m_location, callable),
