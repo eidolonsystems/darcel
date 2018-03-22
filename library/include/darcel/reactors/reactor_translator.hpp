@@ -90,7 +90,7 @@ namespace darcel {
       }
     }
     auto chain = m_scope->find<function>("chain");
-    if(add != nullptr) {
+    if(chain != nullptr) {
       for(auto& overload : add->get_overloads()) {
         auto signature = std::static_pointer_cast<function_data_type>(
           overload->get_data_type());
