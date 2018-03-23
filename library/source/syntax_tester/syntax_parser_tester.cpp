@@ -165,3 +165,11 @@ TEST_CASE("test_parsing_with_line_continuations", "[syntax_parser]") {
     auto e = p.parse_node();
   }
 }
+
+TEST_CASE("test_parsing_function_definition", "[syntax_parser]") {
+  SECTION("Parse no parameter function.") {
+    syntax_parser p;
+    feed(p, "let f() = 5");
+    auto e = p.parse_node();
+  }
+}

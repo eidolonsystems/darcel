@@ -1,6 +1,6 @@
 #ifndef DARCEL_SYNTAX_PARSER_STATEMENTS_HPP
 #define DARCEL_SYNTAX_PARSER_STATEMENTS_HPP
-#include <cassert>
+#include "darcel/data_types/function_data_type.hpp"
 #include "darcel/lexicon/token.hpp"
 #include "darcel/syntax/syntax.hpp"
 #include "darcel/syntax/syntax_error.hpp"
@@ -16,6 +16,12 @@ namespace darcel {
     ++c;
     auto name_location = c.get_location();
     auto& name = parse_identifier(c);
+    std::vector<function_data_type::parameter> parameters;
+    auto is_function = match(*c, bracket::type::OPEN_ROUND_BRACKET);
+    if(is_function) {
+      ++c;
+      expect(c, bracket::type::CLOSE_ROUND_BRACKET);
+    }
     expect(c, operation::symbol::ASSIGN);
     auto initializer = expect_expression(c);
     auto existing_element = get_current_scope().find_within(name);
@@ -23,8 +29,15 @@ namespace darcel {
       throw redefinition_syntax_error(name_location, name,
         existing_element->get_location());
     }
+    auto type = [&] () -> std::shared_ptr<data_type> {
+      if(is_function) {
+        return std::make_shared<function_data_type>(std::move(parameters),
+          initializer->get_data_type());
+      }
+      return initializer->get_data_type();
+    }();
     auto v = std::make_shared<variable>(cursor.get_location(), name,
-      initializer->get_data_type());
+      std::move(type));
     get_current_scope().add(v);
     auto statement = std::make_unique<bind_variable_statement>(
       cursor.get_location(), std::move(v), std::move(initializer));

@@ -66,7 +66,7 @@ namespace darcel {
       std::forward<decltype(continuation_reactor)>(continuation_reactor), t);
   }
 
-  //! Makes a chain_reactor.
+  //! Makes a chain reactor.
   /*!
     \param initial The reactor to initially evaluate to.
     \param continuation The reactor to evaluate to thereafter.
@@ -78,22 +78,15 @@ namespace darcel {
     return chain(std::move(initial), std::move(continuation), t);
   }
 
-  //! Builds a chain reactor.
+  //! Makes a chain reactor builder.
   template<typename T>
-  class chain_reactor_builder : public reactor_builder {
-    public:
-      std::shared_ptr<base_reactor> build(
-        const std::vector<std::shared_ptr<base_reactor>>& parameters,
-        trigger& t) const override final;
-  };
-
-  template<typename T>
-  std::shared_ptr<base_reactor> chain_reactor_builder<T>::build(
-      const std::vector<std::shared_ptr<base_reactor>>& parameters,
-      trigger& t) const {
-    return make_chain_reactor(
-      std::static_pointer_cast<reactor<T>>(parameters[0]),
-      std::static_pointer_cast<reactor<T>>(parameters[1]), t);
+  auto make_chain_reactor_builder() {
+    return std::make_unique<function_reactor_builder>(
+      [] (auto& parameters, auto& t) {
+        return make_chain_reactor(
+          std::static_pointer_cast<reactor<T>>(parameters[0]),
+          std::static_pointer_cast<reactor<T>>(parameters[1]), t);
+      });
   }
 
   template<typename T>

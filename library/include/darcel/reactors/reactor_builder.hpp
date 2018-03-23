@@ -1,5 +1,6 @@
 #ifndef DARCEL_REACTOR_BUILDER_HPP
 #define DARCEL_REACTOR_BUILDER_HPP
+#include <functional>
 #include <memory>
 #include <vector>
 #include "darcel/reactors/reactors.hpp"
@@ -10,6 +11,14 @@ namespace darcel {
   class reactor_builder {
     public:
       virtual ~reactor_builder() = default;
+
+      //! Builds a reactor with no sub-reactors.
+      /*!
+        \param t The trigger used to indicate updates.
+        \return The reactor represented by this builder composed of the
+                specified parameters.
+      */
+      std::shared_ptr<base_reactor> build(trigger& t) const;
 
       //! Builds a reactor from a list of sub-reactors.
       /*!
@@ -32,6 +41,42 @@ namespace darcel {
       reactor_builder(const reactor_builder&) = delete;
       reactor_builder& operator =(const reactor_builder&) = delete;
   };
+
+  //! Implements a reactor builder using a function.
+  class function_reactor_builder : public reactor_builder {
+    public:
+
+      //! Constructs a function reactor builder.
+      /*!
+        \param f The function used to build the reactor.
+      */
+      template<typename F>
+      function_reactor_builder(F&& f);
+
+      std::shared_ptr<base_reactor> build(
+        const std::vector<std::shared_ptr<base_reactor>>& parameters,
+        trigger& t) const override final;
+
+    private:
+      std::function<std::shared_ptr<base_reactor> (
+        const std::vector<std::shared_ptr<base_reactor>>&, trigger&)>
+        m_function;
+  };
+
+  template<typename F>
+  function_reactor_builder::function_reactor_builder(F&& f)
+      : m_function(std::forward<F>(f)) {}
+
+  inline std::shared_ptr<base_reactor> function_reactor_builder::build(
+      const std::vector<std::shared_ptr<base_reactor>>& parameters,
+      trigger& t) const {
+    return m_function(parameters, t);
+  }
+
+  inline std::shared_ptr<base_reactor> reactor_builder::build(
+      trigger& t) const {
+    return build({}, t);
+  }
 }
 
 #endif

@@ -40,6 +40,18 @@ namespace darcel {
       std::forward<T>(value));
   }
 
+  //! Makes a constant reactor builder.
+  /*!
+    \param value The constant to evaluate to.
+  */
+  template<typename T>
+  auto make_constant_reactor_builder(T&& value) {
+    return std::make_unique<function_reactor_builder>(
+      [value = std::forward<T>(value)] (auto& parameters, auto& t) {
+        return make_constant_reactor(value);
+      });
+  }
+
   template<typename T>
   template<typename V>
   constant_reactor<T>::constant_reactor(V&& value)

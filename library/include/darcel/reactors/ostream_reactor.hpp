@@ -25,33 +25,12 @@ namespace darcel {
 
   //! Builds an ostream reactor.
   template<typename T>
-  class ostream_reactor_builder : public reactor_builder {
-    public:
-
-      //! Constructs an ostream builder.
-      /*!
-        \param out The ostream to print to.
-      */
-      ostream_reactor_builder(std::ostream& out);
-
-      std::shared_ptr<base_reactor> build(
-        const std::vector<std::shared_ptr<base_reactor>>& parameters,
-        trigger& t) const override final;
-
-    private:
-      std::ostream* m_out;
-  };
-
-  template<typename T>
-  ostream_reactor_builder<T>::ostream_reactor_builder(std::ostream& out)
-      : m_out(&out) {}
-
-  template<typename T>
-  std::shared_ptr<base_reactor> ostream_reactor_builder<T>::build(
-      const std::vector<std::shared_ptr<base_reactor>>& parameters,
-      trigger& t) const {
-    return make_ostream_reactor(*m_out,
-      std::static_pointer_cast<reactor<T>>(parameters.front()));
+  auto make_ostream_reactor_builder(std::ostream& out) {
+    return std::make_unique<function_reactor_builder>(
+      [out = &out] (auto& parameters, auto& t) {
+        return make_ostream_reactor(*out,
+          std::static_pointer_cast<reactor<T>>(parameters.front()));
+      });
   }
 }
 
