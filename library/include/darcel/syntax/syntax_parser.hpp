@@ -199,11 +199,11 @@ namespace darcel {
   }
 
   inline scope& syntax_parser::get_current_scope() {
-    return *m_scopes.front();
+    return *m_scopes.back();
   }
 
   inline scope& syntax_parser::push_scope() {
-    m_scopes.push_back(std::make_unique<scope>());
+    m_scopes.push_back(std::make_unique<scope>(&get_current_scope()));
     return get_current_scope();
   }
 

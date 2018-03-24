@@ -110,8 +110,6 @@ namespace details {
     }
 
     maybe<void> operator ()(const base_reactor* reactor) const {
-
-      // TODO: Find a way to evaluate this.
       return {};
     }
   };

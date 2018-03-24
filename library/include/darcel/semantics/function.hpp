@@ -25,7 +25,11 @@ namespace darcel {
       const std::vector<std::shared_ptr<variable>>& get_overloads() const;
 
       //! Adds an overload to this function.
-      void add(std::shared_ptr<variable> overload);
+      /*!
+        \return true iff the overload was added, otherwise the overload clashes
+                with an existing overload.
+      */
+      bool add(std::shared_ptr<variable> overload);
 
       const location& get_location() const override final;
 
@@ -81,8 +85,17 @@ namespace darcel {
     return m_parent;
   }
 
-  inline void function::add(std::shared_ptr<variable> overload) {
+  inline bool function::add(std::shared_ptr<variable> overload) {
+    auto overload_type = std::dynamic_pointer_cast<function_data_type>(
+      overload->get_data_type());
+    if(overload_type == nullptr) {
+      return false;
+    }
+    if(find_overload(*this, overload_type->get_parameters()) != nullptr) {
+      return false;
+    }
     m_overloads.push_back(std::move(overload));
+    return true;
   }
 
   inline const location& function::get_location() const {

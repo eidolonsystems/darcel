@@ -57,6 +57,8 @@ namespace darcel {
     }
     push_scope();
     auto initializer = expect_expression(c);
+    pop_scope();
+    pop_scope();
     auto type = std::make_shared<function_data_type>(std::move(parameters),
       initializer->get_data_type());
     auto existing_element = get_current_scope().find_within(name);
@@ -73,17 +75,16 @@ namespace darcel {
         throw redefinition_syntax_error(name_location, name,
           existing_element->get_location());
       }
-
-      // TODO
-      f->add(v);
+      if(!f->add(v)) {
+        throw redefinition_syntax_error(name_location, name,
+          existing_element->get_location());
+      }
       return f;
     }();
     auto statement = std::make_unique<bind_function_statement>(
       cursor.get_location(), std::move(f), std::move(v),
       std::move(parameter_elements), std::move(initializer));
     cursor = c;
-    pop_scope();
-    pop_scope();
     return statement;
   }
 

@@ -9,7 +9,6 @@
 #include "darcel/reactors/constant_reactor.hpp"
 #include "darcel/reactors/operators.hpp"
 #include "darcel/reactors/ostream_reactor.hpp"
-#include "darcel/reactors/proxy_reactor.hpp"
 #include "darcel/reactors/reactor_builder.hpp"
 #include "darcel/reactors/reactors.hpp"
 #include "darcel/reactors/trigger.hpp"
@@ -141,42 +140,33 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const bind_function_statement& node) {
-    struct proxy_visitor : data_type_visitor {
-      std::unique_ptr<reactor_builder> m_builder;
+    class parameter_reactor_builder : public reactor_builder {
+      public:
+        void set_reactor(std::shared_ptr<base_reactor> r) {
+          m_reactor = std::move(r);
+        }
 
-      void visit(const bool_data_type& type) {
-        m_builder = make_proxy_reactor_builder<bool>();
-      }
+        std::shared_ptr<base_reactor> build(
+            const std::vector<std::shared_ptr<base_reactor>>& parameters,
+            trigger& t) const override final {
+          return m_reactor;
+        }
 
-      void visit(const float_data_type& type) {
-        m_builder = make_proxy_reactor_builder<double>();
-      }
-
-      void visit(const integer_data_type& type) {
-        m_builder = make_proxy_reactor_builder<int>();
-      }
-
-      void visit(const text_data_type& type) {
-        m_builder = make_proxy_reactor_builder<std::string>();
-      }
+      private:
+        std::shared_ptr<base_reactor> m_reactor;
     };
-    std::vector<std::unique_ptr<reactor_builder>> proxies;
+    std::vector<std::shared_ptr<parameter_reactor_builder>> proxies;
     for(auto& parameter : node.get_parameters()) {
-      proxy_visitor v;
-      parameter->get_data_type()->apply(v);
-      proxies.push_back(std::move(v.m_builder));
+      proxies.push_back(std::make_shared<parameter_reactor_builder>());
+      m_variables[parameter] = proxies.back();
     }
     auto evaluation = evaluate(node.get_expression());
     auto builder = std::make_shared<function_reactor_builder>(
-      [proxies = std::move(proxies), evaluation = std::move(evaluation)] (
-          auto& parameters, auto& t) {
-        std::vector<std::shared_ptr<base_reactor>> arguments;
+      [=] (auto& parameters, auto& t) {
         for(std::size_t i = 0; i < parameters.size(); ++i) {
-          arguments.push_back(proxies[i]->build(t));
-          std::dynamic_pointer_cast<base_proxy_reactor>(
-            arguments.back())->set_source(parameters[i]);
+          proxies[i]->set_reactor(parameters[i]);
         }
-        return evaluation->build(arguments, t);
+        return evaluation->build(t);
       });
     m_variables[node.get_overload()] = std::move(builder);
     for(auto& parameter : node.get_parameters()) {

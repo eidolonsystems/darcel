@@ -53,7 +53,10 @@ namespace darcel {
     FUNCTION_NOT_FOUND,
 
     //! The expression can not be called like a function.
-    EXPRESSION_NOT_CALLABLE
+    EXPRESSION_NOT_CALLABLE,
+
+    //! No matching overload found.
+    OVERLOAD_NOT_FOUND
   };
 }
 

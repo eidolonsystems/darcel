@@ -171,8 +171,28 @@ namespace darcel {
                 return function_data_type::parameter("", p->get_data_type());
               });
             auto overload = find_overload(*f->get_function(), types);
+            if(overload == nullptr) {
+              throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
+                call_location);
+            }
             callable = std::make_unique<variable_expression>(
               f->get_location(), std::move(overload));
+          } else if(auto type = std::dynamic_pointer_cast<function_data_type>(
+              callable->get_data_type())) {
+            if(type->get_parameters().size() != parameters.size()) {
+              throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
+                call_location);
+            }
+            for(std::size_t i = 0; i < parameters.size(); ++i) {
+              if(*parameters[i]->get_data_type() !=
+                  *type->get_parameters()[i].m_type) {
+                throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
+                  call_location);
+              }
+            }
+          } else {
+            throw syntax_error(syntax_error_code::EXPRESSION_NOT_CALLABLE,
+              call_location);
           }
           auto call = std::make_unique<call_expression>(call_location,
             std::move(callable), std::move(parameters));

@@ -55,9 +55,20 @@ namespace darcel {
   }
 
   inline void pretty_print_visitor::visit(const bind_function_statement& node) {
-
-    // TODO
-    *m_out << "let " << node.get_function()->get_name() << " = ";
+    *m_out << "let " << node.get_function()->get_name() << "(";
+    auto is_first = true;
+    for(auto& parameter : node.get_parameters()) {
+      if(!is_first) {
+        *m_out << ", ";
+      } else {
+        is_first = false;
+      }
+      if(!parameter->get_name().empty()) {
+        *m_out << parameter->get_name() << ": ";
+      }
+      *m_out << parameter->get_data_type()->get_name();
+    }
+    *m_out << ") = ";
     node.get_expression().apply(*this);
   }
 
