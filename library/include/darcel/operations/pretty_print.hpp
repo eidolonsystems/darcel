@@ -11,9 +11,13 @@ namespace darcel {
     public:
       void operator ()(const syntax_node& node, std::ostream& out);
 
+      void visit(const bind_function_statement& node) override final;
+
       void visit(const bind_variable_statement& node) override final;
 
       void visit(const call_expression& node) override final;
+
+      void visit(const function_expression& node) override final;
 
       void visit(const literal_expression& node) override final;
 
@@ -50,6 +54,13 @@ namespace darcel {
     node.apply(*this);
   }
 
+  inline void pretty_print_visitor::visit(const bind_function_statement& node) {
+
+    // TODO
+    *m_out << "let " << node.get_function()->get_name() << " = ";
+    node.get_expression().apply(*this);
+  }
+
   inline void pretty_print_visitor::visit(const bind_variable_statement& node) {
     *m_out << "let " << node.get_variable()->get_name() << " = ";
     node.get_expression().apply(*this);
@@ -68,6 +79,10 @@ namespace darcel {
       parameter->apply(*this);
     }
     *m_out << ')';
+  }
+
+  inline void pretty_print_visitor::visit(const function_expression& node) {
+    *m_out << node.get_function()->get_name();
   }
 
   inline void pretty_print_visitor::visit(const literal_expression& node) {

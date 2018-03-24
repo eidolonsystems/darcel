@@ -2,11 +2,58 @@
 #define DARCEL_SYNTAX_PARSER_STATEMENTS_HPP
 #include "darcel/data_types/function_data_type.hpp"
 #include "darcel/lexicon/token.hpp"
+#include "darcel/syntax/bind_function_statement.hpp"
+#include "darcel/syntax/bind_variable_statement.hpp"
 #include "darcel/syntax/syntax.hpp"
 #include "darcel/syntax/syntax_error.hpp"
 #include "darcel/syntax/syntax_parser.hpp"
 
 namespace darcel {
+  inline std::unique_ptr<bind_function_statement>
+      syntax_parser::parse_bind_function_statement(token_iterator& cursor) {
+    auto c = cursor;
+    if(!match(*c, keyword::word::LET)) {
+      return nullptr;
+    }
+    ++c;
+    auto name_location = c.get_location();
+    auto& name = parse_identifier(c);
+    std::vector<function_data_type::parameter> parameters;
+    if(!match(*c, bracket::type::OPEN_ROUND_BRACKET)) {
+      return nullptr;
+    }
+    ++c;
+    expect(c, bracket::type::CLOSE_ROUND_BRACKET);
+    expect(c, operation::symbol::ASSIGN);
+    auto initializer = expect_expression(c);
+    auto type = std::make_shared<function_data_type>(std::move(parameters),
+      initializer->get_data_type());
+    auto existing_element = get_current_scope().find_within(name);
+    auto v = std::make_shared<variable>(cursor.get_location(), name,
+      std::move(type));
+    auto f = [&] {
+      if(existing_element == nullptr) {
+        auto f = std::make_shared<function>(v);
+        get_current_scope().add(f);
+        return f;
+      }
+      auto f = std::dynamic_pointer_cast<function>(existing_element);
+      if(f == nullptr) {
+        throw redefinition_syntax_error(name_location, name,
+          existing_element->get_location());
+      }
+
+      // TODO
+      f->add(v);
+      return f;
+    }();
+    auto statement = std::make_unique<bind_function_statement>(
+      cursor.get_location(), std::move(f), std::move(v),
+      std::move(initializer));
+    cursor = c;
+    return statement;
+  }
+
   inline std::unique_ptr<bind_variable_statement>
       syntax_parser::parse_bind_variable_statement(token_iterator& cursor) {
     auto c = cursor;
@@ -16,12 +63,6 @@ namespace darcel {
     ++c;
     auto name_location = c.get_location();
     auto& name = parse_identifier(c);
-    std::vector<function_data_type::parameter> parameters;
-    auto is_function = match(*c, bracket::type::OPEN_ROUND_BRACKET);
-    if(is_function) {
-      ++c;
-      expect(c, bracket::type::CLOSE_ROUND_BRACKET);
-    }
     expect(c, operation::symbol::ASSIGN);
     auto initializer = expect_expression(c);
     auto existing_element = get_current_scope().find_within(name);
@@ -29,15 +70,8 @@ namespace darcel {
       throw redefinition_syntax_error(name_location, name,
         existing_element->get_location());
     }
-    auto type = [&] () -> std::shared_ptr<data_type> {
-      if(is_function) {
-        return std::make_shared<function_data_type>(std::move(parameters),
-          initializer->get_data_type());
-      }
-      return initializer->get_data_type();
-    }();
     auto v = std::make_shared<variable>(cursor.get_location(), name,
-      std::move(type));
+      initializer->get_data_type());
     get_current_scope().add(v);
     auto statement = std::make_unique<bind_variable_statement>(
       cursor.get_location(), std::move(v), std::move(initializer));
@@ -62,7 +96,8 @@ namespace darcel {
       ++c;
     }
     std::unique_ptr<statement> node;
-    if((node = parse_bind_variable_statement(c)) != nullptr) {
+    if((node = parse_bind_function_statement(c)) != nullptr ||
+        (node = parse_bind_variable_statement(c)) != nullptr) {
       if(!is_syntax_node_end(*c)) {
         throw syntax_error(syntax_error_code::NEW_LINE_EXPECTED,
           c.get_location());

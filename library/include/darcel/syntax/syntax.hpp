@@ -3,6 +3,7 @@
 
 namespace darcel {
   class arity_syntax_error;
+  class bind_function_statement;
   class bind_variable_statement;
   class call_expression;
   class expression;

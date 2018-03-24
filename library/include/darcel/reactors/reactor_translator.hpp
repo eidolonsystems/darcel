@@ -39,6 +39,8 @@ namespace darcel {
       //! Returns the main reactor.
       std::shared_ptr<base_reactor> get_main() const;
 
+      void visit(const bind_function_statement& node) override final;
+
       void visit(const bind_variable_statement& node) override final;
 
       void visit(const call_expression& node) override final;
@@ -137,20 +139,18 @@ namespace darcel {
     return r->second->build({}, *m_trigger);
   }
 
+  inline void reactor_translator::visit(const bind_function_statement& node) {
+    auto evaluation = evaluate(node.get_expression());
+    m_variables[node.get_overload()] = std::move(evaluation);
+  }
+
   inline void reactor_translator::visit(const bind_variable_statement& node) {
     auto evaluation = evaluate(node.get_expression());
-    auto builder = [&] () -> std::shared_ptr<reactor_builder> {
-      if(auto f = std::dynamic_pointer_cast<function_data_type>(
-          node.get_variable()->get_data_type())) {
-        return evaluation;
-      } else {
-        auto reactor = evaluate(node.get_expression())->build(*m_trigger);
-        return std::make_shared<function_reactor_builder>(
-          [=] (auto& parameters, auto& t) {
-            return reactor;
-          });
-      }
-    }();
+    auto reactor = evaluate(node.get_expression())->build(*m_trigger);
+    auto builder = std::make_shared<function_reactor_builder>(
+      [=] (auto& parameters, auto& t) {
+        return reactor;
+      });
     m_variables[node.get_variable()] = std::move(builder);
     if(node.get_variable()->get_name() == "main") {
       m_main = node.get_variable();

@@ -1,6 +1,7 @@
 #ifndef DARCEL_FUNCTION_HPP
 #define DARCEL_FUNCTION_HPP
 #include <vector>
+#include "darcel/data_types/function_data_type.hpp"
 #include "darcel/semantics/element.hpp"
 #include "darcel/semantics/semantics.hpp"
 #include "darcel/semantics/variable.hpp"

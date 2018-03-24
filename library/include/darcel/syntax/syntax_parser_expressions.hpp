@@ -5,7 +5,6 @@
 #include <stack>
 #include "darcel/lexicon/token.hpp"
 #include "darcel/syntax/arity_syntax_error.hpp"
-#include "darcel/syntax/bind_variable_statement.hpp"
 #include "darcel/syntax/call_expression.hpp"
 #include "darcel/syntax/function_expression.hpp"
 #include "darcel/syntax/literal_expression.hpp"
@@ -145,9 +144,9 @@ namespace darcel {
       } else {
         if(match(*c, bracket::type::OPEN_ROUND_BRACKET)) {
           auto call_location = c.get_location();
+          ++c;
           std::vector<std::unique_ptr<expression>> parameters;
           if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
-            ++c;
             while(true) {
               auto parameter = parse_expression(c);
               if(parameter == nullptr) {
