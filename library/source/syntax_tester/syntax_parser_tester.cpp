@@ -172,4 +172,9 @@ TEST_CASE("test_parsing_function_definition", "[syntax_parser]") {
     feed(p, "let f() = 5");
     auto e = p.parse_node();
   }
+  SECTION("Parse single parameter function.") {
+    syntax_parser p;
+    feed(p, "let f(x: Int) = x");
+    auto e = p.parse_node();
+  }
 }

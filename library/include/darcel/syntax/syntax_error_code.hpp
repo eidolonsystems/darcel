@@ -34,6 +34,9 @@ namespace darcel {
     //! An open round bracket was expected.
     OPEN_ROUND_BRACKET_EXPECTED,
 
+    //! The name of a data type was expected.
+    DATA_TYPE_EXPECTED,
+
     //! A function parameter has already been defined.
     FUNCTION_PARAMETER_ALREADY_DEFINED,
 

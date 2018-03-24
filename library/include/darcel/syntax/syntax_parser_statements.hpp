@@ -18,13 +18,44 @@ namespace darcel {
     ++c;
     auto name_location = c.get_location();
     auto& name = parse_identifier(c);
-    std::vector<function_data_type::parameter> parameters;
     if(!match(*c, bracket::type::OPEN_ROUND_BRACKET)) {
       return nullptr;
     }
     ++c;
-    expect(c, bracket::type::CLOSE_ROUND_BRACKET);
+    std::vector<function_data_type::parameter> parameters;
+    std::vector<std::shared_ptr<variable>> parameter_elements;
+    if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+      while(true) {
+        auto name_location = c.get_location();
+        auto& parameter_name = parse_identifier(c);
+        auto existing_parameter = std::find_if(parameters.begin(),
+          parameters.end(),
+          [&] (auto& p) {
+            return p.m_name == parameter_name;
+          });
+        if(existing_parameter != parameters.end()) {
+          throw syntax_error(
+            syntax_error_code::FUNCTION_PARAMETER_ALREADY_DEFINED,
+            name_location);
+        }
+        expect(c, punctuation::mark::COLON);
+        auto parameter_type = expect_data_type(c);
+        parameters.emplace_back(parameter_name, std::move(parameter_type));
+        parameter_elements.push_back(std::make_shared<variable>(name_location,
+          parameter_name, parameters.back().m_type));
+        if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+          break;
+        }
+        expect(c, punctuation::mark::COMMA);
+      }
+    }
+    ++c;
     expect(c, operation::symbol::ASSIGN);
+    push_scope();
+    for(auto& parameter : parameter_elements) {
+      get_current_scope().add(parameter);
+    }
+    push_scope();
     auto initializer = expect_expression(c);
     auto type = std::make_shared<function_data_type>(std::move(parameters),
       initializer->get_data_type());
@@ -49,8 +80,10 @@ namespace darcel {
     }();
     auto statement = std::make_unique<bind_function_statement>(
       cursor.get_location(), std::move(f), std::move(v),
-      std::move(initializer));
+      std::move(parameter_elements), std::move(initializer));
     cursor = c;
+    pop_scope();
+    pop_scope();
     return statement;
   }
 

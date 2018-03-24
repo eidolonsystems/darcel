@@ -7,7 +7,7 @@
 
 namespace darcel {
 
-  //! A Reactor that never produces an evaluation.
+  //! A reactor that never produces an evaluation.
   template<typename T>
   class none_reactor : public reactor<T> {
     public:

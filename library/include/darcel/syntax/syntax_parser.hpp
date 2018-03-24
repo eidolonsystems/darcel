@@ -63,6 +63,8 @@ namespace darcel {
       scope& push_scope();
       void pop_scope();
       token_iterator get_next_terminal(token_iterator cursor) const;
+      std::shared_ptr<data_type> parse_data_type(token_iterator& cursor);
+      std::shared_ptr<data_type> expect_data_type(token_iterator& cursor);
       std::unique_ptr<syntax_node> parse_node(token_iterator& cursor);
       std::unique_ptr<terminal_node> parse_terminal_node(
         token_iterator& cursor);
@@ -259,6 +261,28 @@ namespace darcel {
       return get_next_terminal(end);
     }
     return cursor;
+  }
+
+  inline std::shared_ptr<data_type> syntax_parser::parse_data_type(
+      token_iterator& cursor) {
+    auto c = cursor;
+    if(c.is_empty()) {
+      return nullptr;
+    }
+    auto& name = parse_identifier(c);
+    auto t = get_current_scope().find<data_type>(name);
+    cursor = c;
+    return t;
+  }
+
+  inline std::shared_ptr<data_type> syntax_parser::expect_data_type(
+      token_iterator& cursor) {
+    auto t = parse_data_type(cursor);
+    if(t == nullptr) {
+      throw syntax_error(syntax_error_code::DATA_TYPE_EXPECTED,
+        cursor.get_location());
+    }
+    return t;
   }
 
   inline std::unique_ptr<syntax_node> syntax_parser::parse_node(
