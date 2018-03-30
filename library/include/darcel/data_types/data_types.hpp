@@ -8,6 +8,7 @@ namespace darcel {
   class data_type_visitor;
   class float_data_type;
   class function_data_type;
+  class generic_data_type;
   class integer_data_type;
   class text_data_type;
 }

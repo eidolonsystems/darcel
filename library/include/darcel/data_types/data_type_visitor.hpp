@@ -17,6 +17,8 @@ namespace darcel {
 
       virtual void visit(const function_data_type& type);
 
+      virtual void visit(const generic_data_type& type);
+
       virtual void visit(const integer_data_type& type);
 
       virtual void visit(const text_data_type& type);
