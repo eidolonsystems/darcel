@@ -6,6 +6,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include "darcel/data_types/generic_data_type.hpp"
 #include "darcel/lexicon/token.hpp"
 #include "darcel/semantics/scope.hpp"
 #include "darcel/syntax/expression.hpp"
@@ -269,8 +270,24 @@ namespace darcel {
     if(c.is_empty()) {
       return nullptr;
     }
-    auto& name = parse_identifier(c);
+    auto name_location = c.get_location();
+    auto is_generic = match(*c, punctuation::mark::BACKTICK);
+    if(is_generic) {
+      ++c;
+    }
+    auto name = parse_identifier(c);
+    if(is_generic) {
+      name = '`' + name;
+    }
     auto t = get_current_scope().find<data_type>(name);
+    if(t == nullptr) {
+      if(is_generic) {
+        auto g = std::make_shared<generic_data_type>(name_location, name);
+        get_current_scope().add(g);
+        cursor = c;
+        return g;
+      }
+    }
     cursor = c;
     return t;
   }
