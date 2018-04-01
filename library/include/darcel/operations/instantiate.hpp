@@ -15,11 +15,11 @@ namespace darcel {
   */
   inline std::unique_ptr<bind_function_statement> instantiate(
       const bind_function_statement& node, std::shared_ptr<variable> overload,
-      const std::unordered_map<std::shared_ptr<variable>,
-      std::shared_ptr<function>>& functions) {
+      std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<function>>&
+      functions) {
     struct instantiate_visitor : syntax_node_visitor {
-      const std::unordered_map<std::shared_ptr<variable>,
-        std::shared_ptr<function>>* m_functions;
+      std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<function>>*
+        m_functions;
       std::unordered_map<std::shared_ptr<variable>,
         std::shared_ptr<variable>> m_substitutions;
       std::unique_ptr<syntax_node> m_clone;
@@ -27,7 +27,7 @@ namespace darcel {
       std::unique_ptr<bind_function_statement> operator ()(
           const bind_function_statement& node,
           std::shared_ptr<variable> overload,
-          const std::unordered_map<std::shared_ptr<variable>,
+          std::unordered_map<std::shared_ptr<variable>,
           std::shared_ptr<function>>& functions) {
         m_functions = &functions;
         auto type = std::static_pointer_cast<function_data_type>(
@@ -92,6 +92,7 @@ namespace darcel {
               parameters.emplace_back("", argument->get_data_type());
             }
             auto o = find_overload(*f, parameters);
+            m_functions->insert(std::make_pair(o, f));
             substitution.emplace(node.get_callable().get_location(), o);
             return *substitution;
           } else {
