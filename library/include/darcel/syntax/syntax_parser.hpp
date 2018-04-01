@@ -57,6 +57,7 @@ namespace darcel {
       std::deque<std::unique_ptr<scope>> m_scopes;
       std::vector<token> m_tokens;
       token_iterator m_cursor;
+      int m_generic_index;
 
       syntax_parser(const syntax_parser&) = delete;
       syntax_parser& operator =(const syntax_parser&) = delete;
@@ -282,7 +283,9 @@ namespace darcel {
     auto t = get_current_scope().find<data_type>(name);
     if(t == nullptr) {
       if(is_generic) {
-        auto g = std::make_shared<generic_data_type>(name_location, name);
+        auto g = std::make_shared<generic_data_type>(name_location, name,
+          m_generic_index);
+        ++m_generic_index;
         get_current_scope().add(g);
         cursor = c;
         return g;

@@ -1,6 +1,7 @@
 #ifndef DARCEL_DATA_TYPE_HPP
 #define DARCEL_DATA_TYPE_HPP
 #include <ostream>
+#include <unordered_map>
 #include "darcel/data_types/data_types.hpp"
 #include "darcel/semantics/element.hpp"
 
@@ -41,6 +42,24 @@ namespace darcel {
       */
       virtual bool is_equal(const data_type& rhs) const = 0;
   };
+
+  template<typename K>
+  struct data_type_hash {
+    std::size_t operator ()(const K& key) const noexcept {
+      return std::hash<std::string>()(key->get_name());
+    }
+  };
+
+  template<typename K>
+  struct data_type_equal_to {
+    bool operator()(const K& lhs, const K& rhs) const noexcept {
+      return *lhs == *rhs;
+    }
+  };
+
+  template<typename K, typename V>
+  using data_type_map = std::unordered_map<K, V, data_type_hash<K>,
+    data_type_equal_to<K>>;
 
   inline std::ostream& operator <<(std::ostream& out, const data_type& value) {
     return out << value.get_name();

@@ -100,12 +100,14 @@ namespace darcel {
   }
 
   inline bool function::add(std::shared_ptr<variable> overload) {
+
+    // TODO: Overloads need to be added according to a match order.
+    //       Concrete types come first, generics come at the end.
     auto overload_type = std::dynamic_pointer_cast<function_data_type>(
       overload->get_data_type());
     if(overload_type == nullptr) {
       return false;
     }
-    auto has_overload = false;
     auto& overload_parameters = overload_type->get_parameters();
     for(auto& instance : m_overloads) {
       auto instance_type = std::static_pointer_cast<function_data_type>(
@@ -114,52 +116,16 @@ namespace darcel {
       if(overload_parameters.size() != instance_parameters.size()) {
         continue;
       }
-      std::unordered_map<std::shared_ptr<generic_data_type>, int>
-        generic_parameters;
       auto parameters_match = true;
       for(std::size_t i = 0; i < overload_parameters.size(); ++i) {
-        auto& overload_parameter = overload_parameters[i].m_type;
-        auto& instance_parameter = instance_parameters[i].m_type;
-        auto overload_generic = std::dynamic_pointer_cast<generic_data_type>(
-          overload_parameter);
-        auto instance_generic = std::dynamic_pointer_cast<generic_data_type>(
-          instance_parameter);
-        if(overload_generic == nullptr && instance_generic == nullptr) {
-          if(*overload_parameter != *instance_parameter) {
-            parameters_match = false;
-            break;
-          }
-        } else if(overload_generic == nullptr && instance_generic != nullptr ||
-            overload_generic != nullptr && instance_generic == nullptr) {
+        if(*overload_parameters[i].m_type != *instance_parameters[i].m_type) {
           parameters_match = false;
           break;
-        } else {
-          auto overload_index = generic_parameters.find(overload_generic);
-          auto instance_index = generic_parameters.find(instance_generic);
-          if(overload_index != generic_parameters.end() &&
-              instance_index != generic_parameters.end()) {
-            if(overload_index->second != instance_index->second) {
-              parameters_match = false;
-              break;
-            }
-          } else if(overload_index == generic_parameters.end() &&
-              instance_index == generic_parameters.end()) {
-            auto index = static_cast<int>(generic_parameters.size());
-            generic_parameters.insert(std::make_pair(overload_generic, index));
-            generic_parameters.insert(std::make_pair(instance_generic, index));
-          } else {
-            parameters_match = false;
-            break;
-          }
         }
       }
       if(parameters_match) {
-        has_overload = true;
-        break;
+        return false;
       }
-    }
-    if(has_overload) {
-      return false;
     }
     m_overloads.push_back(std::move(overload));
     return true;

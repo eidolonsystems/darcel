@@ -12,7 +12,7 @@ namespace darcel {
     \return A structural clone of the node.
   */
   template<typename T>
-  inline std::unique_ptr<T> clone_structure(const T& node) {
+  std::unique_ptr<T> clone_structure(const T& node) {
     struct clone_visitor : syntax_node_visitor {
       std::unique_ptr<syntax_node> m_clone;
 
@@ -57,7 +57,7 @@ namespace darcel {
   }
 
   template<typename T>
-  inline std::vector<std::unique_ptr<T>> clone_structure(
+  std::vector<std::unique_ptr<T>> clone_structure(
       const std::vector<std::unique_ptr<T>>& nodes) {
     std::vector<std::unique_ptr<T>> clones;
     for(auto& node : nodes) {

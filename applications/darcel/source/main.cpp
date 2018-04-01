@@ -37,16 +37,20 @@ int main(int argc, const char** argv) {
     sp.feed(*t);
   }
   trigger t;
-  reactor_translator rt(sp.get_scope(), t);
+  std::vector<std::unique_ptr<syntax_node>> nodes;
   try {
     while(auto s = sp.parse_node()) {
-      rt.translate(*s);
+      nodes.push_back(std::move(s));
     }
   } catch(const syntax_error& e) {
     std::cerr << e.get_location().get_line_number() << ":" <<
       e.get_location().get_column_number() << " - " <<
       e.what() << std::endl;
     return -1;
+  }
+  reactor_translator rt(sp.get_scope(), t);
+  for(auto& node : nodes) {
+    rt.translate(*node);
   }
   auto main_reactor = rt.get_main();
   if(main_reactor == nullptr) {

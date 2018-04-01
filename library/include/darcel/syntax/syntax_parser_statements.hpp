@@ -24,6 +24,8 @@ namespace darcel {
     ++c;
     std::vector<function_data_type::parameter> parameters;
     std::vector<std::shared_ptr<variable>> parameter_elements;
+    push_scope();
+    m_generic_index = 0;
     if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
       while(true) {
         auto name_location = c.get_location();
@@ -51,7 +53,6 @@ namespace darcel {
     }
     ++c;
     expect(c, operation::symbol::ASSIGN);
-    push_scope();
     for(auto& parameter : parameter_elements) {
       get_current_scope().add(parameter);
     }

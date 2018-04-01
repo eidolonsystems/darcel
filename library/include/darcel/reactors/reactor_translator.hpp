@@ -5,6 +5,9 @@
 #include <string>
 #include <unordered_map>
 #include "darcel/data_types/function_data_type.hpp"
+#include "darcel/data_types/generic_data_type.hpp"
+#include "darcel/operations/clone_structure.hpp"
+#include "darcel/operations/instantiate.hpp"
 #include "darcel/reactors/chain_reactor.hpp"
 #include "darcel/reactors/constant_reactor.hpp"
 #include "darcel/reactors/operators.hpp"
@@ -55,6 +58,10 @@ namespace darcel {
       std::shared_ptr<variable> m_main;
       std::unordered_map<std::shared_ptr<variable>,
         std::shared_ptr<reactor_builder>> m_variables;
+      std::unordered_map<std::shared_ptr<variable>,
+        std::unique_ptr<bind_function_statement>> m_generic_definitions;
+      std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<function>>
+        m_overloads;
       std::shared_ptr<reactor_builder> m_evaluation;
 
       std::shared_ptr<reactor_builder> evaluate(const expression& e);
@@ -101,21 +108,29 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const bind_function_statement& node) {
-    class parameter_reactor_builder : public reactor_builder {
-      public:
-        void set_reactor(std::shared_ptr<base_reactor> r) {
-          m_reactor = std::move(r);
-        }
+    struct parameter_reactor_builder : reactor_builder {
+      std::shared_ptr<base_reactor> m_reactor;
 
-        std::shared_ptr<base_reactor> build(
-            const std::vector<std::shared_ptr<base_reactor>>& parameters,
-            trigger& t) const override final {
-          return m_reactor;
-        }
+      void set_reactor(std::shared_ptr<base_reactor> r) {
+        m_reactor = std::move(r);
+      }
 
-      private:
-        std::shared_ptr<base_reactor> m_reactor;
+      std::shared_ptr<base_reactor> build(
+          const std::vector<std::shared_ptr<base_reactor>>& parameters,
+          trigger& t) const override final {
+        return m_reactor;
+      }
     };
+    for(auto& parameter : node.get_parameters()) {
+      if(is_generic(*parameter->get_data_type())) {
+        for(auto& overload : node.get_function()->get_overloads()) {
+          m_overloads.insert(std::make_pair(overload, node.get_function()));
+          m_generic_definitions.insert(std::make_pair(overload,
+            clone_structure(node)));
+        }
+        return;
+      }
+    }
     std::vector<std::shared_ptr<parameter_reactor_builder>> proxies;
     for(auto& parameter : node.get_parameters()) {
       proxies.push_back(std::make_shared<parameter_reactor_builder>());
@@ -202,8 +217,9 @@ namespace darcel {
     auto evaluation = m_variables.find(node.get_variable());
     if(evaluation != m_variables.end()) {
       m_evaluation = evaluation->second;
+    } else {
+      m_evaluation = instantiate(node.get_variable());
     }
-    m_evaluation = instantiate(node.get_variable());
   }
 
   inline std::shared_ptr<reactor_builder> reactor_translator::evaluate(
@@ -269,7 +285,14 @@ namespace darcel {
         }
       }
     }
-    return nullptr;
+    auto definition = m_generic_definitions.find(v);
+    if(definition == m_generic_definitions.end()) {
+      return nullptr;
+    }
+    auto instantiation = darcel::instantiate(*definition->second, v,
+      m_overloads);
+    instantiation->apply(*this);
+    return m_variables[v];
   }
 }
 

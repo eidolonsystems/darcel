@@ -95,7 +95,7 @@ namespace darcel {
     }
     {
       std::vector<function_data_type::parameter> parameters;
-      auto t = std::make_shared<generic_data_type>(location::global(), "`T");
+      auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
       parameters.push_back({"v", t});
       auto f = std::make_shared<variable>(location::global(), "print",
         std::make_shared<function_data_type>(parameters, t));
@@ -103,7 +103,7 @@ namespace darcel {
     }
     {
       std::vector<function_data_type::parameter> parameters;
-      auto t = std::make_shared<generic_data_type>(location::global(), "`T");
+      auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
       parameters.push_back({"initial", t});
       parameters.push_back({"continuation", t});
       auto f = std::make_shared<variable>(location::global(), "chain",
