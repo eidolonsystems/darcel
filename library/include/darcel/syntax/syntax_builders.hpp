@@ -186,6 +186,32 @@ namespace darcel {
     return call(location::global(), std::move(name), std::move(arguments), s);
   }
 
+  //! Makes a literal boolean expression.
+  /*!
+    \param l The location of the expression.
+    \param value The value to represent.
+  */
+  inline std::unique_ptr<literal_expression> make_literal_expression(
+      location l, bool value) {
+    std::string s = [&] {
+      if(value) {
+        return "true";
+      }
+      return "false";
+    }();
+    return std::make_unique<literal_expression>(std::move(l),
+      literal(s, bool_data_type::get_instance()));
+  }
+
+  //! Makes a literal integer expression.
+  /*!
+    \param value The value to represent.
+  */
+  inline std::unique_ptr<literal_expression> make_literal_expression(
+      bool value) {
+    return make_literal_expression(location::global(), value);
+  }
+
   //! Makes a literal integer expression.
   /*!
     \param l The location of the expression.

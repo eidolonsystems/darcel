@@ -95,10 +95,10 @@ namespace darcel {
     };
     for(auto& parameter : node.get_parameters()) {
       if(is_generic(*parameter->get_data_type())) {
+        m_generic_definitions.insert(std::make_pair(node.get_overload(),
+          clone_structure(node)));
         for(auto& overload : node.get_function()->get_overloads()) {
           m_overloads.insert(std::make_pair(overload, node.get_function()));
-          m_generic_definitions.insert(std::make_pair(overload,
-            clone_structure(node)));
         }
         return;
       }
@@ -202,7 +202,12 @@ namespace darcel {
 
   inline std::shared_ptr<reactor_builder> reactor_translator::instantiate(
       std::shared_ptr<variable> v) {
-    return nullptr;
+    auto f = m_overloads.at(v);
+    auto root = f->get_definition(v);
+    auto& definition = m_generic_definitions.at(root);
+    auto implementation = darcel::instantiate(*definition, v, m_overloads);
+    implementation->apply(*this);
+    return m_variables.at(v);
   }
 }
 

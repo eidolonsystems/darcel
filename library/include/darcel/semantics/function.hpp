@@ -26,12 +26,31 @@ namespace darcel {
       //! Returns the list of overloads.
       const std::vector<std::shared_ptr<variable>>& get_overloads() const;
 
+      //! Returns the list of instantiations of a generic function.
+      const std::vector<std::shared_ptr<variable>>& get_instantiations(
+        const std::shared_ptr<variable>& f) const;
+
+      //! Returns an instantiation's definition.
+      std::shared_ptr<variable> get_definition(
+        const std::shared_ptr<variable>& instance) const;
+
       //! Adds an overload to this function.
       /*!
+        \param overload The overload to add.
         \return true iff the overload was added, otherwise the overload clashes
                 with an existing overload.
       */
       bool add(std::shared_ptr<variable> overload);
+
+      //! Adds an instantiation of a generic to this function.
+      /*!
+        \param definition The overload representing the generic definition.
+        \param instance The instantiation of the definition.
+        \return true iff the instantiation was added, otherwise the instance
+                clashes with an existing overload.
+      */
+      bool add(std::shared_ptr<variable> definition,
+        std::shared_ptr<variable> instance);
 
       const location& get_location() const override final;
 
@@ -40,6 +59,10 @@ namespace darcel {
     private:
       std::shared_ptr<function> m_parent;
       std::vector<std::shared_ptr<variable>> m_overloads;
+      std::unordered_map<std::shared_ptr<variable>,
+        std::vector<std::shared_ptr<variable>>> m_instantiations;
+      std::unordered_map<std::shared_ptr<variable>,
+        std::shared_ptr<variable>> m_definitions;
   };
 
   //! Finds the function overload matching a set of parameters.
@@ -76,7 +99,7 @@ namespace darcel {
         auto t = instantiate(*type, parameters);
         auto instantiation = std::make_shared<variable>(f.get_location(),
           f.get_name(), std::move(t));
-        f.add(instantiation);
+        f.add(overload, instantiation);
         return instantiation;
       }
     }
@@ -90,13 +113,32 @@ namespace darcel {
     m_overloads.push_back(std::move(initial));
   }
 
+  inline const std::shared_ptr<function>& function::get_parent() const {
+    return m_parent;
+  }
+
   inline const std::vector<std::shared_ptr<variable>>&
       function::get_overloads() const {
     return m_overloads;
   }
 
-  inline const std::shared_ptr<function>& function::get_parent() const {
-    return m_parent;
+  inline const std::vector<std::shared_ptr<variable>>&
+      function::get_instantiations(const std::shared_ptr<variable>& f) const {
+    static std::vector<std::shared_ptr<variable>> NONE;
+    auto i = m_instantiations.find(f);
+    if(i == m_instantiations.end()) {
+      return NONE;
+    }
+    return i->second;
+  }
+
+  inline std::shared_ptr<variable> function::get_definition(
+      const std::shared_ptr<variable>& instance) const {
+    auto i = m_definitions.find(instance);
+    if(i == m_definitions.end()) {
+      return nullptr;
+    }
+    return i->second;
   }
 
   inline bool function::add(std::shared_ptr<variable> overload) {
@@ -128,6 +170,17 @@ namespace darcel {
       }
     }
     m_overloads.push_back(std::move(overload));
+    return true;
+  }
+
+  inline bool function::add(std::shared_ptr<variable> definition,
+      std::shared_ptr<variable> instance) {
+    if(!add(instance)) {
+      return false;
+    }
+    m_instantiations[definition].push_back(instance);
+    m_definitions.insert(std::make_pair(std::move(instance),
+      std::move(definition)));
     return true;
   }
 
