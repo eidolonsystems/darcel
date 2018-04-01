@@ -47,10 +47,12 @@ namespace darcel {
 
       //! Adds a generic definition to the translator.
       /*!
+        \param f The generic function being defined.
         \param v The variable to define.
         \param definition The definition of the variable.
       */
-      void add(std::shared_ptr<variable> v, generic_builder definition);
+      void add(std::shared_ptr<function> f, std::shared_ptr<variable> v,
+        generic_builder definition);
 
       //! Builds a reactor from a syntax node.
       /*!
@@ -78,6 +80,8 @@ namespace darcel {
         std::shared_ptr<reactor_builder>> m_variables;
       std::unordered_map<std::shared_ptr<variable>,
         std::unique_ptr<bind_function_statement>> m_generic_definitions;
+      std::unordered_map<std::shared_ptr<variable>, generic_builder>
+        m_generic_builders;
       std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<function>>
         m_overloads;
       std::shared_ptr<reactor_builder> m_evaluation;
@@ -94,8 +98,11 @@ namespace darcel {
     m_variables.insert(std::make_pair(std::move(v), std::move(definition)));
   }
 
-  inline void reactor_translator::add(std::shared_ptr<variable> v,
-      generic_builder definition) {
+  inline void reactor_translator::add(std::shared_ptr<function> f,
+      std::shared_ptr<variable> v, generic_builder definition) {
+    m_overloads.insert(std::make_pair(v, f));
+    m_generic_builders.insert(std::make_pair(std::move(v),
+      std::move(definition)));
   }
 
   inline void reactor_translator::translate(const syntax_node& node) {
@@ -235,6 +242,12 @@ namespace darcel {
       std::shared_ptr<variable> v) {
     auto f = m_overloads.at(v);
     auto root = f->get_definition(v);
+    auto builtin = m_generic_builders.find(root);
+    if(builtin != m_generic_builders.end()) {
+      std::shared_ptr<reactor_builder> builder = builtin->second(v);
+      m_variables.insert(std::make_pair(v, builder));
+      return builder;
+    }
     auto& definition = m_generic_definitions.at(root);
     auto implementation = darcel::instantiate(*definition, v, m_overloads);
     implementation->apply(*this);

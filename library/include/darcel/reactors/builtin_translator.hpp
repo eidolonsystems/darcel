@@ -35,7 +35,7 @@ namespace darcel {
       }
     };
     auto print = s.find<function>("print");
-    translator.add(print->get_overloads().back(), print_translator());
+    translator.add(print, print->get_overloads().back(), print_translator());
   }
 
   //! Adds definitions for the builtin add functions.
