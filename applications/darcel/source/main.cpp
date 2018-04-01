@@ -1,6 +1,7 @@
 #include <fstream>
 #include <tclap/CmdLine.h>
 #include "darcel/lexicon/token_parser.hpp"
+#include "darcel/reactors/builtin_translator.hpp"
 #include "darcel/reactors/reactor_executor.hpp"
 #include "darcel/reactors/reactor_translator.hpp"
 #include "darcel/syntax/syntax_parser.hpp"
@@ -49,6 +50,7 @@ int main(int argc, const char** argv) {
   }
   trigger t;
   reactor_translator rt(t);
+  translate_builtins(rt, sp.get_scope());
   for(auto& node : nodes) {
     rt.translate(*node);
   }

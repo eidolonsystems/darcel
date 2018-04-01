@@ -1,6 +1,6 @@
 #ifndef DARCEL_REACTOR_TRANSLATOR_HPP
 #define DARCEL_REACTOR_TRANSLATOR_HPP
-#include <iostream>
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -24,11 +24,33 @@ namespace darcel {
   class reactor_translator : private syntax_node_visitor {
     public:
 
+      //! Function used to instantiate generic functions.
+      /*!
+        \param v The generic to instantiate.
+      */
+      using generic_builder = std::function<
+        std::unique_ptr<reactor_builder>(const std::shared_ptr<variable>& v)>;
+
       //! Constructs a reactor translator.
       /*!
         \param t The trigger used to indicate reactor updates.
       */
       reactor_translator(trigger& t);
+
+      //! Adds a definition to the translator.
+      /*!
+        \param v The variable to define.
+        \param definition The definition of the variable.
+      */
+      void add(std::shared_ptr<variable> v,
+        std::shared_ptr<reactor_builder> definition);
+
+      //! Adds a generic definition to the translator.
+      /*!
+        \param v The variable to define.
+        \param definition The definition of the variable.
+      */
+      void add(std::shared_ptr<variable> v, generic_builder definition);
 
       //! Builds a reactor from a syntax node.
       /*!
@@ -66,6 +88,15 @@ namespace darcel {
 
   inline reactor_translator::reactor_translator(trigger& t)
       : m_trigger(&t) {}
+
+  inline void reactor_translator::add(std::shared_ptr<variable> v,
+      std::shared_ptr<reactor_builder> definition) {
+    m_variables.insert(std::make_pair(std::move(v), std::move(definition)));
+  }
+
+  inline void reactor_translator::add(std::shared_ptr<variable> v,
+      generic_builder definition) {
+  }
 
   inline void reactor_translator::translate(const syntax_node& node) {
     node.apply(*this);
