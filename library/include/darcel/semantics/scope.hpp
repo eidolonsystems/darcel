@@ -5,6 +5,7 @@
 #include "darcel/data_types/bool_data_type.hpp"
 #include "darcel/data_types/float_data_type.hpp"
 #include "darcel/data_types/function_data_type.hpp"
+#include "darcel/data_types/generic_data_type.hpp"
 #include "darcel/data_types/integer_data_type.hpp"
 #include "darcel/data_types/text_data_type.hpp"
 #include "darcel/semantics/element.hpp"
@@ -82,25 +83,6 @@ namespace darcel {
         scope.add(f);
       }
     }
-    for(auto& t : std::vector<std::shared_ptr<data_type>>{
-        bool_data_type::get_instance(), integer_data_type::get_instance(),
-        float_data_type::get_instance(), text_data_type::get_instance()}) {
-      std::vector<function_data_type::parameter> parameters;
-      parameters.push_back({"v", t});
-      auto f = std::make_shared<variable>(location::global(), "print",
-        std::make_shared<function_data_type>(parameters, t));
-      scope.add(f);
-    }
-    for(auto& t : std::vector<std::shared_ptr<data_type>>{
-        bool_data_type::get_instance(), integer_data_type::get_instance(),
-        float_data_type::get_instance(), text_data_type::get_instance()}) {
-      std::vector<function_data_type::parameter> parameters;
-      parameters.push_back({"initial", t});
-      parameters.push_back({"continuation", t});
-      auto f = std::make_shared<variable>(location::global(), "chain",
-        std::make_shared<function_data_type>(parameters, t));
-      scope.add(f);
-    }
     {
       std::vector<function_data_type::parameter> parameters;
       parameters.push_back({"lhs", text_data_type::get_instance()});
@@ -109,6 +91,23 @@ namespace darcel {
       auto f = std::make_shared<variable>(location::global(), name,
         std::make_shared<function_data_type>(parameters,
         text_data_type::get_instance()));
+      scope.add(f);
+    }
+    {
+      std::vector<function_data_type::parameter> parameters;
+      auto t = std::make_shared<generic_data_type>(location::global(), "`T");
+      parameters.push_back({"v", t});
+      auto f = std::make_shared<variable>(location::global(), "print",
+        std::make_shared<function_data_type>(parameters, t));
+      scope.add(f);
+    }
+    {
+      std::vector<function_data_type::parameter> parameters;
+      auto t = std::make_shared<generic_data_type>(location::global(), "`T");
+      parameters.push_back({"initial", t});
+      parameters.push_back({"continuation", t});
+      auto f = std::make_shared<variable>(location::global(), "chain",
+        std::make_shared<function_data_type>(parameters, t));
       scope.add(f);
     }
   }

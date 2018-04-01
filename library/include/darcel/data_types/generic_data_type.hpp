@@ -10,12 +10,6 @@ namespace darcel {
   class generic_data_type : public data_type {
     public:
 
-      //! Constructs an unnamed generic data type.
-      /*!
-        \param l The location where the generic was declared.
-      */
-      generic_data_type(location l);
-
       //! Constructs a generic data type.
       /*!
         \param l The location where the generic was declared.
@@ -36,9 +30,6 @@ namespace darcel {
       location m_location;
       std::string m_name;
   };
-
-  inline generic_data_type::generic_data_type(location l)
-      : generic_data_type(std::move(l), "?") {}
 
   inline generic_data_type::generic_data_type(location l, std::string name)
       : m_location(std::move(l)),
