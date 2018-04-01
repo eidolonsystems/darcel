@@ -56,7 +56,10 @@ namespace darcel {
     EXPRESSION_NOT_CALLABLE,
 
     //! No matching overload found.
-    OVERLOAD_NOT_FOUND
+    OVERLOAD_NOT_FOUND,
+
+    //! A variable with a specified name was not found.
+    VARIABLE_NOT_FOUND
   };
 }
 

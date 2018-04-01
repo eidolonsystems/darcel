@@ -4,6 +4,7 @@
 #include "darcel/lexicon/token.hpp"
 #include "darcel/syntax/bind_function_statement.hpp"
 #include "darcel/syntax/bind_variable_statement.hpp"
+#include "darcel/syntax/syntax_builders.hpp"
 #include "darcel/syntax/syntax.hpp"
 #include "darcel/syntax/syntax_error.hpp"
 #include "darcel/syntax/syntax_parser.hpp"
@@ -100,16 +101,8 @@ namespace darcel {
     auto& name = parse_identifier(c);
     expect(c, operation::symbol::ASSIGN);
     auto initializer = expect_expression(c);
-    auto existing_element = get_current_scope().find_within(name);
-    if(existing_element != nullptr) {
-      throw redefinition_syntax_error(name_location, name,
-        existing_element->get_location());
-    }
-    auto v = std::make_shared<variable>(cursor.get_location(), name,
-      initializer->get_data_type());
-    get_current_scope().add(v);
-    auto statement = std::make_unique<bind_variable_statement>(
-      cursor.get_location(), std::move(v), std::move(initializer));
+    auto statement = bind_variable(cursor.get_location(), name,
+      std::move(initializer), get_current_scope());
     cursor = c;
     return statement;
   }

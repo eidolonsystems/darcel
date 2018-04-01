@@ -30,26 +30,6 @@ namespace darcel {
       literal m_literal;
   };
 
-  //! Makes a literal integer expression.
-  /*!
-    \param l The location of the expression.
-    \param value The value to represent.
-  */
-  inline std::unique_ptr<literal_expression> make_literal_expression(
-      location l, int value) {
-    return std::make_unique<literal_expression>(std::move(l),
-      literal(std::to_string(value), integer_data_type::get_instance()));
-  }
-
-  //! Makes a literal integer expression.
-  /*!
-    \param value The value to represent.
-  */
-  inline std::unique_ptr<literal_expression> make_literal_expression(
-      int value) {
-    return make_literal_expression(location::global(), value);
-  }
-
   inline literal_expression::literal_expression(location l, literal literal)
       : expression(std::move(l)),
         m_literal(std::move(literal)) {}

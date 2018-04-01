@@ -102,6 +102,28 @@ namespace darcel {
     return instantiation;
   }
 
+  //! Makes a generic data type.
+  /*!
+    \param l The declaration's location.
+    \param name The name of the generic data type.
+    \param index The generic's index.
+  */
+  inline std::shared_ptr<generic_data_type> make_generic_data_type(
+      location l, std::string name, int index) {
+    return std::make_shared<generic_data_type>(std::move(l), std::move(name),
+      index);
+  }
+
+  //! Makes a generic data type.
+  /*!
+    \param name The name of the generic data type.
+    \param index The generic's index.
+  */
+  inline std::shared_ptr<generic_data_type> make_generic_data_type(
+      std::string name, int index) {
+    return make_generic_data_type(location::global(), std::move(name), index);
+  }
+
   inline generic_data_type::generic_data_type(location l, std::string name,
       int index)
       : m_location(std::move(l)),

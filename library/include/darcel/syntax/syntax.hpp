@@ -20,6 +20,7 @@ namespace darcel {
   class token_iterator;
   class unmatched_bracket_syntax_error;
   class variable_expression;
+  class variable_not_found_error;
 }
 
 #endif

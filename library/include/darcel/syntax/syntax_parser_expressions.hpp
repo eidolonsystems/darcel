@@ -11,10 +11,10 @@
 #include "darcel/syntax/ops.hpp"
 #include "darcel/syntax/redefinition_syntax_error.hpp"
 #include "darcel/syntax/syntax.hpp"
+#include "darcel/syntax/syntax_builders.hpp"
 #include "darcel/syntax/syntax_error.hpp"
 #include "darcel/syntax/syntax_parser.hpp"
 #include "darcel/syntax/unmatched_bracket_syntax_error.hpp"
-#include "darcel/syntax/variable_expression.hpp"
 
 namespace darcel {
   inline std::unique_ptr<function_expression>
@@ -57,14 +57,14 @@ namespace darcel {
     if(!name.has_value()) {
       return nullptr;
     }
-    auto v = get_current_scope().find<variable>(*name);
-    if(v == nullptr) {
+    try {
+      auto node = make_variable_expression(cursor.get_location(), *name,
+        get_current_scope());
+      cursor = c;
+      return node;
+    } catch(const variable_not_found_error&) {
       return nullptr;
     }
-    auto node = std::make_unique<variable_expression>(cursor.get_location(),
-      std::move(v));
-    cursor = c;
-    return node;
   }
 
   inline std::unique_ptr<expression> syntax_parser::parse_expression_term(
