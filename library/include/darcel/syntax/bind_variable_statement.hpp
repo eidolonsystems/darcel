@@ -34,6 +34,29 @@ namespace darcel {
       std::unique_ptr<expression> m_expression;
   };
 
+  //! Binds a new variable to an expression.
+  /*!
+    \param l The location of the binding.
+    \param name The name of the variable to bind.
+    \param e The expression to bind to the variable.
+  */
+  inline std::unique_ptr<bind_variable_statement> bind_variable(
+      location l, std::string name, std::unique_ptr<expression> e) {
+    auto v = std::make_shared<variable>(l, std::move(name), e->get_data_type());
+    return std::make_unique<bind_variable_statement>(std::move(l), std::move(v),
+      std::move(e));
+  }
+
+  //! Binds a new variable to an expression.
+  /*!
+    \param name The name of the variable to bind.
+    \param e The expression to bind to the variable.
+  */
+  inline std::unique_ptr<bind_variable_statement> bind_variable(
+      std::string name, std::unique_ptr<expression> e) {
+    return bind_variable(location::global(), std::move(name), std::move(e));
+  }
+
   inline bind_variable_statement::bind_variable_statement(location l,
       std::shared_ptr<variable> v, std::unique_ptr<expression> e)
       : statement(std::move(l)),

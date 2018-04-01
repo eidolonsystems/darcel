@@ -36,7 +36,6 @@ int main(int argc, const char** argv) {
   while(auto t = tp.parse_token())  {
     sp.feed(*t);
   }
-  trigger t;
   std::vector<std::unique_ptr<syntax_node>> nodes;
   try {
     while(auto s = sp.parse_node()) {
@@ -48,7 +47,8 @@ int main(int argc, const char** argv) {
       e.what() << std::endl;
     return -1;
   }
-  reactor_translator rt(sp.get_scope(), t);
+  trigger t;
+  reactor_translator rt(t);
   for(auto& node : nodes) {
     rt.translate(*node);
   }

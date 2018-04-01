@@ -15,7 +15,6 @@
 #include "darcel/reactors/reactor_builder.hpp"
 #include "darcel/reactors/reactors.hpp"
 #include "darcel/reactors/trigger.hpp"
-#include "darcel/semantics/scope.hpp"
 #include "darcel/syntax/syntax_nodes.hpp"
 #include "darcel/syntax/syntax_node_visitor.hpp"
 
@@ -25,13 +24,11 @@ namespace darcel {
   class reactor_translator : private syntax_node_visitor {
     public:
 
-      //! Constructs a reactor translator given a scope containing all of the
-      //! built-in global definitions.
+      //! Constructs a reactor translator.
       /*!
-        \param s The scope the node belongs to.
         \param t The trigger used to indicate reactor updates.
       */
-      reactor_translator(const scope& s, trigger& t);
+      reactor_translator(trigger& t);
 
       //! Builds a reactor from a syntax node.
       /*!
@@ -53,7 +50,6 @@ namespace darcel {
       void visit(const variable_expression& node) override final;
 
     private:
-      const scope* m_scope;
       trigger* m_trigger;
       std::shared_ptr<variable> m_main;
       std::unordered_map<std::shared_ptr<variable>,
@@ -68,32 +64,8 @@ namespace darcel {
       std::shared_ptr<reactor_builder> instantiate(std::shared_ptr<variable> v);
   };
 
-  inline reactor_translator::reactor_translator(const scope& s, trigger& t)
-      : m_scope(&s),
-        m_trigger(&t) {
-    auto add = m_scope->find<function>("add");
-    if(add != nullptr) {
-      for(auto& overload : add->get_overloads()) {
-        auto signature = std::static_pointer_cast<function_data_type>(
-          overload->get_data_type());
-        if(signature->get_parameters().size() == 2) {
-          if(*signature->get_parameters()[0].m_type == integer_data_type() &&
-              *signature->get_parameters()[1].m_type == integer_data_type()) {
-            m_variables[overload] = make_add_reactor_builder<int, int>();
-          } else if(
-              *signature->get_parameters()[0].m_type == float_data_type() &&
-              *signature->get_parameters()[1].m_type == float_data_type()) {
-            m_variables[overload] = make_add_reactor_builder<double, double>();
-          } else if(
-              *signature->get_parameters()[0].m_type == text_data_type() &&
-              *signature->get_parameters()[1].m_type == text_data_type()) {
-            m_variables[overload] =
-              make_add_reactor_builder<std::string, std::string>();
-          }
-        }
-      }
-    }
-  }
+  inline reactor_translator::reactor_translator(trigger& t)
+      : m_trigger(&t) {}
 
   inline void reactor_translator::translate(const syntax_node& node) {
     node.apply(*this);
@@ -230,69 +202,7 @@ namespace darcel {
 
   inline std::shared_ptr<reactor_builder> reactor_translator::instantiate(
       std::shared_ptr<variable> v) {
-    if(v->get_name() == "print") {
-      auto print = m_scope->find<function>(v->get_name());
-      for(auto overload : print->get_overloads()) {
-        if(v == overload) {
-          auto signature = std::static_pointer_cast<function_data_type>(
-            overload->get_data_type());
-          auto builder = [&] () -> std::shared_ptr<reactor_builder> {
-            if(*signature->get_parameters()[0].m_type == bool_data_type()) {
-              return make_ostream_reactor_builder<bool>(std::cout);
-            } else if(*signature->get_parameters()[0].m_type ==
-                float_data_type()) {
-              return make_ostream_reactor_builder<double>(std::cout);
-            } else if(*signature->get_parameters()[0].m_type ==
-                integer_data_type()) {
-              return make_ostream_reactor_builder<int>(std::cout);
-            } else if(*signature->get_parameters()[0].m_type ==
-                text_data_type()) {
-              return make_ostream_reactor_builder<std::string>(std::cout);
-            }
-
-            // TODO: Print generic values
-            return nullptr;
-          }();
-          m_variables[overload] = builder;
-          return builder;
-        }
-      }
-    } else if(v->get_name() == "chain") {
-      auto chain = m_scope->find<function>(v->get_name());
-      for(auto overload : chain->get_overloads()) {
-        if(v == overload) {
-          auto signature = std::static_pointer_cast<function_data_type>(
-            overload->get_data_type());
-          auto builder = [&] () -> std::shared_ptr<reactor_builder> {
-            if(*signature->get_parameters()[0].m_type == bool_data_type()) {
-              return make_chain_reactor_builder<bool>();
-            } else if(*signature->get_parameters()[0].m_type ==
-                float_data_type()) {
-              return make_chain_reactor_builder<double>();
-            } else if(*signature->get_parameters()[0].m_type ==
-                integer_data_type()) {
-              return make_chain_reactor_builder<int>();
-            } else if(
-                *signature->get_parameters()[0].m_type == text_data_type()) {
-              return make_chain_reactor_builder<std::string>();
-            }
-
-            // TODO: Print generic values
-            return nullptr;
-          }();
-          m_variables[overload] = builder;
-          return builder;
-        }
-      }
-    }
-    auto definition = m_generic_definitions.find(v);
-    if(definition == m_generic_definitions.end()) {
-      return nullptr;
-    }
-    auto instantiation = darcel::instantiate(*definition->second, v,
-      m_overloads);
-    instantiation->apply(*this);
-    return m_variables[v];
+    return nullptr;
   }
 }
 
