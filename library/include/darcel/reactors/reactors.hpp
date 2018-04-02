@@ -18,6 +18,7 @@ namespace darcel {
   class reactor_translator;
   class reactor_unavailable_exception;
   class trigger;
+  class update_reactor;
 }
 
 #endif

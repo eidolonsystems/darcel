@@ -80,7 +80,8 @@ namespace details {
   struct lift_helper {
     template<typename U>
     auto operator ()(U&& value) const {
-      return make_constant_reactor(std::forward<U>(value));
+      return std::static_pointer_cast<reactor<T>>(
+        make_constant_reactor(std::forward<U>(value)));
     }
   };
 

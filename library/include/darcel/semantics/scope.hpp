@@ -62,56 +62,6 @@ namespace darcel {
       scope& operator =(const scope&) = delete;
   };
 
-  //! Populates a scope with all global/built-in elements.
-  /*!
-    \param scope The scope to populate.
-  */
-  inline void populate_global_scope(scope& scope) {
-    scope.add(bool_data_type::get_instance());
-    scope.add(float_data_type::get_instance());
-    scope.add(integer_data_type::get_instance());
-    scope.add(text_data_type::get_instance());
-    for(auto& t : std::vector<std::shared_ptr<data_type>>{
-        integer_data_type::get_instance(), float_data_type::get_instance()}) {
-      std::vector<function_data_type::parameter> parameters;
-      parameters.push_back({"lhs", t});
-      parameters.push_back({"rhs", t});
-      for(auto& o : {op::ADD, op::SUBTRACT, op::MULTIPLY, op::DIVIDE}) {
-        auto f = std::make_shared<variable>(location::global(),
-          get_function_name(o),
-          std::make_shared<function_data_type>(parameters, t));
-        scope.add(f);
-      }
-    }
-    {
-      std::vector<function_data_type::parameter> parameters;
-      parameters.push_back({"lhs", text_data_type::get_instance()});
-      parameters.push_back({"rhs", text_data_type::get_instance()});
-      auto name = get_function_name(op::ADD);
-      auto f = std::make_shared<variable>(location::global(), name,
-        std::make_shared<function_data_type>(parameters,
-        text_data_type::get_instance()));
-      scope.add(f);
-    }
-    {
-      std::vector<function_data_type::parameter> parameters;
-      auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
-      parameters.push_back({"v", t});
-      auto f = std::make_shared<variable>(location::global(), "print",
-        std::make_shared<function_data_type>(parameters, t));
-      scope.add(f);
-    }
-    {
-      std::vector<function_data_type::parameter> parameters;
-      auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
-      parameters.push_back({"initial", t});
-      parameters.push_back({"continuation", t});
-      auto f = std::make_shared<variable>(location::global(), "chain",
-        std::make_shared<function_data_type>(parameters, t));
-      scope.add(f);
-    }
-  }
-
   inline scope::scope()
       : m_parent(nullptr) {}
 

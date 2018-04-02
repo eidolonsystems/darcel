@@ -4,6 +4,7 @@
 #include "darcel/reactors/builtin_translator.hpp"
 #include "darcel/reactors/reactor_executor.hpp"
 #include "darcel/reactors/reactor_translator.hpp"
+#include "darcel/semantics/builtin_scope.hpp"
 #include "darcel/syntax/syntax_parser.hpp"
 #include "darcel/version.hpp"
 
@@ -33,7 +34,7 @@ int main(int argc, const char** argv) {
     std::istreambuf_iterator<char>());
   token_parser tp;
   tp.feed(contents.c_str(), contents.size());
-  syntax_parser sp;
+  syntax_parser sp(make_builtin_scope());
   while(auto t = tp.parse_token())  {
     sp.feed(*t);
   }

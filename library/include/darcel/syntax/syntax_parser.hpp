@@ -171,11 +171,8 @@ namespace darcel {
     cursor = c;
   }
 
-  inline syntax_parser::syntax_parser() {
-    auto s = std::make_unique<scope>();
-    populate_global_scope(*s);
-    m_scopes.push_back(std::move(s));
-  }
+  inline syntax_parser::syntax_parser()
+      : syntax_parser(std::make_unique<scope>()) {}
 
   inline syntax_parser::syntax_parser(std::unique_ptr<scope> s) {
     m_scopes.push_back(std::move(s));

@@ -17,7 +17,7 @@ namespace darcel {
     EQUAL,
 
     //! The target can be instantiated to take the source.
-    GENERIC,
+    GENERIC
   };
 
   //! Returns the compatibility from one data type to another.

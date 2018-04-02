@@ -1,6 +1,7 @@
 #include <catch.hpp>
 #include "darcel/data_types/bool_data_type.hpp"
 #include "darcel/lexicon/token_parser.hpp"
+#include "darcel/semantics/builtin_scope.hpp"
 #include "darcel/syntax/syntax_parser.hpp"
 
 using namespace darcel;
@@ -58,12 +59,12 @@ TEST_CASE("test_parsing_term", "[syntax_parser]") {
     auto c = p.get_next_terminal();
   }
   SECTION("Parse operators.") {
-    syntax_parser p;
+    syntax_parser p(make_builtin_scope());
     feed(p, "5 + 5");
     auto c = p.get_next_terminal();
   }
   SECTION("Parse operators with new line.") {
-    syntax_parser p;
+    syntax_parser p(make_builtin_scope());
     feed(p, "5 +\n 5");
     auto c = p.get_next_terminal();
   }
@@ -135,12 +136,12 @@ TEST_CASE("test_incremental_parsing", "[syntax_parser]") {
 
 TEST_CASE("test_parsing_arithmetic_expression", "[syntax_parser]") {
   SECTION("Parse literal expression.") {
-    syntax_parser p;
+    syntax_parser p(make_builtin_scope());
     feed(p, "1 + 2 * 3");
     auto e = p.parse_node();
   }
   SECTION("Parse variable expression.") {
-    syntax_parser p;
+    syntax_parser p(make_builtin_scope());
     feed(p,
       "let x = 1\n"
       "let y = 2\n"
@@ -155,12 +156,12 @@ TEST_CASE("test_parsing_arithmetic_expression", "[syntax_parser]") {
 
 TEST_CASE("test_parsing_with_line_continuations", "[syntax_parser]") {
   SECTION("Parse continuation from a bracket.") {
-    syntax_parser p;
+    syntax_parser p(make_builtin_scope());
     feed(p, "let x = 1 + (2 *\n 3)");
     auto e = p.parse_node();
   }
   SECTION("Parse continuation from an operator.") {
-    syntax_parser p;
+    syntax_parser p(make_builtin_scope());
     feed(p, "let x = 1 +\n 2 * 3");
     auto e = p.parse_node();
   }
@@ -173,7 +174,7 @@ TEST_CASE("test_parsing_function_definition", "[syntax_parser]") {
     auto e = p.parse_node();
   }
   SECTION("Parse single parameter function.") {
-    syntax_parser p;
+    syntax_parser p(make_builtin_scope());
     feed(p, "let f(x: Int) = x");
     auto e = p.parse_node();
   }
