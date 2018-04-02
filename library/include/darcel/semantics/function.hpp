@@ -79,11 +79,28 @@ namespace darcel {
       if(type->get_parameters().size() != parameters.size()) {
         continue;
       }
+      data_type_map<std::shared_ptr<generic_data_type>,
+        std::shared_ptr<data_type>> generic_substitutions;
       auto compatibility = [&] {
         auto compatibility = data_type_compatibility::EQUAL;
         for(std::size_t i = 0; i < parameters.size(); ++i) {
-          auto parameter_compatibility = get_compatibility(
-            *parameters[i].m_type, *type->get_parameters()[i].m_type);
+          auto parameter = parameters[i].m_type;
+          auto overload_parameter = type->get_parameters()[i].m_type;
+          if(auto g = std::dynamic_pointer_cast<generic_data_type>(
+              overload_parameter)) {
+            auto substitution = generic_substitutions.find(g);
+            if(substitution == generic_substitutions.end()) {
+              substitution = generic_substitutions.insert(
+                std::make_pair(g, parameter)).first;
+            }
+            overload_parameter = substitution->second;
+            if(std::dynamic_pointer_cast<generic_data_type>(parameter) ==
+                nullptr) {
+              compatibility = data_type_compatibility::GENERIC;
+            }
+          }
+          auto parameter_compatibility = get_compatibility(*parameter,
+            *overload_parameter);
           if(parameter_compatibility == data_type_compatibility::NONE) {
             return data_type_compatibility::NONE;
           } else if(parameter_compatibility ==

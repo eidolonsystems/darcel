@@ -54,3 +54,11 @@ TEST_CASE("test_parsing_generic_function", "[syntax_parser]") {
     REQUIRE_THROWS(p.parse_node());
   }
 }
+
+TEST_CASE("test_generic_function_instantiation", "[syntax_parser]") {
+  syntax_parser p;
+  feed(p, R"(let f(x: `T, y: `T) = x
+             let g(x: `T, y: `U) = f(x, y))");
+  auto f = p.parse_node();
+  REQUIRE_THROWS(p.parse_node());
+}

@@ -50,8 +50,10 @@ namespace darcel {
       void visit(const generic_data_type& type) override final {
         if(*m_source == type) {
           m_compatibility = data_type_compatibility::EQUAL;
-        } else {
+        } else if(dynamic_cast<const generic_data_type*>(m_source) == nullptr) {
           m_compatibility = data_type_compatibility::GENERIC;
+        } else {
+          m_compatibility = data_type_compatibility::NONE;
         }
       }
     };
