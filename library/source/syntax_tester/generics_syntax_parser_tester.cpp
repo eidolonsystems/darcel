@@ -38,7 +38,7 @@ TEST_CASE("test_parsing_generic_function", "[syntax_parser]") {
     REQUIRE(y != nullptr);
     REQUIRE(*y->get_variable()->get_data_type() == integer_data_type());
   }
-  SECTION("Two generic parameters.") {
+  SECTION("Call two equal generic parameters with equal types.") {
     syntax_parser p;
     feed(p, "let f(x: `T, y: `T) = y\nlet z = f(true, false)");
     auto e = p.parse_node();
@@ -46,5 +46,11 @@ TEST_CASE("test_parsing_generic_function", "[syntax_parser]") {
     auto z = dynamic_cast<bind_variable_statement*>(s.get());
     REQUIRE(z != nullptr);
     REQUIRE(*z->get_variable()->get_data_type() == bool_data_type());
+  }
+  SECTION("Call two equal generic parameters with distinct types.") {
+    syntax_parser p;
+    feed(p, "let f(x: `T, y: `T) = y\nlet z = f(true, 5)");
+    auto e = p.parse_node();
+    REQUIRE_THROWS(p.parse_node());
   }
 }
