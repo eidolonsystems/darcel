@@ -100,7 +100,9 @@ namespace darcel {
 
   inline void reactor_translator::add(std::shared_ptr<function> f,
       std::shared_ptr<variable> v, generic_builder definition) {
-    m_overloads.insert(std::make_pair(v, f));
+    for(auto& overload : f->get_overloads()) {
+      m_overloads.insert(std::make_pair(overload, f));
+    }
     m_generic_builders.insert(std::make_pair(std::move(v),
       std::move(definition)));
   }

@@ -169,7 +169,7 @@ namespace darcel {
         return false;
       }
     }
-    m_overloads.push_back(std::move(overload));
+    m_overloads.insert(m_overloads.begin(), std::move(overload));
     return true;
   }
 
