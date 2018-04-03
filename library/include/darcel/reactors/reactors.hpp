@@ -4,6 +4,7 @@
 namespace darcel {
   class base_proxy_reactor;
   class base_reactor;
+  template<typename T> class basic_reactor;
   template<typename T> class chain_reactor;
   class commit_reactor;
   template<typename T> class constant_reactor;
