@@ -23,78 +23,90 @@ namespace darcel {
     private:
       struct child {
         base_reactor* m_reactor;
-        bool m_is_initialized;
-        bool m_is_complete;
+        base_reactor::update m_state;
 
         child(base_reactor& reactor);
       };
+      enum class state {
+        INITIALIZING,
+        EVALUATING
+      };
       std::vector<child> m_children;
-      int m_current_sequence;
+      state m_state;
+      int m_sequence;
       base_reactor::update m_update;
-      base_reactor::update m_state;
   };
 
   inline commit_reactor::child::child(base_reactor& reactor)
       : m_reactor(&reactor),
-        m_is_initialized(false),
-        m_is_complete(false) {}
+        m_state(base_reactor::update::NONE) {}
 
   inline commit_reactor::commit_reactor(
       const std::vector<base_reactor*>& children)
-      : m_current_sequence(-1),
-        m_state(base_reactor::update::NONE) {
+      : m_state(state::INITIALIZING),
+        m_sequence(-1) {
     for(auto& child : children) {
       m_children.emplace_back(*child);
     }
   }
 
   inline base_reactor::update commit_reactor::commit(int sequence) {
-    if(m_current_sequence == sequence) {
+    if(is_complete(m_update) || sequence == m_sequence) {
       return m_update;
-    } else if(is_complete(m_state)) {
-      return base_reactor::update::NONE;
     }
-    m_update =
-      [&] {
-        auto update = [&] {
-          if(m_state == base_reactor::update::NONE) {
-            return base_reactor::update::EVAL;
-          } else {
-            return base_reactor::update::NONE;
+    if(m_state == state::INITIALIZING) {
+      std::size_t initialization_count = 0;
+      std::size_t completion_count = 0;
+      for(auto& child : m_children) {
+        if(child.m_state == update::NONE) {
+          child.m_state = child.m_reactor->commit(sequence);
+          if(is_complete(child.m_state)) {
+            ++completion_count;
           }
-        }();
-        auto complete_count = 0;
-        for(auto& child : m_children) {
-          if(child.m_is_complete) {
-            ++complete_count;
-            continue;
+          if(has_eval(child.m_state)) {
+            ++initialization_count;
+          } else if(is_complete(child.m_state)) {
+            m_update = update::COMPLETE_EMPTY;
+            break;
           }
-          auto child_update = child.m_reactor->commit(sequence);
-          if(is_complete(child_update)) {
-            ++complete_count;
-            child.m_is_complete = true;
-          }
-          if(!child.m_is_initialized) {
-            if(has_eval(child_update)) {
-              child.m_is_initialized = true;
-            } else if(child.m_is_complete) {
-              update = base_reactor::update::COMPLETE;
-            } else {
-              update = base_reactor::update::NONE;
-            }
-          } else if(m_state != base_reactor::update::NONE) {
-            if(has_eval(child_update)) {
-              update = base_reactor::update::EVAL;
-            }
+        } else {
+          ++initialization_count;
+          auto state = child.m_reactor->commit(sequence);
+          if(is_complete(state)) {
+            ++completion_count;
+            child.m_state = state;
           }
         }
-        if(complete_count == static_cast<int>(m_children.size())) {
-          combine(update, base_reactor::update::COMPLETE);
+      }
+      if(initialization_count == m_children.size()) {
+        m_update = update::EVAL;
+        if(completion_count == m_children.size()) {
+          combine(m_update, update::COMPLETE);
+        } else {
+          m_state = state::EVALUATING;
         }
-        return update;
-      }();
-    m_current_sequence = sequence;
-    combine(m_state, m_update);
+      }
+    } else if(m_state == state::EVALUATING) {
+      m_update = update::NONE;
+      std::size_t completion_count = 0;
+      for(auto& child : m_children) {
+        if(is_complete(child.m_state)) {
+          ++completion_count;
+        } else {
+          child.m_state = child.m_reactor->commit(sequence);
+          if(has_eval(child.m_state)) {
+            m_update = update::EVAL;
+          }
+          if(is_complete(child.m_state)) {
+            ++completion_count;
+          }
+        }
+      }
+      if(completion_count == m_children.size()) {
+        m_update = update::COMPLETE_EVAL;
+      }
+    }
+    m_sequence = sequence;
     return m_update;
   }
 

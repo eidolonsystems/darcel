@@ -194,7 +194,7 @@ namespace details {
       std::tuple<P...> m_parameters;
       std::optional<commit_reactor> m_commit_reactor;
       maybe<type> m_value;
-      int m_current_sequence;
+      int m_sequence;
       base_reactor::update m_update;
       base_reactor::update m_state;
 
@@ -309,7 +309,7 @@ namespace details {
       : m_function(std::forward<FF>(function)),
         m_parameters(std::forward<PF>(parameters)...),
         m_value(std::make_exception_ptr(reactor_unavailable_exception())),
-        m_current_sequence(-1),
+        m_sequence(-1),
         m_state(base_reactor::update::NONE) {
     std::vector<base_reactor*> children;
     details::initialize_children(children, m_parameters);
@@ -318,10 +318,8 @@ namespace details {
 
   template<typename F, typename... P>
   base_reactor::update function_reactor<F, P...>::commit(int sequence) {
-    if(m_current_sequence == sequence) {
+    if(is_complete(m_update) || m_sequence == sequence) {
       return m_update;
-    } else if(is_complete(m_state)) {
-      return base_reactor::update::NONE;
     }
     m_update = m_commit_reactor->commit(sequence);
     if(has_eval(m_update)) {
@@ -336,7 +334,7 @@ namespace details {
         combine(m_update, base_reactor::update::COMPLETE);
       }
     }
-    m_current_sequence = sequence;
+    m_sequence = sequence;
     combine(m_state, m_update);
     return m_update;
   }

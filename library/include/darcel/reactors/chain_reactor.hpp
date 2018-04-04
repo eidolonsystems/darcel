@@ -97,7 +97,7 @@ namespace darcel {
 
   template<typename T>
   base_reactor::update chain_reactor<T>::commit(int sequence) {
-    if(sequence == m_sequence || is_complete(m_update)) {
+    if(is_complete(m_update) || sequence == m_sequence) {
       return m_update;
     }
     if(m_state == state::INITIAL) {

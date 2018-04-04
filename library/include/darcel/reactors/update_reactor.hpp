@@ -23,9 +23,6 @@ namespace darcel {
     private:
       std::shared_ptr<base_reactor> m_reactor;
       base_reactor::update m_value;
-      int m_current_sequence;
-      base_reactor::update m_update;
-      base_reactor::update m_state;
   };
 
   //! Makes an update reactor.
@@ -47,38 +44,14 @@ namespace darcel {
 
   inline update_reactor::update_reactor(std::shared_ptr<base_reactor> r)
       : m_reactor(std::move(r)),
-        m_value(base_reactor::update::NONE),
-        m_current_sequence(-1),
-        m_state(base_reactor::update::NONE) {}
+        m_value(base_reactor::update::NONE) {}
 
   inline base_reactor::update update_reactor::commit(int sequence) {
-    if(m_current_sequence == sequence) {
-      return m_update;
-    } else if(is_complete(m_state)) {
-      return base_reactor::update::NONE;
+    if(is_complete(m_value)) {
+      return m_value;
     }
-    auto update = m_reactor->commit(sequence);
-    if(m_state != base_reactor::update::NONE) {
-      if(update == base_reactor::update::NONE) {
-        if(m_value == base_reactor::update::NONE) {
-          return base_reactor::update::NONE;
-        }
-        m_value = base_reactor::update::NONE;
-        update = base_reactor::update::EVAL;
-      } else {
-        m_value = update;
-        combine(update, base_reactor::update::EVAL);
-      }
-    } else if(update == base_reactor::update::NONE) {
-      return base_reactor::update::NONE;
-    } else {
-      m_value = update;
-      combine(update, base_reactor::update::EVAL);
-    }
-    m_update = update;
-    m_current_sequence = sequence;
-    combine(m_state, update);
-    return update;
+    m_value = m_reactor->commit(sequence);
+    return m_value;
   }
 
   inline update_reactor::type update_reactor::eval() const {
