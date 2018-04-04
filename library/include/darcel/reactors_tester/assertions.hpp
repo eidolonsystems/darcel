@@ -24,6 +24,10 @@ namespace tests {
     REQUIRE(reactor.commit(sequence) == update);
     REQUIRE(reactor.commit(sequence) == update);
     REQUIRE(reactor.eval() == expected);
+    if(is_complete(update)) {
+      REQUIRE(reactor.commit(sequence + 1) == update);
+      REQUIRE(reactor.eval() == expected);
+    }
   }
 
   //! Asserts that a reactor throws an exception after a sequence point.
@@ -36,6 +40,16 @@ namespace tests {
   void assert_exception(reactor<T>& reactor, int sequence,
       base_reactor::update update) {
     REQUIRE(reactor.commit(sequence) == update);
+    try {
+      reactor.eval();
+      FAIL("Expected exception not thrown.");
+    } catch(const E&) {
+    } catch(const std::exception&) {
+      FAIL("Expected exception not thrown.");
+    }
+    if(is_complete(update)) {
+      REQUIRE(reactor.commit(sequence + 1) == update);
+    }
     try {
       reactor.eval();
       FAIL("Expected exception not thrown.");

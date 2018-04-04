@@ -35,10 +35,7 @@ namespace darcel {
 
   template<typename T>
   base_reactor::update none_reactor<T>::commit(int sequence) {
-    if(sequence == 0) {
-      return base_reactor::update::COMPLETE;
-    }
-    return base_reactor::update::NONE;
+    return base_reactor::update::COMPLETE_EMPTY;
   }
 
   template<typename T>

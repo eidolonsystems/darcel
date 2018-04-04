@@ -16,22 +16,18 @@ namespace darcel {
       //! Returns the current sequence number.
       int get_current_sequence() const;
 
-      //! Loads the next sequence, signalling an update is ready to commit.
-      /*!
-        \param sequence The variable to store the sequence in, passed in by
-               reference to avoid potential race condition.
-      */
-      void fetch_next_sequence(int& sequence);
+      //! Signals an update is ready to commit.
+      void signal_update();
 
       //! Waits for an update.
       /*!
+        \param sequence The current sequence number;
         \return The last sequence number produced.
       */
-      int wait();
+      int wait(int sequence);
 
    private:
       int m_current_sequence;
-      int m_next_sequence;
       std::condition_variable m_update_condition;
       std::mutex m_mutex;
 
@@ -40,29 +36,22 @@ namespace darcel {
   };
 
   inline trigger::trigger()
-      : m_current_sequence(0),
-        m_next_sequence(0) {}
+      : m_current_sequence(0) {}
 
   inline int trigger::get_current_sequence() const {
     return m_current_sequence;
   }
 
-  inline void trigger::fetch_next_sequence(int& sequence) {
-    {
-      std::lock_guard<std::mutex> lock(m_mutex);
-      sequence = ++m_next_sequence;
-    }
+  inline void trigger::signal_update() {
     m_update_condition.notify_one();
   }
 
-  inline int trigger::wait() {
+  inline int trigger::wait(int sequence) {
     auto lock = std::unique_lock<std::mutex>(m_mutex);
-    while(m_current_sequence >= m_next_sequence) {
+    while(sequence < m_current_sequence) {
       m_update_condition.wait(lock);
     }
-    auto sequence = m_current_sequence;
-    ++m_current_sequence;
-    return sequence;
+    return m_current_sequence++;
   }
 }
 

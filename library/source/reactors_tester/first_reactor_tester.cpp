@@ -7,5 +7,5 @@ using namespace darcel::tests;
 
 TEST_CASE("test_first_constant", "[first_reactor]") {
   auto reactor = first(123);
-  assert_value(*reactor, 0, base_reactor::update::COMPLETE_WITH_EVAL, 123);
+  assert_value(*reactor, 0, base_reactor::update::COMPLETE_EVAL, 123);
 }

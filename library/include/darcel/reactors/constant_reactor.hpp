@@ -26,7 +26,6 @@ namespace darcel {
       type eval() const override final;
 
     private:
-      int m_sequence;
       type m_value;
   };
 
@@ -55,19 +54,11 @@ namespace darcel {
   template<typename T>
   template<typename V>
   constant_reactor<T>::constant_reactor(V&& value)
-      : m_sequence(-1),
-        m_value(std::forward<V>(value)) {}
+      : m_value(std::forward<V>(value)) {}
 
   template<typename T>
   base_reactor::update constant_reactor<T>::commit(int sequence) {
-    if(m_sequence == -1) {
-      m_sequence = sequence;
-      return base_reactor::update::COMPLETE_WITH_EVAL;
-    } else if(sequence > m_sequence) {
-      return base_reactor::update::NONE;
-    } else {
-      return base_reactor::update::COMPLETE_WITH_EVAL;
-    }
+    return base_reactor::update::COMPLETE_EVAL;
   }
 
   template<typename T>

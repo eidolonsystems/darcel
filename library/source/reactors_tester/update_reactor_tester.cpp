@@ -8,6 +8,6 @@ using namespace darcel::tests;
 
 TEST_CASE("test_update_none", "[update_reactor]") {
   auto reactor = get_updates(none<int>());
-  assert_value(*reactor, 0, base_reactor::update::COMPLETE_WITH_EVAL,
+  assert_value(*reactor, 0, base_reactor::update::COMPLETE_EVAL,
     base_reactor::update::COMPLETE);
 }

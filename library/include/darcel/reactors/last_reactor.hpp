@@ -17,7 +17,7 @@ namespace details {
 
     std::optional<type> operator ()(const type& value,
         base_reactor::update update) {
-      if(update == base_reactor::update::COMPLETE_WITH_EVAL) {
+      if(update == base_reactor::update::COMPLETE_EVAL) {
         return value;
       } else if(update == base_reactor::update::NONE) {
         return std::nullopt;

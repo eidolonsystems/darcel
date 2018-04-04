@@ -13,17 +13,19 @@ namespace darcel {
       enum class update {
 
         //! No update.
-        NONE = 0,
+        NONE = 1,
 
-        //! The reactor has come to an end with no update.
-        COMPLETE = 1,
-
-        //! The reactor's evaluation has updated
-        //! (it may also have come to an end).
+        //! The reactor has a new value.
         EVAL = 2,
 
-        //! The reactor is both complete and has an evaluation.
-        COMPLETE_WITH_EVAL = COMPLETE | EVAL
+        //! The reactor has come to an end.
+        COMPLETE = 4,
+
+        //! The reactor has terminated without an evaluation.
+        COMPLETE_EMPTY = COMPLETE | NONE,
+
+        //! The reactor has terminated with an evaluation.
+        COMPLETE_EVAL = COMPLETE | EVAL
       };
 
       virtual ~base_reactor() = default;

@@ -12,7 +12,7 @@ TEST_CASE("test_basic_immediate_complete", "[basic_reactor]") {
     base_reactor::update::NONE);
   reactor->set_complete();
   assert_exception<reactor_unavailable_exception>(*reactor, 1,
-    base_reactor::update::COMPLETE);
+    base_reactor::update::COMPLETE_EMPTY);
 }
 
 TEST_CASE("test_basic_complete_with_throw", "[basic_reactor]") {
@@ -22,8 +22,7 @@ TEST_CASE("test_basic_complete_with_throw", "[basic_reactor]") {
     base_reactor::update::NONE);
   reactor->set_complete(dummy_exception());
   assert_exception<dummy_exception>(*reactor, 1,
-    base_reactor::update::COMPLETE_WITH_EVAL);
-  assert_exception<dummy_exception>(*reactor, 2, base_reactor::update::NONE);
+    base_reactor::update::COMPLETE_EVAL);
 }
 
 TEST_CASE("test_basic_single_value", "[basic_reactor]") {
@@ -34,8 +33,7 @@ TEST_CASE("test_basic_single_value", "[basic_reactor]") {
   reactor->set_value(123);
   assert_value(*reactor, 1, base_reactor::update::EVAL, 123);
   reactor->set_complete();
-  assert_value(*reactor, 2, base_reactor::update::COMPLETE, 123);
-  assert_value(*reactor, 3, base_reactor::update::NONE, 123);
+  assert_value(*reactor, 2, base_reactor::update::COMPLETE_EVAL, 123);
 }
 
 TEST_CASE("test_basic_single_value_and_throw", "[basic_reactor]") {
@@ -47,6 +45,5 @@ TEST_CASE("test_basic_single_value_and_throw", "[basic_reactor]") {
   assert_value(*reactor, 1, base_reactor::update::EVAL, 123);
   reactor->set_complete(dummy_exception());
   assert_exception<dummy_exception>(*reactor, 2,
-    base_reactor::update::COMPLETE_WITH_EVAL);
-  assert_exception<dummy_exception>(*reactor, 3, base_reactor::update::NONE);
+    base_reactor::update::COMPLETE_EVAL);
 }

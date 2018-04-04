@@ -5,12 +5,14 @@ using namespace darcel;
 
 TEST_CASE("test_trigger_update", "[trigger]") {
   trigger t;
-  int sequenceNumber;
-  REQUIRE(t.get_current_sequence() == 0);
-  t.fetch_next_sequence(sequenceNumber);
-  REQUIRE(sequenceNumber == 1);
-  t.wait();
+  auto sequence = t.get_current_sequence();
+  REQUIRE(sequence == t.get_current_sequence());
+  t.signal_update();
+  t.wait(sequence);
+  ++sequence;
   REQUIRE(t.get_current_sequence() == 1);
-  t.fetch_next_sequence(sequenceNumber);
-  REQUIRE(sequenceNumber == 2);
+  t.signal_update();
+  t.wait(sequence);
+  ++sequence;
+  REQUIRE(t.get_current_sequence() == 2);
 }

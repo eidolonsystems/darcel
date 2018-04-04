@@ -5,10 +5,13 @@
 #include "darcel/reactors/reactors.hpp"
 
 namespace darcel {
+
+  //! The untyped base class for a proxy reactor.
   class base_proxy_reactor {
     public:
       virtual ~base_proxy_reactor() = default;
 
+      //! The reactor to proxy calls to.
       virtual void set_source(std::shared_ptr<base_reactor> source) = 0;
 
     protected:
