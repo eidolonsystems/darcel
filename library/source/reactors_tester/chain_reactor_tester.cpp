@@ -18,3 +18,9 @@ TEST_CASE("test_single_chain", "[chain_reactor]") {
   assert_value(*r, 0, base_reactor::update::EVAL, 911);
   assert_value(*r, 1, base_reactor::update::COMPLETE_EVAL, 911);
 }
+
+TEST_CASE("test_chain_immediate_transition", "[chain_reactor]") {
+  auto r = chain(none<int>(), 911);
+  assert_value(*r, 0, base_reactor::update::COMPLETE_EVAL, 911);
+  assert_value(*r, 1, base_reactor::update::COMPLETE_EVAL, 911);
+}

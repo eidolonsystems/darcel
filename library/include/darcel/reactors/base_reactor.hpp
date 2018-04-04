@@ -12,6 +12,9 @@ namespace darcel {
       //! Lists the types of updates a reactor can undergo after a commit.
       enum class update {
 
+        //! Uninitialized.
+        EMPTY = 0,
+
         //! No update.
         NONE = 1,
 

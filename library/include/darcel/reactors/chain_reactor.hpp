@@ -33,10 +33,18 @@ namespace darcel {
       type eval() const override final;
 
     private:
+      enum state {
+        INITIAL,
+        TRANSITIONING,
+        CONTINUATION
+      };
       std::shared_ptr<reactor<type>> m_initial;
       std::shared_ptr<reactor<type>> m_continuation;
       reactor<type>* m_current;
-      int m_transition_sequence;
+      int m_sequence;
+      state m_state;
+      base_reactor::update m_update;
+      bool m_has_eval;
   };
 
   //! Makes a chain reactor.
@@ -82,29 +90,45 @@ namespace darcel {
       : m_initial(std::move(initial)),
         m_continuation(std::move(continuation)),
         m_current(&*m_initial),
-        m_transition_sequence(-1) {}
+        m_sequence(-1),
+        m_state(state::INITIAL),
+        m_update(base_reactor::update::NONE),
+        m_has_eval(false) {}
 
   template<typename T>
   base_reactor::update chain_reactor<T>::commit(int sequence) {
-    if(sequence == m_transition_sequence) {
-      return base_reactor::update::EVAL;
+    if(sequence == m_sequence || is_complete(m_update)) {
+      return m_update;
     }
-    auto state = m_current->commit(sequence);
-    if(state == base_reactor::update::COMPLETE_EMPTY) {
-      if(m_current == m_initial.get()) {
+    if(m_state == state::INITIAL) {
+      auto update = m_initial->commit(sequence);
+      if(update == base_reactor::update::COMPLETE_EVAL) {
+        m_state = state::TRANSITIONING;
+        m_update = base_reactor::update::EVAL;
+      } else if(update == base_reactor::update::COMPLETE_EMPTY) {
+        m_state = state::CONTINUATION;
         m_current = m_continuation.get();
-        return commit(sequence);
       } else {
-        return m_initial->commit(sequence);
+        m_update = update;
       }
-    } else if(state == base_reactor::update::COMPLETE_EVAL) {
-      if(m_current == m_initial.get()) {
-        m_current = m_continuation.get();
-        m_transition_sequence = sequence;
-        return base_reactor::update::EVAL;
+    } else if(m_state == state::TRANSITIONING) {
+      m_state = state::CONTINUATION;
+      m_current = m_continuation.get();
+    }
+    if(m_state == state::CONTINUATION) {
+      auto update = m_continuation->commit(sequence);
+      if(update == base_reactor::update::COMPLETE_EMPTY) {
+        if(m_has_eval) {
+          m_current = m_initial.get();
+          m_update = base_reactor::update::COMPLETE_EVAL;
+        }
+      } else {
+        m_update = update;
       }
     }
-    return state;
+    m_sequence = sequence;
+    m_has_eval |= has_eval(m_update);
+    return m_update;
   }
 
   template<typename T>
