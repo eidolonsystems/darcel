@@ -1,5 +1,5 @@
-#ifndef DARCEL_BASIC_REACTOR_HPP
-#define DARCEL_BASIC_REACTOR_HPP
+#ifndef DARCEL_QUEUE_REACTOR_HPP
+#define DARCEL_QUEUE_REACTOR_HPP
 #include <deque>
 #include <exception>
 #include <mutex>
@@ -12,26 +12,26 @@
 
 namespace darcel {
 
-  //! A reactor that is programmatically updated.
+  //! A reactor that emits a queue of values.
   /*!
-    \tparam T the type of value to evaluate.
+    \tparam T the type of value to queue.
   */
   template<typename T>
-  class basic_reactor : public reactor<T> {
+  class queue_reactor : public reactor<T> {
     public:
       using type = reactor_type_t<reactor<T>>;
 
-      //! Constructs a basic reactor.
+      //! Constructs a queue reactor.
       /*!
         \param t The trigger used to indicate updates.
       */
-      basic_reactor(trigger& t);
+      queue_reactor(trigger& t);
 
-      //! Updates this reactor with a value.
+      //! Pushes a value to the queue.
       /*!
-        \param value The value to update.
+        \param value The value to push.
       */
-      void set_value(type value);
+      void push(type value);
 
       //! Brings this reactor to a completion state.
       void set_complete();
@@ -63,24 +63,24 @@ namespace darcel {
       std::optional<std::exception_ptr> m_exception;
   };
 
-  //! Makes a basic reactor.
+  //! Makes a queue reactor.
   /*!
     \param t The trigger used to indicate updates.
   */
   template<typename T>
-  auto make_basic_reactor(trigger& t) {
-    return std::make_shared<basic_reactor<T>>(t);
+  auto make_queue_reactor(trigger& t) {
+    return std::make_shared<queue_reactor<T>>(t);
   }
 
   template<typename T>
-  basic_reactor<T>::basic_reactor(trigger& t)
+  queue_reactor<T>::queue_reactor(trigger& t)
       : m_trigger(&t),
         m_value(std::make_exception_ptr(reactor_unavailable_exception())),
         m_sequence(-1),
         m_state(update::NONE) {}
 
   template<typename T>
-  void basic_reactor<T>::set_value(type value) {
+  void queue_reactor<T>::push(type value) {
     {
       std::lock_guard<std::mutex> lock(m_mutex);
       m_queue.emplace_back(std::move(value));
@@ -89,7 +89,7 @@ namespace darcel {
   }
 
   template<typename T>
-  void basic_reactor<T>::set_complete() {
+  void queue_reactor<T>::set_complete() {
     {
       std::lock_guard<std::mutex> lock(m_mutex);
       m_exception.emplace();
@@ -98,7 +98,7 @@ namespace darcel {
   }
 
   template<typename T>
-  void basic_reactor<T>::set_complete(std::exception_ptr e) {
+  void queue_reactor<T>::set_complete(std::exception_ptr e) {
     {
       std::lock_guard<std::mutex> lock(m_mutex);
       m_exception.emplace(std::move(e));
@@ -108,12 +108,12 @@ namespace darcel {
 
   template<typename T>
   template<typename E>
-  void basic_reactor<T>::set_complete(const E& e) {
+  void queue_reactor<T>::set_complete(const E& e) {
     set_complete(std::make_exception_ptr(e));
   }
 
   template<typename T>
-  base_reactor::update basic_reactor<T>::commit(int sequence) {
+  base_reactor::update queue_reactor<T>::commit(int sequence) {
     if(is_complete(m_state) || sequence == m_sequence) {
       return m_state;
     }
@@ -139,7 +139,7 @@ namespace darcel {
   }
 
   template<typename T>
-  typename basic_reactor<T>::type basic_reactor<T>::eval() const {
+  typename queue_reactor<T>::type queue_reactor<T>::eval() const {
     return m_value;
   }
 }
