@@ -23,6 +23,7 @@ namespace darcel {
     private:
       std::shared_ptr<base_reactor> m_reactor;
       base_reactor::update m_value;
+      base_reactor::update m_update;
   };
 
   //! Makes an update reactor.
@@ -44,14 +45,19 @@ namespace darcel {
 
   inline update_reactor::update_reactor(std::shared_ptr<base_reactor> r)
       : m_reactor(std::move(r)),
-        m_value(base_reactor::update::NONE) {}
+        m_update(update::NONE) {}
 
   inline base_reactor::update update_reactor::commit(int sequence) {
-    if(is_complete(m_value)) {
-      return m_value;
+    if(is_complete(m_update)) {
+      return m_update;
     }
     m_value = m_reactor->commit(sequence);
-    return m_value;
+    if(is_complete(m_value)) {
+      m_update = update::COMPLETE_EVAL;
+    } else {
+      m_update = update::EVAL;
+    }
+    return m_update;
   }
 
   inline update_reactor::type update_reactor::eval() const {

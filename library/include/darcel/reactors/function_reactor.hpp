@@ -196,9 +196,9 @@ namespace details {
       maybe<type> m_value;
       int m_sequence;
       base_reactor::update m_update;
-      base_reactor::update m_state;
+      bool m_has_eval;
 
-      base_reactor::update update();
+      base_reactor::update invoke();
   };
 
   //! Makes a function reactor.
@@ -310,7 +310,8 @@ namespace details {
         m_parameters(std::forward<PF>(parameters)...),
         m_value(std::make_exception_ptr(reactor_unavailable_exception())),
         m_sequence(-1),
-        m_state(base_reactor::update::NONE) {
+        m_update(base_reactor::update::NONE),
+        m_has_eval(false) {
     std::vector<base_reactor*> children;
     details::initialize_children(children, m_parameters);
     m_commit_reactor.emplace(std::move(children));
@@ -323,19 +324,21 @@ namespace details {
     }
     m_update = m_commit_reactor->commit(sequence);
     if(has_eval(m_update)) {
-      auto eval_update = update();
-      if(eval_update == base_reactor::update::NONE) {
+      auto invocation = invoke();
+      if(invocation == base_reactor::update::NONE) {
         if(is_complete(m_update)) {
-          m_update = base_reactor::update::COMPLETE;
+          if(m_has_eval) {
+            m_update = base_reactor::update::COMPLETE_EVAL;
+          } else {
+            m_update = base_reactor::update::COMPLETE_EMPTY;
+          }
         } else {
           m_update = base_reactor::update::NONE;
         }
-      } else if(is_complete(eval_update)) {
-        combine(m_update, base_reactor::update::COMPLETE);
       }
     }
     m_sequence = sequence;
-    combine(m_state, m_update);
+    m_has_eval |= has_eval(m_update);
     return m_update;
   }
 
@@ -346,7 +349,7 @@ namespace details {
   }
 
   template<typename F, typename... P>
-  base_reactor::update function_reactor<F, P...>::update() {
+  base_reactor::update function_reactor<F, P...>::invoke() {
     try {
       return details::function_update_eval<type>()(m_value, m_function,
         m_parameters);

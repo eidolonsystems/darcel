@@ -79,8 +79,9 @@ namespace details {
   template<typename T>
   struct lift_helper<std::shared_ptr<T>> {
     template<typename U>
-    decltype(auto) operator ()(U&& value) const {
-      return std::forward<U>(value);
+    auto operator ()(U&& value) const {
+      return std::static_pointer_cast<reactor<reactor_type_t<T>>>(
+        std::forward<U>(value));
     }
   };
 }
