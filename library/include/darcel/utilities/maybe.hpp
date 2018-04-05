@@ -1,6 +1,7 @@
 #ifndef DARCEL_MAYBE_HPP
 #define DARCEL_MAYBE_HPP
 #include <exception>
+#include <type_traits>
 #include <variant>
 #include "darcel/utilities/utilities.hpp"
 
@@ -99,7 +100,12 @@ namespace darcel {
   template<typename F>
   maybe<std::invoke_result_t<F>> try_call(F&& f) {
     try {
-      return f();
+      if constexpr(std::is_same_v<std::invoke_result_t<F>, void>) {
+        f();
+        return {};
+      } else {
+        return f();
+      }
     } catch(...) {
       return std::current_exception();
     }

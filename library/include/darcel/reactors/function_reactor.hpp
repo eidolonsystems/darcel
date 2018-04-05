@@ -1,5 +1,6 @@
 #ifndef DARCEL_FUNCTION_REACTOR_HPP
 #define DARCEL_FUNCTION_REACTOR_HPP
+#include <cassert>
 #include <functional>
 #include <optional>
 #include <tuple>
@@ -55,6 +56,13 @@ namespace darcel {
       \param update The type of update.
     */
     function_evaluation(maybe<type> value, base_reactor::update update);
+
+    //! Constructs an evaluation resulting in a value and an update.
+    /*!
+      \param value The value returned by the function.
+      \param update The type of update.
+    */
+    function_evaluation(type value, base_reactor::update update);
 
     //! Constructs an evaluation resulting in a value and an update.
     /*!
@@ -280,6 +288,14 @@ namespace details {
   }
 
   template<typename T>
+  function_evaluation<T>::function_evaluation(type value,
+      base_reactor::update update)
+      : m_value(std::move(value)),
+        m_update(update) {
+    combine(m_update, base_reactor::update::EVAL);
+  }
+
+  template<typename T>
   function_evaluation<T>::function_evaluation(std::optional<maybe<type>> value,
       base_reactor::update update)
       : m_value(std::move(value)),
@@ -334,6 +350,12 @@ namespace details {
           }
         } else {
           m_update = base_reactor::update::NONE;
+        }
+      } else if(is_complete(invocation)) {
+        if(m_has_eval || has_eval(invocation)) {
+          m_update = base_reactor::update::COMPLETE_EVAL;
+        } else {
+          m_update = base_reactor::update::COMPLETE_EMPTY;
         }
       }
     }

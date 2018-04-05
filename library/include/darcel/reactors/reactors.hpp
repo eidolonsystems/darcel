@@ -9,6 +9,7 @@ namespace darcel {
   template<typename T> class constant_reactor;
   template<typename F, typename... P> class function_reactor;
   template<typename T> class none_reactor;
+  class perpetual_reactor;
   template<typename T> class proxy_reactor;
   template<typename T> class queue_reactor;
   template<typename T> class reactor;

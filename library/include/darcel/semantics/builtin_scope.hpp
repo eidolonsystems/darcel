@@ -66,6 +66,20 @@ namespace darcel {
     scope.add(f);
   }
 
+  //! Populates a scope with the count function.
+  /*!
+    \param scope The scope to populate.
+  */
+  inline void populate_count(scope& scope) {
+    std::vector<function_data_type::parameter> parameters;
+    parameters.push_back({"start", integer_data_type::get_instance()});
+    parameters.push_back({"end", integer_data_type::get_instance()});
+    auto f = std::make_shared<variable>(location::global(), "count",
+      std::make_shared<function_data_type>(parameters,
+      integer_data_type::get_instance()));
+    scope.add(f);
+  }
+
   //! Populates a scope with the first function.
   /*!
     \param scope The scope to populate.
@@ -113,6 +127,7 @@ namespace darcel {
     populate_data_types(scope);
     populate_arithmetic(scope);
     populate_chain(scope);
+    populate_count(scope);
     populate_first(scope);
     populate_last(scope);
     populate_print(scope);

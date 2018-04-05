@@ -2,6 +2,7 @@
 #define DARCEL_BUILTIN_TRANSLATOR_HPP
 #include <iostream>
 #include "darcel/reactors/chain_reactor.hpp"
+#include "darcel/reactors/count_reactor.hpp"
 #include "darcel/reactors/first_reactor.hpp"
 #include "darcel/reactors/last_reactor.hpp"
 #include "darcel/reactors/ostream_reactor.hpp"
@@ -13,7 +14,7 @@ namespace darcel {
   //! Adds definitions for the builtin add functions.
   /*!
     \param translator The translator to add the definitions to.
-    \param s The scope to find the builtin add function in.
+    \param s The scope to find the function in.
   */
   inline void translate_add(reactor_translator& translator, const scope& s) {
     auto add = s.find<function>("add");
@@ -44,7 +45,7 @@ namespace darcel {
   //! Adds definitions for the builtin chain functions.
   /*!
     \param translator The translator to add the definitions to.
-    \param s The scope to find the builtin add function in.
+    \param s The scope to find the function in.
   */
   inline void translate_chain(reactor_translator& translator, const scope& s) {
     struct builder {
@@ -73,10 +74,20 @@ namespace darcel {
     translator.add(f, f->get_overloads().back(), builder());
   }
 
+  //! Adds definitions for the builtin count function.
+  /*!
+    \param translator The translator to add the definitions to.
+    \param s The scope to find the function in.
+  */
+  inline void translate_count(reactor_translator& translator, const scope& s) {
+    auto f = s.find<function>("count");
+    translator.add(f->get_overloads().front(), make_count_builder());
+  }
+
   //! Adds definitions for the builtin first functions.
   /*!
     \param translator The translator to add the definitions to.
-    \param s The scope to find the builtin add function in.
+    \param s The scope to find the function in.
   */
   inline void translate_first(reactor_translator& translator, const scope& s) {
     struct builder {
@@ -108,7 +119,7 @@ namespace darcel {
   //! Adds definitions for the builtin last functions.
   /*!
     \param translator The translator to add the definitions to.
-    \param s The scope to find the builtin add function in.
+    \param s The scope to find the function in.
   */
   inline void translate_last(reactor_translator& translator, const scope& s) {
     struct builder {
@@ -140,7 +151,7 @@ namespace darcel {
   //! Adds definitions for the builtin print functions.
   /*!
     \param translator The translator to add the definitions to.
-    \param s The scope to find the builtin add function in.
+    \param s The scope to find the function in.
   */
   inline void translate_print(reactor_translator& translator, const scope& s) {
     struct builder {
@@ -172,12 +183,13 @@ namespace darcel {
   //! Adds definitions for all the builtin functions.
   /*!
     \param translator The translator to add the definitions to.
-    \param s The scope to find the builtin add function in.
+    \param s The scope to find the functions in.
   */
   inline void translate_builtins(reactor_translator& translator,
       const scope& s) {
     translate_add(translator, s);
     translate_chain(translator, s);
+    translate_count(translator, s);
     translate_first(translator, s);
     translate_last(translator, s);
     translate_print(translator, s);
