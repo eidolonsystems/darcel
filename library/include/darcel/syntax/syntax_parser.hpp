@@ -65,6 +65,10 @@ namespace darcel {
       scope& push_scope();
       void pop_scope();
       token_iterator get_next_terminal(token_iterator cursor) const;
+      std::shared_ptr<function_data_type> parse_function_data_type(
+        token_iterator& cursor);
+      std::shared_ptr<generic_data_type> parse_generic_data_type(
+        token_iterator& cursor);
       std::shared_ptr<data_type> parse_data_type(token_iterator& cursor);
       std::shared_ptr<data_type> expect_data_type(token_iterator& cursor);
       std::unique_ptr<syntax_node> parse_node(token_iterator& cursor);
@@ -262,32 +266,76 @@ namespace darcel {
     return cursor;
   }
 
-  inline std::shared_ptr<data_type> syntax_parser::parse_data_type(
-      token_iterator& cursor) {
+  inline std::shared_ptr<function_data_type>
+      syntax_parser::parse_function_data_type(token_iterator& cursor) {
     auto c = cursor;
-    if(c.is_empty()) {
-      return nullptr;
-    }
-    auto name_location = c.get_location();
-    auto is_generic = match(*c, punctuation::mark::BACKTICK);
-    if(is_generic) {
-      ++c;
-    }
-    auto name = parse_identifier(c);
-    if(is_generic) {
-      name = '`' + name;
-    }
-    auto t = get_current_scope().find<data_type>(name);
-    if(t == nullptr) {
-      if(is_generic) {
-        auto g = std::make_shared<generic_data_type>(name_location, name,
-          m_generic_index);
-        ++m_generic_index;
-        get_current_scope().add(g);
-        cursor = c;
-        return g;
+    expect(c, bracket::type::OPEN_ROUND_BRACKET);
+    std::vector<function_data_type::parameter> parameters;
+    if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+      while(true) {
+        auto name_location = c.get_location();
+        auto& parameter_name = parse_identifier(c);
+        auto existing_parameter = std::find_if(parameters.begin(),
+          parameters.end(),
+          [&] (auto& p) {
+            return p.m_name == parameter_name;
+          });
+        if(existing_parameter != parameters.end()) {
+          throw syntax_error(
+            syntax_error_code::FUNCTION_PARAMETER_ALREADY_DEFINED,
+            name_location);
+        }
+        expect(c, punctuation::mark::COLON);
+        auto parameter_type = expect_data_type(c);
+        parameters.emplace_back(parameter_name, std::move(parameter_type));
+        if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+          break;
+        }
+        expect(c, punctuation::mark::COMMA);
       }
     }
+    ++c;
+    expect(c, punctuation::mark::ARROW);
+    auto return_type = expect_data_type(c);
+    cursor = c;
+    return std::make_shared<function_data_type>(std::move(parameters),
+      std::move(return_type));
+  }
+
+  inline std::shared_ptr<generic_data_type>
+      syntax_parser::parse_generic_data_type(token_iterator& cursor) {
+    auto c = cursor;
+    expect(c, punctuation::mark::BACKTICK);
+    auto name_location = c.get_location();
+    auto name = '`' + parse_identifier(c);
+    auto t = get_current_scope().find<generic_data_type>(name);
+    if(t == nullptr) {
+      auto g = std::make_shared<generic_data_type>(name_location, name,
+        m_generic_index);
+      ++m_generic_index;
+      get_current_scope().add(g);
+      cursor = c;
+      return g;
+    }
+    cursor = c;
+    return t;
+  }
+
+  inline std::shared_ptr<data_type> syntax_parser::parse_data_type(
+      token_iterator& cursor) {
+    if(cursor.is_empty()) {
+      return nullptr;
+    }
+    if(match(*cursor, bracket::type::OPEN_ROUND_BRACKET)) {
+      return parse_function_data_type(cursor);
+    }
+    if(match(*cursor, punctuation::mark::BACKTICK)) {
+      return parse_generic_data_type(cursor);
+    }
+    auto c = cursor;
+    auto name_location = c.get_location();
+    auto name = parse_identifier(c);
+    auto t = get_current_scope().find<data_type>(name);
     cursor = c;
     return t;
   }

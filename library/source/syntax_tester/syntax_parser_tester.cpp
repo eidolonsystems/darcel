@@ -178,4 +178,21 @@ TEST_CASE("test_parsing_function_definition", "[syntax_parser]") {
     feed(p, "let f(x: Int) = x");
     auto e = p.parse_node();
   }
+  SECTION("Parse nested function parameter.") {
+    syntax_parser p(make_builtin_scope());
+    feed(p, "let f(g: (x: Int) -> Int) = g(5)");
+    auto e = p.parse_node();
+    auto f = dynamic_cast<const bind_function_statement*>(e.get());
+    REQUIRE(f != nullptr);
+    auto t = std::dynamic_pointer_cast<function_data_type>(
+      f->get_overload()->get_data_type());
+    REQUIRE(t != nullptr);
+    REQUIRE(t->get_parameters().size() == 1);
+    auto g = std::dynamic_pointer_cast<function_data_type>(
+      t->get_parameters()[0].m_type);
+    REQUIRE(g != nullptr);
+    REQUIRE(g->get_parameters().size() == 1);
+    REQUIRE(*g->get_parameters()[0].m_type == integer_data_type());
+    REQUIRE(*t->get_return_type() == integer_data_type());
+  }
 }

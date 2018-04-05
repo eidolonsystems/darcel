@@ -31,7 +31,10 @@ namespace darcel {
         BAR,
 
         //! '`'
-        BACKTICK
+        BACKTICK,
+
+        //! '->'
+        ARROW
       };
 
       //! Constructs a punctuation.
@@ -52,7 +55,7 @@ namespace darcel {
     \param c The character to test.
   */
   inline bool is_punctuation(char c) {
-    return c == ':' || c == ',' || c == '.' || c == '|' || c == '`';
+    return c == ':' || c == ',' || c == '.' || c == '|' || c == '`' || c == '-';
   }
 
   //! Parses a punctuation.
@@ -87,6 +90,15 @@ namespace darcel {
       } else if(*cursor == '`') {
         ++cursor;
         return punctuation::mark::BACKTICK;
+      } else if(*cursor == '-') {
+        auto c = cursor + 1;
+        if(c.is_empty()) {
+          return std::nullopt;
+        } else if(*c == '>') {
+          ++c;
+          cursor = c;
+          return punctuation::mark::ARROW;
+        }
       }
     }
     return std::nullopt;
@@ -117,6 +129,8 @@ namespace darcel {
         return out << '|';
       case punctuation::mark::BACKTICK:
         return out << '`';
+      case punctuation::mark::ARROW:
+        return out << "->";
       default:
         throw std::runtime_error("Invalid punctuation mark.");
     }
