@@ -69,6 +69,8 @@ namespace darcel {
 
       void visit(const call_expression& node) override final;
 
+      void visit(const function_expression& node) override final;
+
       void visit(const literal_expression& node) override final;
 
       void visit(const variable_expression& node) override final;
@@ -188,6 +190,16 @@ namespace darcel {
         }
         return builder->build(arguments, t);
       });
+  }
+
+  inline void reactor_translator::visit(const function_expression& node) {
+    auto overload = node.get_function()->get_overloads().front();
+    auto evaluation = m_variables.find(overload);
+    if(evaluation != m_variables.end()) {
+      m_evaluation = evaluation->second;
+    } else {
+      m_evaluation = instantiate(overload);
+    }
   }
 
   inline void reactor_translator::visit(const literal_expression& node) {
