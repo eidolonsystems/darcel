@@ -165,14 +165,20 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const bind_variable_statement& node) {
-    auto reactor = evaluate(node.get_expression())->build(*m_trigger);
-    auto builder = std::make_shared<function_reactor_builder>(
-      [=] (auto& parameters, auto& t) {
-        return reactor;
-      });
-    m_variables[node.get_variable()] = std::move(builder);
-    if(node.get_variable()->get_name() == "main") {
-      m_main = node.get_variable();
+    auto e = evaluate(node.get_expression());
+    if(std::dynamic_pointer_cast<function_data_type>(
+        node.get_expression().get_data_type()) != nullptr) {
+      m_variables[node.get_variable()] = std::move(e);
+    } else {
+      auto reactor = e->build(*m_trigger);
+      auto builder = std::make_shared<function_reactor_builder>(
+        [=] (auto& parameters, auto& t) {
+          return reactor;
+        });
+      m_variables[node.get_variable()] = std::move(builder);
+      if(node.get_variable()->get_name() == "main") {
+        m_main = node.get_variable();
+      }
     }
   }
 
