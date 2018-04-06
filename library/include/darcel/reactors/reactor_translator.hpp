@@ -118,7 +118,7 @@ namespace darcel {
     if(r == m_variables.end()) {
       return nullptr;
     }
-    return r->second->build({}, *m_trigger);
+    return r->second->build(*m_trigger);
   }
 
   inline void reactor_translator::visit(const bind_function_statement& node) {
@@ -165,20 +165,9 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const bind_variable_statement& node) {
-    auto e = evaluate(node.get_expression());
-    if(std::dynamic_pointer_cast<function_data_type>(
-        node.get_expression().get_data_type()) != nullptr) {
-      m_variables[node.get_variable()] = std::move(e);
-    } else {
-      auto reactor = e->build(*m_trigger);
-      auto builder = std::make_shared<function_reactor_builder>(
-        [=] (auto& parameters, auto& t) {
-          return reactor;
-        });
-      m_variables[node.get_variable()] = std::move(builder);
-      if(node.get_variable()->get_name() == "main") {
-        m_main = node.get_variable();
-      }
+    m_variables[node.get_variable()] = evaluate(node.get_expression());
+    if(node.get_variable()->get_name() == "main") {
+      m_main = node.get_variable();
     }
   }
 
@@ -211,36 +200,36 @@ namespace darcel {
   inline void reactor_translator::visit(const literal_expression& node) {
     struct literal_visitor : data_type_visitor {
       literal m_literal;
-      std::unique_ptr<reactor_builder> m_reactor;
+      std::unique_ptr<reactor_builder> m_builder;
 
       literal_visitor(literal l)
           : m_literal(std::move(l)) {}
 
       void visit(const bool_data_type& type) {
         if(m_literal.get_value() == "true") {
-          m_reactor = make_constant_reactor_builder(true);
+          m_builder = make_constant_reactor_builder(true);
         } else {
-          m_reactor = make_constant_reactor_builder(false);
+          m_builder = make_constant_reactor_builder(false);
         }
       }
 
       void visit(const float_data_type& type) {
-        m_reactor = make_constant_reactor_builder(
+        m_builder = make_constant_reactor_builder(
           std::stof(m_literal.get_value()));
       }
 
       void visit(const integer_data_type& type) {
-        m_reactor = make_constant_reactor_builder(
+        m_builder = make_constant_reactor_builder(
           std::stoi(m_literal.get_value()));
       }
 
       void visit(const text_data_type& type) {
-        m_reactor = make_constant_reactor_builder(m_literal.get_value());
+        m_builder = make_constant_reactor_builder(m_literal.get_value());
       }
     };
     literal_visitor v(node.get_literal());
     node.get_data_type()->apply(v);
-    m_evaluation = std::move(v.m_reactor);
+    m_evaluation = std::move(v.m_builder);
   }
 
   inline void reactor_translator::visit(const variable_expression& node) {
