@@ -123,16 +123,16 @@ namespace darcel {
 
   inline void reactor_translator::visit(const bind_function_statement& node) {
     struct parameter_reactor_builder : reactor_builder {
-      std::shared_ptr<base_reactor> m_reactor;
+      std::shared_ptr<reactor_builder> m_builder;
 
-      void set_reactor(std::shared_ptr<base_reactor> r) {
-        m_reactor = std::move(r);
+      void set_builder(std::shared_ptr<reactor_builder> builder) {
+        m_builder = std::move(builder);
       }
 
       std::shared_ptr<base_reactor> build(
-          const std::vector<std::shared_ptr<base_reactor>>& parameters,
+          const std::vector<std::shared_ptr<reactor_builder>>& parameters,
           trigger& t) const override final {
-        return m_reactor;
+        return m_builder->build(parameters, t);
       }
     };
     for(auto& parameter : node.get_parameters()) {
@@ -154,7 +154,7 @@ namespace darcel {
     auto builder = std::make_shared<function_reactor_builder>(
       [=] (auto& parameters, auto& t) {
         for(std::size_t i = 0; i < parameters.size(); ++i) {
-          proxies[i]->set_reactor(parameters[i]);
+          proxies[i]->set_builder(parameters[i]);
         }
         return evaluation->build(t);
       });
@@ -173,17 +173,13 @@ namespace darcel {
 
   inline void reactor_translator::visit(const call_expression& node) {
     auto builder = evaluate(node.get_callable());
-    std::vector<std::shared_ptr<reactor_builder>> parameter_builders;
+    std::vector<std::shared_ptr<reactor_builder>> parameters;
     for(auto& parameter : node.get_parameters()) {
-      parameter_builders.push_back(evaluate(*parameter));
+      parameters.push_back(evaluate(*parameter));
     }
     m_evaluation = std::make_unique<function_reactor_builder>(
-      [=] (auto& parameters, auto& t) {
-        std::vector<std::shared_ptr<base_reactor>> arguments;
-        for(auto& parameter_builder : parameter_builders) {
-          arguments.push_back(parameter_builder->build(t));
-        }
-        return builder->build(arguments, t);
+      [=, parameters = std::move(parameters)] (auto& p, auto& t) {
+        return builder->build(parameters, t);
       });
   }
 

@@ -37,8 +37,8 @@ namespace darcel {
   auto make_first_reactor_builder() {
     return std::make_unique<function_reactor_builder>(
       [] (auto& parameters, auto& t) {
-        return make_first_reactor(std::static_pointer_cast<reactor<T>>(
-          parameters.front()));
+        return make_first_reactor(
+          std::static_pointer_cast<reactor<T>>(parameters.front()->build(t)));
       });
   }
 }

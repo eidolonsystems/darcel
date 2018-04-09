@@ -57,8 +57,8 @@ namespace details {
   auto make_last_reactor_builder() {
     return std::make_unique<function_reactor_builder>(
       [] (auto& parameters, auto& t) {
-        return make_last_reactor(std::static_pointer_cast<reactor<T>>(
-          parameters.front()));
+        return make_last_reactor(
+          std::static_pointer_cast<reactor<T>>(parameters.front()->build(t)));
       });
   }
 }

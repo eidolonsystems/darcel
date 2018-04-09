@@ -26,8 +26,9 @@ namespace darcel {
   auto make_add_reactor_builder() {
     return std::make_unique<function_reactor_builder>(
       [] (auto& parameters, auto& t) {
-        return add(std::static_pointer_cast<reactor<T>>(parameters[0]),
-          std::static_pointer_cast<reactor<U>>(parameters[1]));
+        return add(
+          std::static_pointer_cast<reactor<T>>(parameters[0]->build(t)),
+          std::static_pointer_cast<reactor<U>>(parameters[1]->build(t)));
       });
   };
 }

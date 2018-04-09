@@ -22,14 +22,13 @@ namespace darcel {
 
       //! Builds a reactor from a list of sub-reactors.
       /*!
-        \param parameters The list of sub-reactors that serve as parameters to
-               the reactor to be built.
+        \param parameters The list of parameters to the reactor to be built.
         \param t The trigger used to indicate updates.
         \return The reactor represented by this builder composed of the
                 specified parameters.
       */
       virtual std::shared_ptr<base_reactor> build(
-        const std::vector<std::shared_ptr<base_reactor>>& parameters,
+        const std::vector<std::shared_ptr<reactor_builder>>& parameters,
         trigger& t) const = 0;
 
     protected:
@@ -54,12 +53,12 @@ namespace darcel {
       function_reactor_builder(F&& f);
 
       std::shared_ptr<base_reactor> build(
-        const std::vector<std::shared_ptr<base_reactor>>& parameters,
+        const std::vector<std::shared_ptr<reactor_builder>>& parameters,
         trigger& t) const override final;
 
     private:
       std::function<std::shared_ptr<base_reactor> (
-        const std::vector<std::shared_ptr<base_reactor>>&, trigger&)>
+        const std::vector<std::shared_ptr<reactor_builder>>&, trigger&)>
         m_function;
   };
 
@@ -68,7 +67,7 @@ namespace darcel {
       : m_function(std::forward<F>(f)) {}
 
   inline std::shared_ptr<base_reactor> function_reactor_builder::build(
-      const std::vector<std::shared_ptr<base_reactor>>& parameters,
+      const std::vector<std::shared_ptr<reactor_builder>>& parameters,
       trigger& t) const {
     return m_function(parameters, t);
   }
