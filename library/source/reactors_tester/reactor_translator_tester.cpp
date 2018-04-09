@@ -114,3 +114,29 @@ TEST_CASE("test_translating_function_parameter", "[reactor_translator]") {
   auto l = std::dynamic_pointer_cast<constant_reactor<int>>(result);
   REQUIRE(l != nullptr);
 }
+
+TEST_CASE("test_translating_generic_function_parameter",
+    "[reactor_translator]") {
+  auto s = make_builtin_scope();
+  auto f = bind_function("f", {{"x", make_generic_data_type("`T", 0)}},
+    [&] (auto& s) {
+      return find_term("x", s);
+    }, *s);
+  auto g = bind_function("g",
+    {{"f", make_function_data_type({{"x", make_generic_data_type("`T", 0)}},
+      make_generic_data_type("`T", 0))},
+     {"x", make_generic_data_type("`T", 0)}},
+    [&] (auto& s) {
+      return call("f", find_term("x", s), s);
+    }, *s);
+  auto node = bind_variable("main", call("g", find_term("f", *s),
+    make_literal_expression(911), *s), *s);
+  trigger t;
+  reactor_translator rt(t);
+  rt.translate(*f);
+  rt.translate(*g);
+  rt.translate(*node);
+  auto result = rt.get_main();
+  auto l = std::dynamic_pointer_cast<constant_reactor<int>>(result);
+  REQUIRE(l != nullptr);
+}

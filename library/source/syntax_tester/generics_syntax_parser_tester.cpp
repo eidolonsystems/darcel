@@ -3,6 +3,7 @@
 #include "darcel/lexicon/token_parser.hpp"
 #include "darcel/semantics/builtin_scope.hpp"
 #include "darcel/syntax/syntax_parser.hpp"
+#include "darcel/utilities/utilities.hpp"
 
 using namespace darcel;
 
@@ -32,26 +33,27 @@ namespace {
 TEST_CASE("test_parsing_generic_type", "[syntax_parser]") {
   SECTION("Single generic.") {
     syntax_parser p;
-    feed(p, "let f(x: `T) = x\nlet y = f(5)");
-    auto e = p.parse_node();
-    auto s = p.parse_node();
-    auto y = dynamic_cast<bind_variable_statement*>(s.get());
+    feed(p, R"(let f(x: `T) = x
+               let y = f(5))");
+    p.parse_node();
+    auto y = dynamic_pointer_cast<bind_variable_statement>(p.parse_node());
     REQUIRE(y != nullptr);
     REQUIRE(*y->get_variable()->get_data_type() == integer_data_type());
   }
   SECTION("Call two equal generics with equal types.") {
     syntax_parser p;
-    feed(p, "let f(x: `T, y: `T) = y\nlet z = f(true, false)");
-    auto e = p.parse_node();
-    auto s = p.parse_node();
-    auto z = dynamic_cast<bind_variable_statement*>(s.get());
+    feed(p, R"(let f(x: `T, y: `T) = y
+               let z = f(true, false))");
+    p.parse_node();
+    auto z = dynamic_pointer_cast<bind_variable_statement>(p.parse_node());
     REQUIRE(z != nullptr);
     REQUIRE(*z->get_variable()->get_data_type() == bool_data_type());
   }
   SECTION("Call two equal generics with distinct types.") {
     syntax_parser p;
-    feed(p, "let f(x: `T, y: `T) = y\nlet z = f(true, 5)");
-    auto e = p.parse_node();
+    feed(p, R"(let f(x: `T, y: `T) = y
+               let z = f(true, 5))");
+    p.parse_node();
     REQUIRE_THROWS(p.parse_node());
   }
 }
@@ -60,7 +62,7 @@ TEST_CASE("test_generic_instantiation", "[syntax_parser]") {
   syntax_parser p;
   feed(p, R"(let f(x: `T, y: `T) = x
              let g(x: `T, y: `U) = f(x, y))");
-  auto f = p.parse_node();
+  p.parse_node();
   REQUIRE_THROWS(p.parse_node());
 }
 
@@ -68,12 +70,11 @@ TEST_CASE("test_parsing_generic_function_type_one_parameter",
     "[syntax_parser]") {
   syntax_parser p(make_builtin_scope());
   feed(p, R"(let f(x: (a: `T) -> Int) = 1)");
-  auto f = p.parse_node();
-  auto s = dynamic_cast<bind_function_statement*>(f.get());
-  REQUIRE(s != nullptr);
-  REQUIRE(s->get_function()->get_name() == "f");
+  auto f = dynamic_pointer_cast<bind_function_statement>(p.parse_node());
+  REQUIRE(f != nullptr);
+  REQUIRE(f->get_function()->get_name() == "f");
   auto t = std::dynamic_pointer_cast<function_data_type>(
-    s->get_overload()->get_data_type());
+    f->get_overload()->get_data_type());
   REQUIRE(t != nullptr);
   REQUIRE(t->get_parameters().size() == 1);
   auto x = std::dynamic_pointer_cast<function_data_type>(
@@ -88,12 +89,11 @@ TEST_CASE("test_parsing_generic_function_type_two_equal_parameters",
     "[syntax_parser]") {
   syntax_parser p(make_builtin_scope());
   feed(p, R"(let f(x: (a: `T) -> Int, y: `T) = 1)");
-  auto f = p.parse_node();
-  auto s = dynamic_cast<bind_function_statement*>(f.get());
-  REQUIRE(s != nullptr);
-  REQUIRE(s->get_function()->get_name() == "f");
+  auto f = dynamic_pointer_cast<bind_function_statement>(p.parse_node());
+  REQUIRE(f != nullptr);
+  REQUIRE(f->get_function()->get_name() == "f");
   auto t = std::dynamic_pointer_cast<function_data_type>(
-    s->get_overload()->get_data_type());
+    f->get_overload()->get_data_type());
   REQUIRE(t != nullptr);
   REQUIRE(t->get_parameters().size() == 2);
   auto x = std::dynamic_pointer_cast<function_data_type>(
@@ -106,4 +106,17 @@ TEST_CASE("test_parsing_generic_function_type_two_equal_parameters",
     t->get_parameters()[1].m_type);
   REQUIRE(y != nullptr);
   REQUIRE(*x->get_parameters()[0].m_type == *y);
+}
+
+TEST_CASE("test_generic_function_substitution", "[syntax_parser]") {
+  syntax_parser p(make_builtin_scope());
+  feed(p, R"(let f(x: Int) = x
+             let h(f: (x: `T) -> `T) = f
+             let g = h(f))");
+  auto f = dynamic_pointer_cast<bind_function_statement>(p.parse_node());
+  REQUIRE(f != nullptr);
+  auto h = dynamic_pointer_cast<bind_function_statement>(p.parse_node());
+  REQUIRE(h != nullptr);
+  auto g = dynamic_pointer_cast<bind_variable_statement>(p.parse_node());
+  REQUIRE(g != nullptr);
 }

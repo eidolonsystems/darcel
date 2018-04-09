@@ -65,6 +65,61 @@ namespace darcel {
         std::shared_ptr<variable>> m_definitions;
   };
 
+  //! Substitutes a generic data type with a concrete instance, returning the
+  //! type used to perform the substitution.
+  /*!
+    \param generic The generic data type being substituted.
+    \param concrete The concrete data type to substitute for the generic.
+    \param substitutions A map of all existing generic substitions.
+    \return The data type used to perform the substitution or nullptr of no
+            substitution can be performed.
+  */
+  inline std::shared_ptr<data_type> substitute_generic(
+      const std::shared_ptr<data_type>& generic,
+      const std::shared_ptr<data_type>& concrete,
+      data_type_map<std::shared_ptr<generic_data_type>,
+        std::shared_ptr<data_type>>& substitutions) {
+    if(!is_generic(*generic)) {
+      if(get_compatibility(*concrete, *generic) ==
+          data_type_compatibility::EQUAL) {
+        return generic;
+      }
+      return nullptr;
+    } else if(auto g = std::dynamic_pointer_cast<generic_data_type>(generic)) {
+      auto substitution = substitutions.find(g);
+      if(substitution == substitutions.end()) {
+        substitutions.insert(std::make_pair(g, concrete));
+        return concrete;
+      }
+      if(get_compatibility(*concrete, *substitution->second) ==
+          data_type_compatibility::EQUAL) {
+        return substitution->second;
+      }
+      return nullptr;
+    } else if(auto f = std::dynamic_pointer_cast<function_data_type>(generic)) {
+      if(auto g = std::dynamic_pointer_cast<function_data_type>(concrete)) {
+        if(f->get_parameters().size() != g->get_parameters().size()) {
+          return nullptr;
+        }
+        for(std::size_t i = 0; i < f->get_parameters().size(); ++i) {
+          auto& t = f->get_parameters()[i].m_type;
+          auto& u = g->get_parameters()[i].m_type;
+          if(substitute_generic(t, u, substitutions) == nullptr) {
+            return nullptr;
+          }
+        }
+        if(substitute_generic(f->get_return_type(), g->get_return_type(),
+            substitutions) == nullptr) {
+          return nullptr;
+        }
+        return g;
+      }
+      return nullptr;
+    } else {
+      return nullptr;
+    }
+  }
+
   //! Finds the function overload matching a set of parameters.
   /*!
     \param f The overloaded function to search over.
@@ -76,39 +131,36 @@ namespace darcel {
     for(auto& overload : f.get_overloads()) {
       auto type = std::static_pointer_cast<function_data_type>(
         overload->get_data_type());
-      if(type->get_parameters().size() != parameters.size()) {
-        continue;
-      }
-      data_type_map<std::shared_ptr<generic_data_type>,
-        std::shared_ptr<data_type>> generic_substitutions;
       auto compatibility = [&] {
-        auto compatibility = data_type_compatibility::EQUAL;
-        for(std::size_t i = 0; i < parameters.size(); ++i) {
-          auto parameter = parameters[i].m_type;
-          auto overload_parameter = type->get_parameters()[i].m_type;
-          if(auto g = std::dynamic_pointer_cast<generic_data_type>(
-              overload_parameter)) {
-            auto substitution = generic_substitutions.find(g);
-            if(substitution == generic_substitutions.end()) {
-              substitution = generic_substitutions.insert(
-                std::make_pair(g, parameter)).first;
-            }
-            overload_parameter = substitution->second;
-            if(std::dynamic_pointer_cast<generic_data_type>(parameter) ==
-                nullptr) {
+        data_type_map<std::shared_ptr<generic_data_type>,
+          std::shared_ptr<data_type>> substitutions;
+        if(is_generic(*type)) {
+          auto t = std::make_shared<function_data_type>(parameters,
+            type->get_return_type());
+          auto substitution = substitute_generic(type, t, substitutions);
+          if(substitution != nullptr) {
+            return get_compatibility(*substitution, *type);
+          }
+          return data_type_compatibility::NONE;
+        } else {
+          if(type->get_parameters().size() != parameters.size()) {
+            return data_type_compatibility::NONE;
+          }
+          auto compatibility = data_type_compatibility::EQUAL;
+          for(std::size_t i = 0; i < parameters.size(); ++i) {
+            auto parameter = parameters[i].m_type;
+            auto overload_parameter = type->get_parameters()[i].m_type;
+            auto parameter_compatibility = get_compatibility(*parameter,
+              *overload_parameter);
+            if(parameter_compatibility == data_type_compatibility::NONE) {
+              return data_type_compatibility::NONE;
+            } else if(parameter_compatibility ==
+                data_type_compatibility::GENERIC) {
               compatibility = data_type_compatibility::GENERIC;
             }
           }
-          auto parameter_compatibility = get_compatibility(*parameter,
-            *overload_parameter);
-          if(parameter_compatibility == data_type_compatibility::NONE) {
-            return data_type_compatibility::NONE;
-          } else if(parameter_compatibility ==
-              data_type_compatibility::GENERIC) {
-            compatibility = data_type_compatibility::GENERIC;
-          }
+          return compatibility;
         }
-        return compatibility;
       }();
       if(compatibility == data_type_compatibility::EQUAL) {
         return overload;

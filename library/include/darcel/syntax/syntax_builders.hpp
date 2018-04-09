@@ -176,6 +176,15 @@ namespace darcel {
   //! Makes a call expression.
   /*!
     \param name The name of the function to call.
+    \param s The scope to find the function in.
+  */
+  inline std::unique_ptr<call_expression> call(std::string name, scope& s) {
+    return call(location::global(), std::move(name), {}, s);
+  }
+
+  //! Makes a call expression.
+  /*!
+    \param name The name of the function to call.
     \param arg1 The argument to pass to the function.
     \param s The scope to find the function in.
   */
@@ -189,10 +198,17 @@ namespace darcel {
   //! Makes a call expression.
   /*!
     \param name The name of the function to call.
+    \param arg1 The first argument to pass to the function.
+    \param arg2 The second argument to pass to the function.
     \param s The scope to find the function in.
   */
-  inline std::unique_ptr<call_expression> call(std::string name, scope& s) {
-    return call(location::global(), std::move(name), {}, s);
+  inline std::unique_ptr<call_expression> call(std::string name,
+      std::unique_ptr<expression> arg1, std::unique_ptr<expression> arg2,
+      scope& s) {
+    std::vector<std::unique_ptr<expression>> arguments;
+    arguments.push_back(std::move(arg1));
+    arguments.push_back(std::move(arg2));
+    return call(location::global(), std::move(name), std::move(arguments), s);
   }
 
   //! Makes a literal boolean expression.
