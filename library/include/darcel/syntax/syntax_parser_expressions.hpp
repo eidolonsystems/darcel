@@ -108,21 +108,11 @@ namespace darcel {
           throw syntax_error(syntax_error_code::FUNCTION_NOT_FOUND,
             o.m_location);
         }
-        std::vector<function_data_type::parameter> types;
-        std::transform(arguments.begin(), arguments.end(),
-          std::back_inserter(types),
-          [] (auto& p) {
-            return function_data_type::parameter("", p->get_data_type());
-          });
-        auto callable = find_overload(*f, types);
-        if(callable == nullptr) {
-          throw syntax_error(syntax_error_code::FUNCTION_NOT_FOUND,
-            o.m_location);
-        }
-        auto call = std::make_unique<call_expression>(o.m_location,
-          std::make_unique<variable_expression>(o.m_location, callable),
+        auto callable = std::make_unique<function_expression>(
+          o.m_location, std::move(f));
+        auto call_expression = call(o.m_location, std::move(callable),
           std::move(arguments));
-        expressions.push_back(std::move(call));
+        expressions.push_back(std::move(call_expression));
       };
     auto c = cursor;
     enum class parse_mode {
@@ -162,44 +152,9 @@ namespace darcel {
           }
           auto callable = std::move(expressions.back());
           expressions.pop_back();
-          if(auto f = dynamic_cast<const function_expression*>(
-              callable.get())) {
-            std::vector<function_data_type::parameter> types;
-            std::transform(arguments.begin(), arguments.end(),
-              std::back_inserter(types),
-              [] (auto& p) {
-                return function_data_type::parameter("", p->get_data_type());
-              });
-            auto overload = find_overload(*f->get_function(), types);
-            if(overload == nullptr) {
-              throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
-                call_location);
-            }
-            callable = std::make_unique<variable_expression>(
-              f->get_location(), std::move(overload));
-          }
-          if(auto type = std::dynamic_pointer_cast<function_data_type>(
-              callable->get_data_type())) {
-            if(type->get_parameters().size() != arguments.size()) {
-              throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
-                call_location);
-            }
-            for(std::size_t i = 0; i < arguments.size(); ++i) {
-              auto conversion = convert(std::move(arguments[i]),
-                type->get_parameters()[i].m_type);
-              if(conversion == nullptr) {
-                throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
-                  call_location);
-              }
-              arguments[i] = std::move(conversion);
-            }
-          } else {
-            throw syntax_error(syntax_error_code::EXPRESSION_NOT_CALLABLE,
-              call_location);
-          }
-          auto call = std::make_unique<call_expression>(call_location,
-            std::move(callable), std::move(arguments));
-          expressions.push_back(std::move(call));
+          auto call_expression = call(call_location, std::move(callable),
+            std::move(arguments));
+          expressions.push_back(std::move(call_expression));
           ++c;
         } else if(c->get_type() == token::type::OPERATION) {
           auto& instance = std::get<operation>(c->get_instance());

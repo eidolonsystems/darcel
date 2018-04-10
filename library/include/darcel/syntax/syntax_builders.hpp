@@ -149,13 +149,12 @@ namespace darcel {
   //! Makes a call expression.
   /*!
     \param l The location of the expression.
-    \param name The name of the function to call.
+    \param callable The expression to call.
     \param arguments The list of arguments to pass to the function.
-    \param s The scope to find the function in.
   */
-  inline std::unique_ptr<call_expression> call(location l, std::string name,
-      std::vector<std::unique_ptr<expression>> arguments, scope& s) {
-    auto callable = find_term(l, name, s);
+  inline std::unique_ptr<call_expression> call(location l,
+      std::unique_ptr<expression> callable,
+      std::vector<std::unique_ptr<expression>> arguments) {
     if(auto f = dynamic_cast<const function_expression*>(callable.get())) {
       std::vector<function_data_type::parameter> types;
       std::transform(arguments.begin(), arguments.end(),
@@ -187,6 +186,19 @@ namespace darcel {
         std::move(arguments));
     }
     throw syntax_error(syntax_error_code::EXPRESSION_NOT_CALLABLE, l);
+  }
+
+  //! Makes a call expression.
+  /*!
+    \param l The location of the expression.
+    \param name The name of the function to call.
+    \param arguments The list of arguments to pass to the function.
+    \param s The scope to find the function in.
+  */
+  inline std::unique_ptr<call_expression> call(location l, std::string name,
+      std::vector<std::unique_ptr<expression>> arguments, scope& s) {
+    auto callable = find_term(l, name, s);
+    return call(std::move(l), std::move(callable), std::move(arguments));
   }
 
   //! Makes a call expression.
