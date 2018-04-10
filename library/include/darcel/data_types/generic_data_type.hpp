@@ -89,37 +89,6 @@ namespace darcel {
     return type;
   }
 
-  //! Returns the function data type constructed from a generic function type
-  //! with a specified list of arguments.
-  /*!
-    \param type The function data type to instantiate.
-    \param arguments The list of argument data types.
-    \return The function data type instantiated with the specified arguments.
-  */
-  inline std::shared_ptr<function_data_type> instantiate(
-      const std::shared_ptr<function_data_type>& type,
-      const std::vector<function_data_type::parameter>& arguments) {
-    data_type_map<std::shared_ptr<generic_data_type>,
-      std::shared_ptr<data_type>> substitutions;
-    for(std::size_t i = 0; i != arguments.size(); ++i) {
-      auto& argument = arguments[i];
-      auto& parameter = type->get_parameters()[i];
-      if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
-          parameter.m_type)) {
-        auto substitution = [&] {
-          auto i = substitutions.find(generic);
-          if(i == substitutions.end()) {
-            i = substitutions.insert(std::make_pair(generic,
-              argument.m_type)).first;
-          }
-          return i->second;
-        }();
-      }
-    }
-    return std::static_pointer_cast<function_data_type>(
-      substitute(type, substitutions));
-  }
-
   //! Makes a generic data type.
   /*!
     \param l The declaration's location.

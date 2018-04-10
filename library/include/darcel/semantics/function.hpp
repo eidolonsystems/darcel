@@ -135,9 +135,9 @@ namespace darcel {
     for(auto& overload : f.get_overloads()) {
       auto type = std::static_pointer_cast<function_data_type>(
         overload->get_data_type());
+      data_type_map<std::shared_ptr<generic_data_type>,
+        std::shared_ptr<data_type>> substitutions;
       auto compatibility = [&] {
-        data_type_map<std::shared_ptr<generic_data_type>,
-          std::shared_ptr<data_type>> substitutions;
         if(is_generic(*type)) {
           auto t = std::make_shared<function_data_type>(parameters,
             type->get_return_type());
@@ -169,7 +169,7 @@ namespace darcel {
       if(compatibility == data_type_compatibility::EQUAL) {
         return overload;
       } else if(compatibility == data_type_compatibility::GENERIC) {
-        auto t = instantiate(type, parameters);
+        auto t = substitute(type, substitutions);
         auto instantiation = std::make_shared<variable>(f.get_location(),
           f.get_name(), std::move(t));
         f.add(overload, instantiation);
