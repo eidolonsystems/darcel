@@ -135,15 +135,13 @@ namespace darcel {
         return m_builder->build(parameters, t);
       }
     };
-    for(auto& parameter : node.get_parameters()) {
-      if(is_generic(*parameter->get_data_type())) {
-        m_generic_definitions.insert(std::make_pair(node.get_overload(),
-          clone_structure(node)));
-        for(auto& overload : node.get_function()->get_overloads()) {
-          m_overloads.insert(std::make_pair(overload, node.get_function()));
-        }
-        return;
+    if(is_generic(*node.get_overload()->get_data_type())) {
+      m_generic_definitions.insert(
+        std::make_pair(node.get_overload(), clone_structure(node)));
+      for(auto& overload : node.get_function()->get_overloads()) {
+        m_overloads.insert(std::make_pair(overload, node.get_function()));
       }
+      return;
     }
     std::vector<std::shared_ptr<parameter_reactor_builder>> proxies;
     for(auto& parameter : node.get_parameters()) {
@@ -246,15 +244,15 @@ namespace darcel {
   inline std::shared_ptr<reactor_builder> reactor_translator::instantiate(
       std::shared_ptr<variable> v) {
     auto f = m_overloads.at(v);
-    auto root = f->get_definition(v);
-    auto builtin = m_generic_builders.find(root);
+    auto definition = f->get_definition(v);
+    auto builtin = m_generic_builders.find(definition);
     if(builtin != m_generic_builders.end()) {
       std::shared_ptr<reactor_builder> builder = builtin->second(v);
       m_variables.insert(std::make_pair(v, builder));
       return builder;
     }
-    auto& definition = m_generic_definitions.at(root);
-    auto implementation = darcel::instantiate(*definition, v, m_overloads);
+    auto& node = m_generic_definitions.at(definition);
+    auto implementation = darcel::instantiate(*node, v, m_overloads);
     implementation->apply(*this);
     return m_variables.at(v);
   }

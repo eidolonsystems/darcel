@@ -2,6 +2,7 @@
 #define DARCEL_CLONE_STRUCTURE_HPP
 #include "darcel/syntax/syntax_nodes.hpp"
 #include "darcel/syntax/syntax_node_visitor.hpp"
+#include "darcel/utilities/utilities.hpp"
 
 namespace darcel {
 
@@ -18,7 +19,7 @@ namespace darcel {
 
       std::unique_ptr<T> operator ()(const T& node) {
         node.apply(*this);
-        return std::unique_ptr<T>(static_cast<T*>(m_clone.release()));
+        return static_pointer_cast<T>(std::move(m_clone));
       }
 
       void visit(const bind_function_statement& node) override final {

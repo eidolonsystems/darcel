@@ -42,8 +42,7 @@ namespace darcel {
           m_substitutions.insert(std::make_pair(p, std::move(substitution)));
         }
         node.get_expression().apply(*this);
-        auto definition = std::unique_ptr<expression>(static_cast<expression*>(
-          m_clone.release()));
+        auto definition = static_pointer_cast<expression>(std::move(m_clone));
         auto instantiation = std::make_unique<bind_function_statement>(
           node.get_location(), node.get_function(), std::move(overload),
           std::move(substitutions), std::move(definition));
@@ -68,8 +67,7 @@ namespace darcel {
           }
         }();
         node.get_expression().apply(*this);
-        auto e = std::unique_ptr<expression>(
-          static_cast<expression*>(m_clone.release()));
+        auto e = static_pointer_cast<expression>(std::move(m_clone));
         m_clone = std::make_unique<bind_variable_statement>(node.get_location(),
           v, std::move(e));
       }
@@ -78,8 +76,8 @@ namespace darcel {
         std::vector<std::unique_ptr<expression>> arguments;
         for(auto& p : node.get_parameters()) {
           p->apply(*this);
-          arguments.push_back(std::unique_ptr<expression>(
-            static_cast<expression*>(m_clone.release())));
+          arguments.push_back(static_pointer_cast<expression>(
+            std::move(m_clone)));
         }
         std::optional<variable_expression> substitution;
         auto& c = [&] () -> const expression& {
@@ -100,8 +98,7 @@ namespace darcel {
           }
         }();
         c.apply(*this);
-        auto callable = std::unique_ptr<expression>(
-          static_cast<expression*>(m_clone.release()));
+        auto callable = static_pointer_cast<expression>(std::move(m_clone));
         m_clone = std::make_unique<call_expression>(node.get_location(),
           std::move(callable), std::move(arguments));
       }

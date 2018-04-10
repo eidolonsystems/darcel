@@ -170,6 +170,9 @@ namespace darcel {
         return overload;
       } else if(compatibility == data_type_compatibility::GENERIC) {
         auto t = substitute(type, substitutions);
+        if(*t == *overload->get_data_type()) {
+          return overload;
+        }
         auto instantiation = std::make_shared<variable>(f.get_location(),
           f.get_name(), std::move(t));
         f.add(overload, instantiation);
