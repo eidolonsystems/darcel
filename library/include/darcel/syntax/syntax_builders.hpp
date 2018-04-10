@@ -4,6 +4,7 @@
 #include <functional>
 #include <memory>
 #include <utility>
+#include "darcel/data_types/data_type_compatibility.hpp"
 #include "darcel/data_types/generic_data_type.hpp"
 #include "darcel/data_types/integer_data_type.hpp"
 #include "darcel/semantics/scope.hpp"
@@ -25,6 +26,30 @@ namespace darcel {
   */
   using expression_builder = std::function<
     std::unique_ptr<expression> (scope& s)>;
+
+  //! Converts an expression to return a value of a specified data type.
+  /*!
+    \param e The expression to convert.
+    \param type The data type the expression should evaluate to.
+    \return An expression that converts e to evaluate to type.
+  */
+  inline std::unique_ptr<expression> convert(std::unique_ptr<expression>&& e,
+      const std::shared_ptr<data_type>& type) {
+    auto compatibility = get_compatibility(*e->get_data_type(), *type);
+    if(compatibility == data_type_compatibility::EQUAL) {
+      return std::move(e);
+    }
+    if(auto f = dynamic_cast<function_expression*>(e.get())) {
+      if(auto t = std::dynamic_pointer_cast<function_data_type>(type)) {
+        auto overload = find_overload(*f->get_function(), *t);
+        if(overload != nullptr) {
+          return std::make_unique<variable_expression>(e->get_location(),
+            overload);
+        }
+      }
+    }
+    return nullptr;
+  }
 
   //! Binds a new function.
   /*!
@@ -151,10 +176,12 @@ namespace darcel {
         throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND, l);
       }
       for(std::size_t i = 0; i < arguments.size(); ++i) {
-        if(*arguments[i]->get_data_type() !=
-            *type->get_parameters()[i].m_type) {
+        auto conversion = convert(std::move(arguments[i]),
+          type->get_parameters()[i].m_type);
+        if(conversion == nullptr) {
           throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND, l);
         }
+        arguments[i] = std::move(conversion);
       }
       return std::make_unique<call_expression>(l, std::move(callable),
         std::move(arguments));

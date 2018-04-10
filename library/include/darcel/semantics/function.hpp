@@ -185,6 +185,28 @@ namespace darcel {
     return nullptr;
   }
 
+  //! Finds the function overload matching a signature.
+  /*!
+    \param f The overloaded function to search over.
+    \param signature The function data type to match.
+    \return The variable representing the specific function overload.
+  */
+  inline std::shared_ptr<variable> find_overload(function& f,
+      const function_data_type& signature) {
+    auto overload = find_overload(f, signature.get_parameters());
+    if(overload == nullptr) {
+      return nullptr;
+    }
+    auto return_type = std::static_pointer_cast<function_data_type>(
+      overload->get_data_type())->get_return_type();
+    auto return_compatibility = get_compatibility(*signature.get_return_type(),
+      *return_type);
+    if(return_compatibility != data_type_compatibility::EQUAL) {
+      return nullptr;
+    }
+    return overload;
+  }
+
   inline function::function(std::shared_ptr<variable> initial) {
     m_overloads.push_back(std::move(initial));
   }
