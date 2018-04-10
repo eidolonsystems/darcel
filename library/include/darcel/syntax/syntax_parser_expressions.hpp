@@ -93,12 +93,12 @@ namespace darcel {
         if(static_cast<int>(expressions.size()) < arity) {
           throw arity_syntax_error(o.m_location, expressions.size(), o.m_op);
         }
-        std::vector<std::unique_ptr<expression>> parameters;
+        std::vector<std::unique_ptr<expression>> arguments;
         for(auto i = 0; i < arity; ++i) {
-          parameters.push_back(nullptr);
+          arguments.push_back(nullptr);
         }
         while(arity != 0) {
-          parameters[arity - 1] = std::move(expressions.back());
+          arguments[arity - 1] = std::move(expressions.back());
           expressions.pop_back();
           --arity;
         }
@@ -109,7 +109,7 @@ namespace darcel {
             o.m_location);
         }
         std::vector<function_data_type::parameter> types;
-        std::transform(parameters.begin(), parameters.end(),
+        std::transform(arguments.begin(), arguments.end(),
           std::back_inserter(types),
           [] (auto& p) {
             return function_data_type::parameter("", p->get_data_type());
@@ -121,7 +121,7 @@ namespace darcel {
         }
         auto call = std::make_unique<call_expression>(o.m_location,
           std::make_unique<variable_expression>(o.m_location, callable),
-          std::move(parameters));
+          std::move(arguments));
         expressions.push_back(std::move(call));
       };
     auto c = cursor;
@@ -145,15 +145,15 @@ namespace darcel {
         if(match(*c, bracket::type::OPEN_ROUND_BRACKET)) {
           auto call_location = c.get_location();
           ++c;
-          std::vector<std::unique_ptr<expression>> parameters;
+          std::vector<std::unique_ptr<expression>> arguments;
           if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
             while(true) {
-              auto parameter = parse_expression(c);
-              if(parameter == nullptr) {
+              auto argument = parse_expression(c);
+              if(argument == nullptr) {
                 throw syntax_error(syntax_error_code::EXPRESSION_EXPECTED,
                   c.get_location());
               }
-              parameters.push_back(std::move(parameter));
+              arguments.push_back(std::move(argument));
               if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
                 break;
               }
@@ -165,7 +165,7 @@ namespace darcel {
           if(auto f = dynamic_cast<const function_expression*>(
               callable.get())) {
             std::vector<function_data_type::parameter> types;
-            std::transform(parameters.begin(), parameters.end(),
+            std::transform(arguments.begin(), arguments.end(),
               std::back_inserter(types),
               [] (auto& p) {
                 return function_data_type::parameter("", p->get_data_type());
@@ -177,25 +177,28 @@ namespace darcel {
             }
             callable = std::make_unique<variable_expression>(
               f->get_location(), std::move(overload));
-          } else if(auto type = std::dynamic_pointer_cast<function_data_type>(
+          }
+          if(auto type = std::dynamic_pointer_cast<function_data_type>(
               callable->get_data_type())) {
-            if(type->get_parameters().size() != parameters.size()) {
+            if(type->get_parameters().size() != arguments.size()) {
               throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
                 call_location);
             }
-            for(std::size_t i = 0; i < parameters.size(); ++i) {
-              if(*parameters[i]->get_data_type() !=
-                  *type->get_parameters()[i].m_type) {
+            for(std::size_t i = 0; i < arguments.size(); ++i) {
+              auto conversion = convert(std::move(arguments[i]),
+                type->get_parameters()[i].m_type);
+              if(conversion == nullptr) {
                 throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
                   call_location);
               }
+              arguments[i] = std::move(conversion);
             }
           } else {
             throw syntax_error(syntax_error_code::EXPRESSION_NOT_CALLABLE,
               call_location);
           }
           auto call = std::make_unique<call_expression>(call_location,
-            std::move(callable), std::move(parameters));
+            std::move(callable), std::move(arguments));
           expressions.push_back(std::move(call));
           ++c;
         } else if(c->get_type() == token::type::OPERATION) {

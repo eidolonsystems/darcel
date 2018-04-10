@@ -123,11 +123,11 @@ TEST_CASE("test_translating_generic_function_parameter",
       return find_term("x", s);
     }, *s);
   auto g = bind_function("g",
-    {{"f", make_function_data_type({{"x", make_generic_data_type("`T", 0)}},
+    {{"h", make_function_data_type({{"y", make_generic_data_type("`T", 0)}},
       make_generic_data_type("`T", 0))},
-     {"x", make_generic_data_type("`T", 0)}},
+     {"z", make_generic_data_type("`T", 0)}},
     [&] (auto& s) {
-      return call("f", find_term("x", s), s);
+      return call("h", find_term("z", s), s);
     }, *s);
   auto node = bind_variable("main", call("g", find_term("f", *s),
     make_literal_expression(911), *s), *s);

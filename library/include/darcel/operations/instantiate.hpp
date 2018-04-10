@@ -50,11 +50,9 @@ namespace darcel {
       }
 
       void visit(const bind_function_statement& node) override final {
-/* TODO
         m_clone = std::make_unique<bind_function_statement>(node.get_location(),
           node.get_function(), node.get_overload(), node.get_parameters(),
           clone_structure(node.get_expression()));
-*/
       }
 
       void visit(const bind_variable_statement& node) override final {
@@ -84,14 +82,20 @@ namespace darcel {
           if(is_generic(*node.get_callable().get_data_type())) {
             auto& v = static_cast<const variable_expression&>(
               node.get_callable());
-            auto& f = m_functions->at(v.get_variable());
-            std::vector<function_data_type::parameter> parameters;
-            for(auto& argument : arguments) {
-              parameters.emplace_back("", argument->get_data_type());
+            auto s = m_substitutions.find(v.get_variable());
+            if(s != m_substitutions.end()) {
+              substitution.emplace(node.get_callable().get_location(),
+                s->second);
+            } else {
+              auto& f = m_functions->at(v.get_variable());
+              std::vector<function_data_type::parameter> parameters;
+              for(auto& argument : arguments) {
+                parameters.emplace_back("", argument->get_data_type());
+              }
+              auto o = find_overload(*f, parameters);
+              m_functions->insert(std::make_pair(o, f));
+              substitution.emplace(node.get_callable().get_location(), o);
             }
-            auto o = find_overload(*f, parameters);
-            m_functions->insert(std::make_pair(o, f));
-            substitution.emplace(node.get_callable().get_location(), o);
             return *substitution;
           } else {
             return node.get_callable();
