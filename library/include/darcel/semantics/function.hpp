@@ -82,7 +82,7 @@ namespace darcel {
     if(!is_generic(*generic)) {
       if(get_compatibility(*concrete, *generic) ==
           data_type_compatibility::EQUAL) {
-        return generic;
+        return concrete;
       }
       return nullptr;
     } else if(auto g = std::dynamic_pointer_cast<generic_data_type>(generic)) {
@@ -92,8 +92,12 @@ namespace darcel {
         return concrete;
       }
       if(get_compatibility(*concrete, *substitution->second) ==
-          data_type_compatibility::EQUAL) {
+          data_type_compatibility::EQUAL || get_compatibility(*concrete,
+          *generic) == data_type_compatibility::EQUAL) {
         return substitution->second;
+      } else if(is_generic(*substitution->second) && !is_generic(*concrete)) {
+        substitutions[g] = concrete;
+        return concrete;
       }
       return nullptr;
     } else if(auto f = std::dynamic_pointer_cast<function_data_type>(generic)) {
@@ -112,7 +116,7 @@ namespace darcel {
             substitutions) == nullptr) {
           return nullptr;
         }
-        return g;
+        return substitute(f, substitutions);
       }
       return nullptr;
     } else {
@@ -139,7 +143,7 @@ namespace darcel {
             type->get_return_type());
           auto substitution = substitute_generic(type, t, substitutions);
           if(substitution != nullptr) {
-            return get_compatibility(*substitution, *type);
+            return data_type_compatibility::GENERIC;
           }
           return data_type_compatibility::NONE;
         } else {
@@ -165,7 +169,7 @@ namespace darcel {
       if(compatibility == data_type_compatibility::EQUAL) {
         return overload;
       } else if(compatibility == data_type_compatibility::GENERIC) {
-        auto t = instantiate(*type, parameters);
+        auto t = instantiate(type, parameters);
         auto instantiation = std::make_shared<variable>(f.get_location(),
           f.get_name(), std::move(t));
         f.add(overload, instantiation);

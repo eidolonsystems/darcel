@@ -58,6 +58,37 @@ namespace darcel {
     return false;
   }
 
+  //! Substitutes all generic occurances with their concrete arguments.
+  /*!
+    \param type The generic type to substitute.
+    \param substitutions The mapping from generic types to concrete types.
+    \return A data type whose generic occurances are replaced with concrete
+            arguments based on the substitutions provided.
+  */
+  inline std::shared_ptr<data_type> substitute(
+      const std::shared_ptr<data_type>& type, const data_type_map<
+      std::shared_ptr<generic_data_type>, std::shared_ptr<data_type>>&
+      substitutions) {
+    if(auto g = std::dynamic_pointer_cast<generic_data_type>(type)) {
+      return substitutions.at(g);
+    } else if(auto f = std::dynamic_pointer_cast<function_data_type>(type)) {
+      std::vector<function_data_type::parameter> parameters;
+      for(auto& parameter : f->get_parameters()) {
+        parameters.emplace_back(parameter.m_name,
+          substitute(parameter.m_type, substitutions));
+      }
+      auto return_substitution = substitute(f->get_return_type(),
+        substitutions);
+      auto substitution = std::make_shared<function_data_type>(
+        std::move(parameters), std::move(return_substitution));
+      if(*substitution == *f) {
+        return f;
+      }
+      return substitution;
+    }
+    return type;
+  }
+
   //! Returns the function data type constructed from a generic function type
   //! with a specified list of arguments.
   /*!
@@ -66,14 +97,13 @@ namespace darcel {
     \return The function data type instantiated with the specified arguments.
   */
   inline std::shared_ptr<function_data_type> instantiate(
-      const function_data_type& type,
+      const std::shared_ptr<function_data_type>& type,
       const std::vector<function_data_type::parameter>& arguments) {
-    std::vector<function_data_type::parameter> parameters;
     data_type_map<std::shared_ptr<generic_data_type>,
       std::shared_ptr<data_type>> substitutions;
     for(std::size_t i = 0; i != arguments.size(); ++i) {
       auto& argument = arguments[i];
-      auto& parameter = type.get_parameters()[i];
+      auto& parameter = type->get_parameters()[i];
       if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
           parameter.m_type)) {
         auto substitution = [&] {
@@ -84,22 +114,10 @@ namespace darcel {
           }
           return i->second;
         }();
-        parameters.emplace_back(parameter.m_name, std::move(substitution));
-      } else {
-        parameters.push_back(argument);
       }
     }
-    auto return_type = [&] {
-      if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
-          type.get_return_type())) {
-        return substitutions.at(generic);
-      } else {
-        return type.get_return_type();
-      }
-    }();
-    auto instantiation = std::make_shared<function_data_type>(
-      std::move(parameters), std::move(return_type));
-    return instantiation;
+    return std::static_pointer_cast<function_data_type>(
+      substitute(type, substitutions));
   }
 
   //! Makes a generic data type.
