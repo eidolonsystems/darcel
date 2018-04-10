@@ -93,6 +93,26 @@ namespace darcel {
     scope.add(f);
   }
 
+  //! Populates a scope with the fold function.
+  /*!
+    \param scope The scope to populate.
+  */
+  inline void populate_fold(scope& scope) {
+    auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
+    std::vector<function_data_type::parameter> parameters;
+    auto f = [&] {
+      std::vector<function_data_type::parameter> parameters;
+      parameters.emplace_back("left", t);
+      parameters.emplace_back("right", t);
+      return std::make_shared<function_data_type>(std::move(parameters), t);
+    }();
+    parameters.emplace_back("f", std::move(f));
+    parameters.emplace_back("r", t);
+    auto fold = std::make_shared<variable>(location::global(), "fold",
+      std::make_shared<function_data_type>(parameters, t));
+    scope.add(fold);
+  }
+
   //! Populates a scope with the last function.
   /*!
     \param scope The scope to populate.
@@ -129,6 +149,7 @@ namespace darcel {
     populate_chain(scope);
     populate_count(scope);
     populate_first(scope);
+    populate_fold(scope);
     populate_last(scope);
     populate_print(scope);
   }

@@ -4,6 +4,7 @@
 #include "darcel/reactors/chain_reactor.hpp"
 #include "darcel/reactors/count_reactor.hpp"
 #include "darcel/reactors/first_reactor.hpp"
+#include "darcel/reactors/fold_reactor.hpp"
 #include "darcel/reactors/last_reactor.hpp"
 #include "darcel/reactors/ostream_reactor.hpp"
 #include "darcel/reactors/reactor_translator.hpp"
@@ -116,6 +117,38 @@ namespace darcel {
     translator.add(f, f->get_overloads().back(), builder());
   }
 
+  //! Adds definitions for the builtin fold functions.
+  /*!
+    \param translator The translator to add the definitions to.
+    \param s The scope to find the function in.
+  */
+  inline void translate_fold(reactor_translator& translator, const scope& s) {
+    struct builder {
+      std::unique_ptr<reactor_builder> operator ()(
+          const std::shared_ptr<variable>& v) const {
+        auto signature = std::static_pointer_cast<function_data_type>(
+          v->get_data_type());
+        if(*signature->get_parameters()[1].m_type == bool_data_type()) {
+          return make_fold_reactor_builder<bool>();
+        } else if(*signature->get_parameters()[1].m_type ==
+            float_data_type()) {
+          return make_fold_reactor_builder<double>();
+        } else if(*signature->get_parameters()[1].m_type ==
+            integer_data_type()) {
+          return make_fold_reactor_builder<int>();
+        } else if(
+            *signature->get_parameters()[1].m_type == text_data_type()) {
+          return make_fold_reactor_builder<std::string>();
+        }
+
+        // TODO: Fold generic values
+        return nullptr;
+      }
+    };
+    auto f = s.find<function>("fold");
+    translator.add(f, f->get_overloads().back(), builder());
+  }
+
   //! Adds definitions for the builtin last functions.
   /*!
     \param translator The translator to add the definitions to.
@@ -191,6 +224,7 @@ namespace darcel {
     translate_chain(translator, s);
     translate_count(translator, s);
     translate_first(translator, s);
+    translate_fold(translator, s);
     translate_last(translator, s);
     translate_print(translator, s);
   }

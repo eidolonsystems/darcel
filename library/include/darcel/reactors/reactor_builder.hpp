@@ -62,6 +62,18 @@ namespace darcel {
         m_function;
   };
 
+  //! Makes a reactor builder that passes through a reactor.
+  /*!
+    \param r The reactor to pass through.
+  */
+  inline auto make_passthrough_reactor_builder(
+      std::shared_ptr<base_reactor> r) {
+    return std::make_unique<function_reactor_builder>(
+      [=] (auto& parameters, auto& t) {
+        return r;
+      });
+  }
+
   template<typename F>
   function_reactor_builder::function_reactor_builder(F&& f)
       : m_function(std::forward<F>(f)) {}
