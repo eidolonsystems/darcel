@@ -66,6 +66,13 @@ TEST_CASE("test_generic_instantiation", "[syntax_parser]") {
   REQUIRE_THROWS(p.parse_node());
 }
 
+TEST_CASE("test_built_in_generic_instantiation", "[syntax_parser]") {
+  syntax_parser p(make_builtin_scope());
+  feed(p, R"(let x = fold(add, 5))");
+  auto x = dynamic_pointer_cast<bind_variable_statement>(p.parse_node());
+  REQUIRE(x != nullptr);
+}
+
 TEST_CASE("test_parsing_generic_function_type_one_parameter",
     "[syntax_parser]") {
   syntax_parser p(make_builtin_scope());
