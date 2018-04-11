@@ -8,6 +8,7 @@
 #include "darcel/reactors/last_reactor.hpp"
 #include "darcel/reactors/ostream_reactor.hpp"
 #include "darcel/reactors/reactor_translator.hpp"
+#include "darcel/reactors/tally_reactor.hpp"
 #include "darcel/semantics/scope.hpp"
 
 namespace darcel {
@@ -83,6 +84,33 @@ namespace darcel {
   inline void translate_count(reactor_translator& translator, const scope& s) {
     auto f = s.find<function>("count");
     translator.add(f->get_overloads().front(), make_count_builder());
+  }
+
+  //! Adds definitions for the builtin divide functions.
+  /*!
+    \param translator The translator to add the definitions to.
+    \param s The scope to find the function in.
+  */
+  inline void translate_divide(reactor_translator& translator,
+      const scope& s) {
+    auto add = s.find<function>("divide");
+    if(add != nullptr) {
+      for(auto& overload : add->get_overloads()) {
+        auto signature = std::static_pointer_cast<function_data_type>(
+          overload->get_data_type());
+        if(signature->get_parameters().size() == 2) {
+          if(*signature->get_parameters()[0].m_type == integer_data_type() &&
+              *signature->get_parameters()[1].m_type == integer_data_type()) {
+            translator.add(overload, make_divide_reactor_builder<int, int>());
+          } else if(
+              *signature->get_parameters()[0].m_type == float_data_type() &&
+              *signature->get_parameters()[1].m_type == float_data_type()) {
+            translator.add(overload,
+              make_divide_reactor_builder<double, double>());
+          }
+        }
+      }
+    }
   }
 
   //! Adds definitions for the builtin first functions.
@@ -181,6 +209,33 @@ namespace darcel {
     translator.add(f, f->get_overloads().back(), builder());
   }
 
+  //! Adds definitions for the builtin multiply functions.
+  /*!
+    \param translator The translator to add the definitions to.
+    \param s The scope to find the function in.
+  */
+  inline void translate_multiply(reactor_translator& translator,
+      const scope& s) {
+    auto add = s.find<function>("multiply");
+    if(add != nullptr) {
+      for(auto& overload : add->get_overloads()) {
+        auto signature = std::static_pointer_cast<function_data_type>(
+          overload->get_data_type());
+        if(signature->get_parameters().size() == 2) {
+          if(*signature->get_parameters()[0].m_type == integer_data_type() &&
+              *signature->get_parameters()[1].m_type == integer_data_type()) {
+            translator.add(overload, make_multiply_reactor_builder<int, int>());
+          } else if(
+              *signature->get_parameters()[0].m_type == float_data_type() &&
+              *signature->get_parameters()[1].m_type == float_data_type()) {
+            translator.add(overload,
+              make_multiply_reactor_builder<double, double>());
+          }
+        }
+      }
+    }
+  }
+
   //! Adds definitions for the builtin print functions.
   /*!
     \param translator The translator to add the definitions to.
@@ -213,6 +268,49 @@ namespace darcel {
     translator.add(f, f->get_overloads().back(), builder());
   }
 
+  //! Adds definitions for the builtin subtract functions.
+  /*!
+    \param translator The translator to add the definitions to.
+    \param s The scope to find the function in.
+  */
+  inline void translate_subtract(reactor_translator& translator,
+      const scope& s) {
+    auto add = s.find<function>("subtract");
+    if(add != nullptr) {
+      for(auto& overload : add->get_overloads()) {
+        auto signature = std::static_pointer_cast<function_data_type>(
+          overload->get_data_type());
+        if(signature->get_parameters().size() == 2) {
+          if(*signature->get_parameters()[0].m_type == integer_data_type() &&
+              *signature->get_parameters()[1].m_type == integer_data_type()) {
+            translator.add(overload, make_subtract_reactor_builder<int, int>());
+          } else if(
+              *signature->get_parameters()[0].m_type == float_data_type() &&
+              *signature->get_parameters()[1].m_type == float_data_type()) {
+            translator.add(overload,
+              make_subtract_reactor_builder<double, double>());
+          }
+        }
+      }
+    }
+  }
+
+  //! Adds definitions for the builtin tally functions.
+  /*!
+    \param translator The translator to add the definitions to.
+    \param s The scope to find the function in.
+  */
+  inline void translate_tally(reactor_translator& translator, const scope& s) {
+    struct builder {
+      std::unique_ptr<reactor_builder> operator ()(
+          const std::shared_ptr<variable>& v) const {
+        return make_tally_reactor_builder();
+      }
+    };
+    auto f = s.find<function>("tally");
+    translator.add(f, f->get_overloads().back(), builder());
+  }
+
   //! Adds definitions for all the builtin functions.
   /*!
     \param translator The translator to add the definitions to.
@@ -223,10 +321,14 @@ namespace darcel {
     translate_add(translator, s);
     translate_chain(translator, s);
     translate_count(translator, s);
+    translate_divide(translator, s);
     translate_first(translator, s);
     translate_fold(translator, s);
     translate_last(translator, s);
+    translate_multiply(translator, s);
     translate_print(translator, s);
+    translate_subtract(translator, s);
+    translate_tally(translator, s);
   }
 }
 

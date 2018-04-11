@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <utility>
 #include "darcel/reactors/reactor.hpp"
+#include "darcel/reactors/reactor_builder.hpp"
 #include "darcel/reactors/reactors.hpp"
 
 namespace darcel {

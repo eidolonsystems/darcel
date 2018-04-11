@@ -31,8 +31,8 @@ namespace darcel {
     for(auto& t : std::vector<std::shared_ptr<data_type>>{
         integer_data_type::get_instance(), float_data_type::get_instance()}) {
       std::vector<function_data_type::parameter> parameters;
-      parameters.push_back({"lhs", t});
-      parameters.push_back({"rhs", t});
+      parameters.push_back({"left", t});
+      parameters.push_back({"right", t});
       for(auto& o : {op::ADD, op::SUBTRACT, op::MULTIPLY, op::DIVIDE}) {
         auto f = std::make_shared<variable>(location::global(),
           get_function_name(o),
@@ -42,8 +42,8 @@ namespace darcel {
     }
     {
       std::vector<function_data_type::parameter> parameters;
-      parameters.push_back({"lhs", text_data_type::get_instance()});
-      parameters.push_back({"rhs", text_data_type::get_instance()});
+      parameters.push_back({"left", text_data_type::get_instance()});
+      parameters.push_back({"right", text_data_type::get_instance()});
       auto name = get_function_name(op::ADD);
       auto f = std::make_shared<variable>(location::global(), name,
         std::make_shared<function_data_type>(parameters,
@@ -87,7 +87,7 @@ namespace darcel {
   inline void populate_first(scope& scope) {
     std::vector<function_data_type::parameter> parameters;
     auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
-    parameters.push_back({"v", t});
+    parameters.push_back({"source", t});
     auto f = std::make_shared<variable>(location::global(), "first",
       std::make_shared<function_data_type>(parameters, t));
     scope.add(f);
@@ -120,7 +120,7 @@ namespace darcel {
   inline void populate_last(scope& scope) {
     std::vector<function_data_type::parameter> parameters;
     auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
-    parameters.push_back({"v", t});
+    parameters.push_back({"source", t});
     auto f = std::make_shared<variable>(location::global(), "last",
       std::make_shared<function_data_type>(parameters, t));
     scope.add(f);
@@ -133,9 +133,23 @@ namespace darcel {
   inline void populate_print(scope& scope) {
     std::vector<function_data_type::parameter> parameters;
     auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
-    parameters.push_back({"v", t});
+    parameters.push_back({"source", t});
     auto f = std::make_shared<variable>(location::global(), "print",
       std::make_shared<function_data_type>(parameters, t));
+    scope.add(f);
+  }
+
+  //! Populates a scope with the tally function.
+  /*!
+    \param scope The scope to populate.
+  */
+  inline void populate_tally(scope& scope) {
+    std::vector<function_data_type::parameter> parameters;
+    auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
+    parameters.push_back({"source", t});
+    auto f = std::make_shared<variable>(location::global(), "tally",
+      std::make_shared<function_data_type>(parameters,
+      integer_data_type::get_instance()));
     scope.add(f);
   }
 
@@ -152,6 +166,7 @@ namespace darcel {
     populate_fold(scope);
     populate_last(scope);
     populate_print(scope);
+    populate_tally(scope);
   }
 
   //! Constructs a scope with all builtins populated.
