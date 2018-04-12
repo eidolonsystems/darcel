@@ -23,6 +23,8 @@ namespace darcel {
 
       virtual void visit(const text_data_type& type);
 
+      virtual void visit(const overloaded_data_type& type);
+
     protected:
 
       //! Constructs a data type visitor.

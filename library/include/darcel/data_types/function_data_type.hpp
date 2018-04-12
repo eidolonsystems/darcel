@@ -68,6 +68,22 @@ namespace darcel {
       std::move(return_type));
   }
 
+  //! Tests if two function data types have the same signature.
+  inline bool equal_signature(const function_data_type& lhs,
+      const function_data_type& rhs) {
+    if(lhs.get_parameters().size() != rhs.get_parameters().size()) {
+      return false;
+    }
+    for(std::size_t i = 0; i != lhs.get_parameters().size(); ++i) {
+      auto& p1 = *lhs.get_parameters()[i].m_type;
+      auto& p2 = *rhs.get_parameters()[i].m_type;
+      if(p1 != p2) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   inline function_data_type::parameter::parameter(std::string name,
       std::shared_ptr<data_type> type)
       : m_name(std::move(name)),
