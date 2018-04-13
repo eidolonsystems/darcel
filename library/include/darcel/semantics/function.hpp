@@ -105,18 +105,48 @@ namespace darcel {
         if(f->get_parameters().size() != g->get_parameters().size()) {
           return nullptr;
         }
-        for(std::size_t i = 0; i < f->get_parameters().size(); ++i) {
-          auto& t = f->get_parameters()[i].m_type;
-          auto& u = g->get_parameters()[i].m_type;
-          if(substitute_generic(t, u, substitutions) == nullptr) {
-            return nullptr;
+        std::vector<std::vector<std::shared_ptr<data_type>>> candidates;
+        int total_combinations = 1;
+        for(auto& p : g->get_parameters()) {
+          if(auto c = std::dynamic_pointer_cast<
+              overloaded_data_type>(p.m_type)) {
+            total_combinations *= static_cast<int>(c->get_overloads().size());
+            candidates.emplace_back(c->get_overloads());
+          } else {
+            std::vector<std::shared_ptr<data_type>> candidate;
+            candidate.push_back(p.m_type);
+            candidates.push_back(candidate);
           }
         }
-        if(substitute_generic(f->get_return_type(), g->get_return_type(),
-            substitutions) == nullptr) {
-          return nullptr;
+        for(auto c = 0; c < total_combinations; ++c) {
+          auto candidate_substitutions = substitutions;
+          auto passed = true;
+          for(std::size_t i = 0; i < f->get_parameters().size(); ++i) {
+            auto& t = f->get_parameters()[i].m_type;
+            auto& u = g->get_parameters()[i].m_type;
+            if(substitute_generic(t, u, candidate_substitutions) == nullptr) {
+              passed = false;
+              break;
+            }
+          }
+          if(passed) {
+            if(substitute_generic(f->get_return_type(), g->get_return_type(),
+                candidate_substitutions) != nullptr) {
+              substitutions = std::move(candidate_substitutions);
+              return substitute(f, substitutions);
+            }
+          }
         }
-        return substitute(f, substitutions);
+        return nullptr;
+      } else if(auto g = std::dynamic_pointer_cast<overloaded_data_type>(
+          concrete)) {
+        for(auto o : g->get_overloads()) {
+          auto substitution = substitute_generic(generic, o, substitutions);
+          if(substitution != nullptr) {
+            return substitution;
+          }
+        }
+        return nullptr;
       }
       return nullptr;
     } else {
