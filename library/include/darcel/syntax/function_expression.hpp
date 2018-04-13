@@ -36,14 +36,8 @@ namespace darcel {
   inline function_expression::function_expression(location l,
       std::shared_ptr<function> f)
       : expression(std::move(l)),
-        m_function(std::move(f)) {
-    auto t = std::make_shared<overloaded_data_type>(get_location(),
-      m_function->get_name());
-    for(auto& overload : m_function->get_overloads()) {
-      t->add(overload->get_data_type());
-    }
-    m_data_type = std::move(t);
-  }
+        m_function(std::move(f)),
+        m_data_type(make_overloaded_data_type(*m_function)) {}
 
   inline const std::shared_ptr<function>& function_expression::
       get_function() const {

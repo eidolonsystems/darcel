@@ -1,5 +1,6 @@
 #ifndef DARCEL_FUNCTION_HPP
 #define DARCEL_FUNCTION_HPP
+#include <iostream>
 #include <vector>
 #include "darcel/data_types/data_type_compatibility.hpp"
 #include "darcel/data_types/function_data_type.hpp"
@@ -65,6 +66,24 @@ namespace darcel {
         std::shared_ptr<variable>> m_definitions;
   };
 
+  //! Makes an overloaded data type representing a function.
+  inline std::shared_ptr<data_type> make_overloaded_data_type(
+      const function& f) {
+    auto& overloads = f.get_overloads();
+    if(overloads.size() == 1) {
+      return overloads.front()->get_data_type();
+    }
+    auto t = std::make_shared<overloaded_data_type>(location::global(),
+      f.get_name());
+    for(auto& overload : f.get_overloads()) {
+      t->add(overload->get_data_type());
+    }
+    if(t->get_overloads().size() == 1) {
+      return t->get_overloads().front();
+    }
+    return t;
+  }
+
   //! Substitutes a generic data type with a concrete instance, returning the
   //! type used to perform the substitution.
   /*!
@@ -105,32 +124,47 @@ namespace darcel {
         if(f->get_parameters().size() != g->get_parameters().size()) {
           return nullptr;
         }
-        std::vector<std::vector<std::shared_ptr<data_type>>> candidates;
+        std::vector<std::tuple<int, std::vector<std::shared_ptr<data_type>>>>
+          candidates;
         int total_combinations = 1;
         for(auto& p : g->get_parameters()) {
           if(auto c = std::dynamic_pointer_cast<
               overloaded_data_type>(p.m_type)) {
+            candidates.emplace_back(total_combinations, c->get_overloads());
             total_combinations *= static_cast<int>(c->get_overloads().size());
-            candidates.emplace_back(c->get_overloads());
           } else {
             std::vector<std::shared_ptr<data_type>> candidate;
             candidate.push_back(p.m_type);
-            candidates.push_back(candidate);
+            candidates.emplace_back(total_combinations, candidate);
           }
+        }
+        if(auto c = std::dynamic_pointer_cast<overloaded_data_type>(
+            g->get_return_type())) {
+          candidates.emplace_back(total_combinations, c->get_overloads());
+          total_combinations *= static_cast<int>(c->get_overloads().size());
+        } else {
+          std::vector<std::shared_ptr<data_type>> candidate;
+          candidate.push_back(g->get_return_type());
+          candidates.emplace_back(total_combinations, candidate);
         }
         for(auto c = 0; c < total_combinations; ++c) {
           auto candidate_substitutions = substitutions;
           auto passed = true;
           for(std::size_t i = 0; i < f->get_parameters().size(); ++i) {
+            auto cycle = std::get<0>(candidates[i]);
+            auto& types = std::get<1>(candidates[i]);
             auto& t = f->get_parameters()[i].m_type;
-            auto& u = g->get_parameters()[i].m_type;
+            auto& u = types[(c / cycle) % types.size()];
             if(substitute_generic(t, u, candidate_substitutions) == nullptr) {
               passed = false;
               break;
             }
           }
           if(passed) {
-            if(substitute_generic(f->get_return_type(), g->get_return_type(),
+            auto cycle = std::get<0>(candidates.back());
+            auto& types = std::get<1>(candidates.back());
+            auto& r = types[(c / cycle) % types.size()];
+            if(substitute_generic(f->get_return_type(), r,
                 candidate_substitutions) != nullptr) {
               substitutions = std::move(candidate_substitutions);
               return substitute(f, substitutions);
