@@ -124,7 +124,7 @@ namespace darcel {
 
   inline lexical_iterator::lexical_iterator(const char* first,
       std::size_t size_remaining)
-      : lexical_iterator(first, size_remaining, location({}, 0, 0)) {}
+      : lexical_iterator(first, size_remaining, location({}, 1, 1)) {}
 
   inline lexical_iterator::lexical_iterator(const char* first,
       std::size_t size_remaining, const location& l)
@@ -156,7 +156,7 @@ namespace darcel {
     assert(m_size_remaining != 0);
     if(*m_position == '\n') {
       ++m_line_number;
-      m_column_number = 0;
+      m_column_number = 1;
     } else {
       ++m_column_number;
     }
