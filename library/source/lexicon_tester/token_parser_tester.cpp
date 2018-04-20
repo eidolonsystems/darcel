@@ -34,22 +34,22 @@ TEST_CASE("test_spaces_token_parser", "[token_parser]") {
     auto t = parser.parse_token();
     REQUIRE(t.has_value());
     REQUIRE(match(*t, keyword(keyword::word::LET)));
-    REQUIRE(t->get_line_number() == 1);
-    REQUIRE(t->get_column_number() == 0);
+    REQUIRE(t->get_line_number() == 2);
+    REQUIRE(t->get_column_number() == 1);
   }
   {
     auto t = parser.parse_token();
     REQUIRE(t.has_value());
     REQUIRE(match(*t, terminal::type::new_line));
-    REQUIRE(t->get_line_number() == 1);
-    REQUIRE(t->get_column_number() == 5);
+    REQUIRE(t->get_line_number() == 2);
+    REQUIRE(t->get_column_number() == 6);
   }
   {
     auto t = parser.parse_token();
     REQUIRE(t.has_value());
     REQUIRE(match(*t, keyword(keyword::word::LET)));
-    REQUIRE(t->get_line_number() == 3);
-    REQUIRE(t->get_column_number() == 3);
+    REQUIRE(t->get_line_number() == 4);
+    REQUIRE(t->get_column_number() == 4);
   }
 }
 

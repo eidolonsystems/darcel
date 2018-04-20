@@ -22,6 +22,9 @@ namespace darcel {
     //! An expression was expected.
     EXPRESSION_EXPECTED,
 
+    //! An integer expression was expected.
+    INTEGER_EXPRESSION_EXPECTED,
+
     //! An assignment operation was expected.
     ASSIGNMENT_EXPECTED,
 
@@ -59,7 +62,10 @@ namespace darcel {
     OVERLOAD_NOT_FOUND,
 
     //! A variable with a specified name was not found.
-    VARIABLE_NOT_FOUND
+    VARIABLE_NOT_FOUND,
+
+    //! The value given to an enum is invalid.
+    INVALID_ENUM_VALUE
   };
 }
 

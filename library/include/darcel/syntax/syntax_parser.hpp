@@ -76,6 +76,8 @@ namespace darcel {
         token_iterator& cursor);
       std::unique_ptr<statement> parse_statement(token_iterator& cursor);
       std::unique_ptr<statement> expect_statement(token_iterator& cursor);
+      std::unique_ptr<bind_enum_statement> parse_bind_enum_statement(
+        token_iterator& cursor);
       std::unique_ptr<bind_function_statement> parse_bind_function_statement(
         token_iterator& cursor);
       std::unique_ptr<bind_variable_statement> parse_bind_variable_statement(

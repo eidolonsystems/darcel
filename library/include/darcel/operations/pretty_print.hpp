@@ -22,6 +22,10 @@ namespace darcel {
         node.apply(*this);
       }
 
+      void visit(const bind_enum_statement& node) override final {
+        // TODO
+      }
+
       void visit(const bind_function_statement& node) override final {
         *m_out << "let " << node.get_function()->get_name() << "(";
         auto is_first = true;

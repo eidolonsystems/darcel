@@ -18,6 +18,9 @@ namespace darcel {
       //! The list of keywords.
       enum class word {
 
+        //! enum
+        ENUM,
+
         //! let
         LET
       };
@@ -59,7 +62,9 @@ namespace darcel {
     \return The keyword that was parsed.
   */
   inline std::optional<keyword> parse_keyword(lexical_iterator& cursor) {
-    if(prefix_match(cursor, "let")) {
+    if(prefix_match(cursor, "enum")) {
+      return keyword::word::ENUM;
+    } else if(prefix_match(cursor, "let")) {
       return keyword::word::LET;
     }
     return std::nullopt;
@@ -77,6 +82,8 @@ namespace darcel {
 
   inline std::ostream& operator <<(std::ostream& out, const keyword& value) {
     switch(value.get_word()) {
+      case keyword::word::ENUM:
+        return out << "enum";
       case keyword::word::LET:
         return out << "let";
       default:

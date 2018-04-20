@@ -1,5 +1,6 @@
 #ifndef DARCEL_SYNTAX_NODES_HPP
 #define DARCEL_SYNTAX_NODES_HPP
+#include "darcel/syntax/bind_enum_statement.hpp"
 #include "darcel/syntax/bind_function_statement.hpp"
 #include "darcel/syntax/bind_variable_statement.hpp"
 #include "darcel/syntax/call_expression.hpp"

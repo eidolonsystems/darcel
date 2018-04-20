@@ -3,9 +3,11 @@
 
 namespace darcel {
   class arity_syntax_error;
+  class bind_enum_statement;
   class bind_function_statement;
   class bind_variable_statement;
   class call_expression;
+  class invalid_enum_value_syntax_error;
   class expression;
   class function_expression;
   class literal_expression;

@@ -2,14 +2,74 @@
 #define DARCEL_SYNTAX_PARSER_STATEMENTS_HPP
 #include "darcel/data_types/function_data_type.hpp"
 #include "darcel/lexicon/token.hpp"
+#include "darcel/syntax/bind_enum_statement.hpp"
 #include "darcel/syntax/bind_function_statement.hpp"
 #include "darcel/syntax/bind_variable_statement.hpp"
+#include "darcel/syntax/invalid_enum_value_syntax_error.hpp"
 #include "darcel/syntax/syntax_builders.hpp"
 #include "darcel/syntax/syntax.hpp"
 #include "darcel/syntax/syntax_error.hpp"
 #include "darcel/syntax/syntax_parser.hpp"
+#include "darcel/utilities/utilities.hpp"
 
 namespace darcel {
+  inline std::unique_ptr<bind_enum_statement>
+      syntax_parser::parse_bind_enum_statement(token_iterator& cursor) {
+    auto c = cursor;
+    if(!match(*c, keyword::word::LET)) {
+      return nullptr;
+    }
+    ++c;
+    auto name_location = c.get_location();
+    auto& name = parse_identifier(c);
+    expect(c, operation::symbol::ASSIGN);
+    if(!match(*c, keyword::word::ENUM)) {
+      return nullptr;
+    }
+    ++c;
+    expect(c, bracket::type::OPEN_ROUND_BRACKET);
+    std::vector<enum_data_type::symbol> symbols;
+    auto next_value = 0;
+    while(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+      auto name = parse_identifier(c);
+      auto value = [&] {
+        if(match(*c, operation::symbol::ASSIGN)) {
+          ++c;
+          auto expression_token = c.get_location();
+          auto value_expression = dynamic_pointer_cast<literal_expression>(
+            expect_expression(c));
+          if(value_expression == nullptr) {
+            throw syntax_error(syntax_error_code::EXPRESSION_EXPECTED,
+              expression_token);
+          }
+          if(*value_expression->get_data_type() !=
+              *integer_data_type::get_instance()) {
+            throw syntax_error(syntax_error_code::INTEGER_EXPRESSION_EXPECTED,
+              expression_token);
+          }
+          auto value = std::stoi(value_expression->get_literal().get_value());
+          if(value < next_value) {
+            throw invalid_enum_value_syntax_error(expression_token, next_value);
+          }
+          return value;
+        } else {
+          return next_value;
+        }
+      }();
+      next_value = value + 1;
+      symbols.push_back({name, value});
+      if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+        break;
+      }
+      expect(c, punctuation::mark::COMMA);
+    }
+    ++c;
+    auto statement = bind_enum(cursor.get_location(), name, std::move(symbols),
+      get_current_scope());
+    cursor = c;
+    return statement;
+  }
+
   inline std::unique_ptr<bind_function_statement>
       syntax_parser::parse_bind_function_statement(token_iterator& cursor) {
     auto c = cursor;
@@ -125,6 +185,7 @@ namespace darcel {
     }
     std::unique_ptr<statement> node;
     if((node = parse_bind_function_statement(c)) != nullptr ||
+        (node = parse_bind_enum_statement(c)) != nullptr ||
         (node = parse_bind_variable_statement(c)) != nullptr) {
       if(!is_syntax_node_end(*c)) {
         throw syntax_error(syntax_error_code::NEW_LINE_EXPECTED,

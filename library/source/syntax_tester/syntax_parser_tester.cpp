@@ -1,34 +1,11 @@
 #include <catch.hpp>
 #include "darcel/data_types/bool_data_type.hpp"
-#include "darcel/lexicon/token_parser.hpp"
 #include "darcel/semantics/builtin_scope.hpp"
-#include "darcel/syntax/syntax_parser.hpp"
+#include "darcel/syntax_tester/syntax_tester.hpp"
 
 using namespace darcel;
+using namespace darcel::tests;
 using namespace std;
-
-namespace {
-  template<std::size_t N>
-  void incremental_feed(syntax_parser& p, const char (&s)[N]) {
-    token_parser t;
-    t.feed(s);
-    while(auto token = t.parse_token()) {
-      if(match(*token, terminal::type::end_of_file)) {
-        p.feed(std::move(*token));
-        break;
-      }
-      p.feed(std::move(*token));
-    }
-  }
-
-  template<std::size_t N>
-  void feed(syntax_parser& p, const char (&s)[N]) {
-    char q[N + 1];
-    std::copy(begin(s), end(s), begin(q));
-    q[N] = '\0';
-    incremental_feed(p, q);
-  }
-}
 
 TEST_CASE("test_parsing_terminal", "[syntax_parser]") {
   syntax_parser p;

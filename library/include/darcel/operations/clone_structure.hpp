@@ -22,6 +22,10 @@ namespace darcel {
         return static_pointer_cast<T>(std::move(m_clone));
       }
 
+      void visit(const bind_enum_statement& node) override final {
+        m_clone = std::make_unique<bind_enum_statement>(node.get_enum());
+      }
+
       void visit(const bind_function_statement& node) override final {
         m_clone = std::make_unique<bind_function_statement>(node.get_location(),
           node.get_function(), node.get_overload(), node.get_parameters(),

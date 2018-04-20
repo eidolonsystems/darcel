@@ -51,12 +51,29 @@ namespace darcel {
     return nullptr;
   }
 
+  //! Binds a new enum.
+  /*!
+    \param l The location of the binding.
+    \param name The name of the enum to bind.
+    \param symbols The symbols belonging to the enum.
+    \param s The scope that the binding belongs to.
+  */
+  inline std::unique_ptr<bind_enum_statement> bind_enum(location l,
+      std::string name, std::vector<enum_data_type::symbol> symbols,
+      scope& s) {
+    auto type = std::make_shared<enum_data_type>(std::move(l),
+      std::move(name), std::move(symbols));
+    s.add(type);
+    return std::make_unique<bind_enum_statement>(std::move(type));
+  }
+
   //! Binds a new function.
   /*!
     \param l The location of the binding.
     \param name The name of the function to bind.
     \param parameters The list of function parameters.
     \param body The function called to build the body of the function.
+    \param s The scope that the binding belongs to.
   */
   inline std::unique_ptr<bind_function_statement> bind_function(location l,
       std::string name, std::vector<function_data_type::parameter> parameters,
