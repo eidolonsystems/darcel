@@ -2,12 +2,7 @@
 #define DARCEL_SCOPE_HPP
 #include <memory>
 #include <unordered_map>
-#include "darcel/data_types/bool_data_type.hpp"
-#include "darcel/data_types/float_data_type.hpp"
 #include "darcel/data_types/function_data_type.hpp"
-#include "darcel/data_types/generic_data_type.hpp"
-#include "darcel/data_types/integer_data_type.hpp"
-#include "darcel/data_types/text_data_type.hpp"
 #include "darcel/semantics/element.hpp"
 #include "darcel/semantics/function.hpp"
 #include "darcel/semantics/semantics.hpp"
