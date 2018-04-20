@@ -112,6 +112,11 @@ namespace darcel {
           std::move(callable), std::move(arguments));
       }
 
+      void visit(const enum_expression& node) override final {
+        m_clone = std::make_unique<enum_expression>(node.get_location(),
+          node.get_enum(), node.get_index());
+      }
+
       void visit(const function_expression& node) override final {
         m_clone = std::make_unique<function_expression>(node.get_location(),
           node.get_function());

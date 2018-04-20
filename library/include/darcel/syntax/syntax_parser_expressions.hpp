@@ -6,6 +6,7 @@
 #include "darcel/lexicon/token.hpp"
 #include "darcel/syntax/arity_syntax_error.hpp"
 #include "darcel/syntax/call_expression.hpp"
+#include "darcel/syntax/enum_expression.hpp"
 #include "darcel/syntax/function_expression.hpp"
 #include "darcel/syntax/literal_expression.hpp"
 #include "darcel/syntax/ops.hpp"
@@ -17,6 +18,11 @@
 #include "darcel/syntax/unmatched_bracket_syntax_error.hpp"
 
 namespace darcel {
+  inline std::unique_ptr<enum_expression> syntax_parser::parse_enum_expression(
+      token_iterator& cursor) {
+    return nullptr;
+  }
+
   inline std::unique_ptr<function_expression>
       syntax_parser::parse_function_expression(token_iterator& cursor) {
     auto c = cursor;
@@ -74,6 +80,8 @@ namespace darcel {
     } else if(auto node = parse_literal_expression(cursor)) {
       return node;
     } else if(auto node = parse_variable_expression(cursor)) {
+      return node;
+    } else if(auto node = parse_enum_expression(cursor)) {
       return node;
     }
     return nullptr;

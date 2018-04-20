@@ -23,7 +23,25 @@ namespace darcel {
       }
 
       void visit(const bind_enum_statement& node) override final {
-        // TODO
+        *m_out << "let " << node.get_enum()->get_name() << " = enum(\n";
+        ++m_indent_level;
+        auto next_value = 0;
+        auto is_first = true;
+        for(std::size_t i = 0;
+            i != node.get_enum()->get_symbols().size(); ++i) {
+          auto& e = node.get_enum()->get_symbols()[i];
+          indent();
+          *m_out << e.m_name;
+          if(e.m_value != next_value) {
+            *m_out << " = " << e.m_value;
+          }
+          next_value = e.m_value + 1;
+          if(i != node.get_enum()->get_symbols().size() - 1) {
+            *m_out << ",\n";
+          }
+        }
+        *m_out << ")";
+        --m_indent_level;
       }
 
       void visit(const bind_function_statement& node) override final {
@@ -62,6 +80,12 @@ namespace darcel {
           parameter->apply(*this);
         }
         *m_out << ')';
+      }
+
+      void visit(const enum_expression& node) override final {
+        auto e = node.get_enum();
+        *m_out << e->get_name() << "." <<
+          e->get_symbols()[node.get_index()].m_name;
       }
 
       void visit(const function_expression& node) override final {

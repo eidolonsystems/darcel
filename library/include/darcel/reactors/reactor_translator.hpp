@@ -69,6 +69,8 @@ namespace darcel {
 
       void visit(const call_expression& node) override final;
 
+      void visit(const enum_expression& node) override final;
+
       void visit(const function_expression& node) override final;
 
       void visit(const literal_expression& node) override final;
@@ -179,6 +181,10 @@ namespace darcel {
       [=, parameters = std::move(parameters)] (auto& p, auto& t) {
         return builder->build(parameters, t);
       });
+  }
+
+  inline void reactor_translator::visit(const enum_expression& node) {
+    m_evaluation = make_constant_reactor_builder(node.get_index());
   }
 
   inline void reactor_translator::visit(const function_expression& node) {
