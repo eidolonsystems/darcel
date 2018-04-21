@@ -8,6 +8,7 @@
 #include "darcel/syntax/call_expression.hpp"
 #include "darcel/syntax/enum_expression.hpp"
 #include "darcel/syntax/function_expression.hpp"
+#include "darcel/syntax/invalid_member_syntax_error.hpp"
 #include "darcel/syntax/literal_expression.hpp"
 #include "darcel/syntax/ops.hpp"
 #include "darcel/syntax/redefinition_syntax_error.hpp"
@@ -20,7 +21,30 @@
 namespace darcel {
   inline std::unique_ptr<enum_expression> syntax_parser::parse_enum_expression(
       token_iterator& cursor) {
-    return nullptr;
+    auto c = cursor;
+    auto name = try_parse_identifier(c);
+    if(!name.has_value()) {
+      return nullptr;
+    }
+    auto e = get_current_scope().find<enum_data_type>(*name);
+    if(e == nullptr) {
+      return nullptr;
+    }
+    if(!match(*c, punctuation::mark::DOT)) {
+      return nullptr;
+    }
+    ++c;
+    auto symbol_location = c.get_location();
+    auto symbol = parse_identifier(c);
+    auto index = get_index(*e, symbol);
+    if(index == -1) {
+      throw invalid_member_syntax_error(std::move(symbol_location),
+        std::move(e), std::move(symbol));
+    }
+    auto s = std::make_unique<enum_expression>(cursor.get_location(),
+      std::move(e), index);
+    cursor = c;
+    return s;
   }
 
   inline std::unique_ptr<function_expression>

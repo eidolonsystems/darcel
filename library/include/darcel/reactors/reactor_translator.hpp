@@ -184,7 +184,8 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const enum_expression& node) {
-    m_evaluation = make_constant_reactor_builder(node.get_index());
+    auto value = node.get_enum()->get_symbols()[node.get_index()].m_value;
+    m_evaluation = make_constant_reactor_builder(value);
   }
 
   inline void reactor_translator::visit(const function_expression& node) {

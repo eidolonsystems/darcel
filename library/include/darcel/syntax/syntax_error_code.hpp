@@ -65,7 +65,10 @@ namespace darcel {
     VARIABLE_NOT_FOUND,
 
     //! The value given to an enum is invalid.
-    INVALID_ENUM_VALUE
+    INVALID_ENUM_VALUE,
+
+    //! An invalid member of an element was accessed.
+    INVALID_MEMBER
   };
 }
 

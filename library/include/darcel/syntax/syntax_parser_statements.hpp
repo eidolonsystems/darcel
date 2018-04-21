@@ -29,9 +29,16 @@ namespace darcel {
     ++c;
     expect(c, bracket::type::OPEN_ROUND_BRACKET);
     std::vector<enum_data_type::symbol> symbols;
+    std::unordered_map<std::string, location> locations;
     auto next_value = 0;
     while(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+      auto symbol_location = c.get_location();
       auto name = parse_identifier(c);
+      auto existing_symbol = locations.find(name);
+      if(existing_symbol != locations.end()) {
+        throw redefinition_syntax_error(symbol_location, name,
+          existing_symbol->second);
+      }
       auto value = [&] {
         if(match(*c, operation::symbol::ASSIGN)) {
           ++c;
@@ -58,6 +65,7 @@ namespace darcel {
       }();
       next_value = value + 1;
       symbols.push_back({name, value});
+      locations.insert(std::make_pair(name, symbol_location));
       if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
         break;
       }

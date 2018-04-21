@@ -50,8 +50,7 @@ namespace darcel {
       }
 
       void visit(const bind_enum_statement& node) override final {
-        m_clone = std::make_unique<bind_enum_statement>(node.get_location(),
-          node.get_enum());
+        m_clone = std::make_unique<bind_enum_statement>(node.get_enum());
       }
 
       void visit(const bind_function_statement& node) override final {

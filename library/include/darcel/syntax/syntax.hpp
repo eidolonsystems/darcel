@@ -8,6 +8,7 @@ namespace darcel {
   class bind_variable_statement;
   class call_expression;
   class invalid_enum_value_syntax_error;
+  class invalid_member_syntax_error;
   class enum_expression;
   class expression;
   class function_expression;

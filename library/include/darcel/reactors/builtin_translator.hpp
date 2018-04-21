@@ -66,6 +66,9 @@ namespace darcel {
         } else if(
             *signature->get_parameters()[0].m_type == text_data_type()) {
           return make_chain_reactor_builder<std::string>();
+        } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
+            signature->get_parameters()[0].m_type)) {
+          return make_chain_reactor_builder<int>();
         }
 
         // TODO: Chain generic values
@@ -135,6 +138,9 @@ namespace darcel {
         } else if(*signature->get_parameters()[0].m_type ==
             text_data_type()) {
           return make_first_reactor_builder<std::string>();
+        } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
+            signature->get_parameters()[0].m_type)) {
+          return make_first_reactor_builder<int>();
         }
 
         // TODO: Print generic values
@@ -167,6 +173,9 @@ namespace darcel {
         } else if(
             *signature->get_parameters()[1].m_type == text_data_type()) {
           return make_fold_reactor_builder<std::string>();
+        } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
+            signature->get_parameters()[0].m_type)) {
+          return make_fold_reactor_builder<int>();
         }
 
         // TODO: Fold generic values
@@ -199,6 +208,9 @@ namespace darcel {
         } else if(*signature->get_parameters()[0].m_type ==
             text_data_type()) {
           return make_last_reactor_builder<std::string>();
+        } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
+            signature->get_parameters()[0].m_type)) {
+          return make_last_reactor_builder<int>();
         }
 
         // TODO: Print generic values
@@ -258,6 +270,9 @@ namespace darcel {
         } else if(*signature->get_parameters()[0].m_type ==
             text_data_type()) {
           return make_ostream_reactor_builder<std::string>(std::cout);
+        } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
+            signature->get_parameters()[0].m_type)) {
+          return make_ostream_reactor_builder<int>(std::cout);
         }
 
         // TODO: Print generic values

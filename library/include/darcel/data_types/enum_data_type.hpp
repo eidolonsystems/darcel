@@ -48,6 +48,21 @@ namespace darcel {
       std::vector<symbol> m_symbols;
   };
 
+  //! Returns the index of a symbol belonging to an enum.
+  /*!
+    \param e The enum to search.
+    \param symbol The symbol belonging to the enum.
+    \return The index of the symbol within <i>e</i>.
+  */
+  inline int get_index(const enum_data_type& e, const std::string& symbol) {
+    for(auto i = 0; i != static_cast<int>(e.get_symbols().size()); ++i) {
+      if(e.get_symbols()[i].m_name == symbol) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   inline enum_data_type::enum_data_type(location l, std::string name,
       std::vector<symbol> symbols)
       : m_location(std::move(l)),

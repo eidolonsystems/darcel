@@ -92,3 +92,28 @@ TEST_CASE("test_double_enum", "[syntax_parser]") {
     REQUIRE_THROWS_AS(p.parse_node(), invalid_enum_value_syntax_error);
   }
 }
+
+TEST_CASE("test_duplicate_enum_symbols", "[syntax_parser]") {
+  syntax_parser p;
+  feed(p, "let e = enum(A, A)");
+  REQUIRE_THROWS_AS(p.parse_node(), redefinition_syntax_error);
+}
+
+TEST_CASE("test_enum_access", "[syntax_parser]") {
+  syntax_parser p;
+  feed(p, R"(let e = enum(A, B)
+             e.B)");
+  p.parse_node();
+  auto access = dynamic_pointer_cast<enum_expression>(p.parse_node());
+  REQUIRE(access != nullptr);
+  REQUIRE(access->get_index() == 1);
+  REQUIRE(access->get_enum()->get_symbols()[1].m_name == "B");
+}
+
+TEST_CASE("test_invalid_enum_access", "[syntax_parser]") {
+  syntax_parser p;
+  feed(p, R"(let e = enum(A, B)
+             e.C)");
+  p.parse_node();
+  REQUIRE_THROWS_AS(p.parse_node(), invalid_member_syntax_error);
+}
