@@ -2,6 +2,7 @@
 #define DARCEL_OSTREAM_REACTOR_HPP
 #include <memory>
 #include <ostream>
+#include "darcel/reactors/function_reactor.hpp"
 #include "darcel/reactors/reactor.hpp"
 #include "darcel/reactors/reactor_builder.hpp"
 #include "darcel/reactors/reactors.hpp"

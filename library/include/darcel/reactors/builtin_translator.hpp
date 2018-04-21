@@ -3,6 +3,7 @@
 #include <iostream>
 #include "darcel/reactors/chain_reactor.hpp"
 #include "darcel/reactors/count_reactor.hpp"
+#include "darcel/reactors/enum_to_string_reactor.hpp"
 #include "darcel/reactors/first_reactor.hpp"
 #include "darcel/reactors/fold_reactor.hpp"
 #include "darcel/reactors/last_reactor.hpp"
@@ -272,7 +273,13 @@ namespace darcel {
           return make_ostream_reactor_builder<std::string>(std::cout);
         } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
             signature->get_parameters()[0].m_type)) {
-          return make_ostream_reactor_builder<int>(std::cout);
+          return std::make_unique<function_reactor_builder>(
+            [=] (auto& parameters, auto& t) {
+              return make_ostream_reactor(std::cout,
+                std::static_pointer_cast<reactor<std::string>>(make_enum_to_string_reactor(e,
+                std::static_pointer_cast<reactor<int>>(
+                parameters.front()->build(t)))));
+            });
         }
 
         // TODO: Print generic values
