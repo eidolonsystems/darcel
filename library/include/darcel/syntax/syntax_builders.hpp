@@ -27,30 +27,6 @@ namespace darcel {
   using expression_builder = std::function<
     std::unique_ptr<expression> (scope& s)>;
 
-  //! Converts an expression to return a value of a specified data type.
-  /*!
-    \param e The expression to convert.
-    \param type The data type the expression should evaluate to.
-    \return An expression that converts e to evaluate to type.
-  */
-  inline std::unique_ptr<expression> convert(std::unique_ptr<expression>&& e,
-      const std::shared_ptr<data_type>& type) {
-    auto compatibility = get_compatibility(*e->get_data_type(), *type);
-    if(compatibility == data_type_compatibility::EQUAL) {
-      return std::move(e);
-    }
-    if(auto f = dynamic_cast<function_expression*>(e.get())) {
-      if(auto t = std::dynamic_pointer_cast<function_data_type>(type)) {
-        auto overload = find_overload(*f->get_function(), *t);
-        if(overload != nullptr) {
-          return std::make_unique<variable_expression>(e->get_location(),
-            overload);
-        }
-      }
-    }
-    return nullptr;
-  }
-
   //! Binds a new enum.
   /*!
     \param l The location of the binding.
@@ -76,33 +52,31 @@ namespace darcel {
     \param s The scope that the binding belongs to.
   */
   inline std::unique_ptr<bind_function_statement> bind_function(location l,
-      std::string name, std::vector<function_data_type::parameter> parameters,
+      std::string name,
+      std::vector<bind_function_statement::parameter> parameters,
       const expression_builder& body, scope& s) {
     scope parameter_scope(&s);
     std::vector<std::shared_ptr<variable>> parameter_variables;
     for(auto& parameter : parameters) {
-      if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
-          parameter.m_type)) {
-        auto existing_element = parameter_scope.find<data_type>(
-          generic->get_name());
-        if(existing_element == nullptr) {
-          parameter_scope.add(generic);
+      if(parameter.m_type.has_value()) {
+        if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
+            *parameter.m_type)) {
+          auto existing_element = parameter_scope.find<data_type>(
+            generic->get_name());
+          if(existing_element == nullptr) {
+            parameter_scope.add(generic);
+          }
         }
       }
-      auto v = std::make_shared<variable>(l, parameter.m_name,
-        parameter.m_type);
-      parameter_scope.add(v);
-      parameter_variables.push_back(std::move(v));
+      parameter_scope.add(parameter.m_variable);
+      parameter_variables.push_back(parameter.m_variable);
     }
     scope body_scope(&parameter_scope);
     auto e = body(body_scope);
-    auto type = std::make_shared<function_data_type>(std::move(parameters),
-      e->get_data_type());
     auto existing_element = s.find_within(name);
-    auto v = std::make_shared<variable>(l, name, std::move(type));
     auto f = [&] {
       if(existing_element == nullptr) {
-        auto f = std::make_shared<function>(v);
+        auto f = std::make_shared<function>(l, name);
         s.add(f);
         return f;
       }

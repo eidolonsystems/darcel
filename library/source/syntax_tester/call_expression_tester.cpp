@@ -1,26 +1,21 @@
 #include <catch.hpp>
-#include "darcel/data_types/function_data_type.hpp"
-#include "darcel/data_types/integer_data_type.hpp"
 #include "darcel/syntax/call_expression.hpp"
+#include "darcel/syntax/function_expression.hpp"
 #include "darcel/syntax/literal_expression.hpp"
-#include "darcel/syntax/variable_expression.hpp"
 
 using namespace darcel;
 using namespace std;
 
 TEST_CASE("test_call_expression", "[call_expression]") {
-  auto f_type = make_function_data_type(
-    {{"a", integer_data_type::get_instance()}},
-    integer_data_type::get_instance());
-  auto f = std::make_shared<variable>(location::global(), "f", f_type);
-  auto callable = std::make_unique<variable_expression>(location::global(), f);
+  auto f = std::make_shared<function>(location::global(), "f");
+  auto callable = std::make_unique<function_expression>(location::global(), f);
   vector<std::unique_ptr<expression>> parameters;
   parameters.push_back(std::make_unique<literal_expression>(location::global(),
     literal("123", integer_data_type::get_instance())));
   call_expression call(location::global(), std::move(callable),
     std::move(parameters));
-  auto fexpr = dynamic_cast<const variable_expression*>(&call.get_callable());
+  auto fexpr = dynamic_cast<const function_expression*>(&call.get_callable());
   REQUIRE(fexpr != nullptr);
-  REQUIRE(fexpr->get_variable() == f);
+  REQUIRE(fexpr->get_function() == f);
   REQUIRE(call.get_parameters().size() == 1);
 }

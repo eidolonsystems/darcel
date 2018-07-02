@@ -22,8 +22,8 @@ namespace darcel {
         //! The variable representing the parameter.
         std::shared_ptr<variable> m_variable;
 
-        //! The parameter's type, if specified.
-        std::optional<std::shared_ptr<data_type>> m_data_type;
+        //! The parameter's data type, if specified.
+        std::optional<std::shared_ptr<data_type>> m_type;
 
         //! Constructs a parameter.
         /*!
@@ -75,7 +75,7 @@ namespace darcel {
   inline bind_function_statement::parameter::parameter(
       std::shared_ptr<variable> v, std::shared_ptr<data_type> t)
       : m_variable(std::move(v)),
-        m_data_type(std::move(t)) {}
+        m_type(std::move(t)) {}
 
   inline bind_function_statement::bind_function_statement(location l,
       std::shared_ptr<function> f, std::vector<parameter> p,

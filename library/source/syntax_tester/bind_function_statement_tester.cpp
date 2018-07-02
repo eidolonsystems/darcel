@@ -9,17 +9,16 @@ using namespace darcel;
 using namespace std;
 
 TEST_CASE("test_bind_function_statement", "[bind_function_statement]") {
-  auto t = make_function_data_type({{"a", integer_data_type::get_instance()}},
-    integer_data_type::get_instance());
-  auto v = std::make_shared<variable>(location::global(), "f", t);
-  auto f = std::make_shared<function>(v);
-  auto p = std::vector<std::shared_ptr<variable>>{
-    std::make_shared<variable>(location::global(), "a",
-    integer_data_type::get_instance())};
+  auto f = std::make_shared<function>(location::global(), "f");
+  auto p1 = std::make_shared<variable>(location::global(), "a");
+  auto p = std::vector<bind_function_statement::parameter>{
+    {p1, integer_data_type::get_instance()}};
   auto e = std::make_unique<literal_expression>(location::global(),
     *parse_literal("123"));
-  bind_function_statement s(location::global(), f, v, p, std::move(e));
+  bind_function_statement s(location::global(), f, p, std::move(e));
   REQUIRE(s.get_function() == f);
-  REQUIRE(s.get_overload() == v);
-  REQUIRE(*s.get_expression().get_data_type() == integer_data_type());
+  REQUIRE(s.get_parameters().size() == 1);
+  REQUIRE(s.get_parameters()[0].m_variable == p1);
+  REQUIRE(s.get_parameters()[0].m_data_type.has_value());
+  REQUIRE(**s.get_parameters()[0].m_data_type == integer_data_type());
 }
