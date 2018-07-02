@@ -2,12 +2,10 @@
 #define DARCEL_SCOPE_HPP
 #include <memory>
 #include <unordered_map>
-#include "darcel/data_types/function_data_type.hpp"
 #include "darcel/semantics/element.hpp"
 #include "darcel/semantics/function.hpp"
 #include "darcel/semantics/semantics.hpp"
 #include "darcel/semantics/variable.hpp"
-#include "darcel/syntax/ops.hpp"
 
 namespace darcel {
 
@@ -94,20 +92,6 @@ namespace darcel {
   }
 
   inline bool scope::add(std::shared_ptr<element> e) {
-    if(auto v = std::dynamic_pointer_cast<variable>(e)) {
-      if(std::dynamic_pointer_cast<function_data_type>(v->get_data_type())) {
-        auto f = m_elements.find(e->get_name());
-        if(f == m_elements.end()) {
-          auto g = std::make_shared<function>(std::move(v));
-          return m_elements.insert(std::make_pair(g->get_name(), g)).second;
-        } else if(auto g = std::dynamic_pointer_cast<function>(f->second)) {
-          g->add(std::move(v));
-          return true;
-        } else {
-          return false;
-        }
-      }
-    }
     return m_elements.try_emplace(e->get_name(), e).second;
   }
 }
