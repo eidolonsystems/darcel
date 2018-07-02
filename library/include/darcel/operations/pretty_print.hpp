@@ -53,10 +53,10 @@ namespace darcel {
           } else {
             is_first = false;
           }
-          if(!parameter->get_name().empty()) {
-            *m_out << parameter->get_name() << ": ";
+          *m_out << parameter.m_variable->get_name() << ": ";
+          if(parameter.m_data_type.has_value()) {
+            *m_out << (*parameter.m_data_type)->get_name();
           }
-          *m_out << parameter->get_data_type()->get_name();
         }
         *m_out << ") = ";
         node.get_expression().apply(*this);

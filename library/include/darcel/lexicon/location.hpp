@@ -37,6 +37,26 @@ namespace darcel {
       int m_column_number;
   };
 
+  //! Tests if two locations are equal.
+  /*!
+    \param lhs The left hand side.
+    \param rhs The right hand side.
+  */
+  inline bool operator ==(const location& lhs, const location& rhs) {
+    return lhs.get_path() == rhs.get_path() &&
+      lhs.get_line_number() == rhs.get_line_number() &&
+      lhs.get_column_number() == rhs.get_column_number();
+  }
+
+  //! Tests if two paths are distinct.
+  /*!
+    \param lhs The left hand side.
+    \param rhs The right hand side.
+  */
+  inline bool operator !=(const location& lhs, const location& rhs) {
+    return !(lhs == rhs);
+  }
+
   inline std::ostream& operator <<(std::ostream& out, const location& value) {
     return out << value.get_path() << ":" << value.get_line_number() << ":" <<
       value.get_column_number();

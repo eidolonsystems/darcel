@@ -28,7 +28,7 @@ namespace darcel {
 
       void visit(const bind_function_statement& node) override {
         m_clone = std::make_unique<bind_function_statement>(node.get_location(),
-          node.get_function(), node.get_overload(), node.get_parameters(),
+          node.get_function(), node.get_parameters(),
           clone_structure(node.get_expression()));
       }
 
