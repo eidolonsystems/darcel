@@ -142,7 +142,8 @@ namespace darcel {
   inline std::unique_ptr<call_expression> call(location l,
       std::unique_ptr<expression> callable,
       std::vector<std::unique_ptr<expression>> arguments) {
-    return nullptr;
+    return std::make_unique<call_expression>(l, std::move(callable),
+      std::move(arguments));
   }
 
   //! Makes a call expression.
