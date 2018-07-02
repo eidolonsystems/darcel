@@ -56,8 +56,8 @@ namespace darcel {
       std::string name,
       std::vector<bind_function_statement::parameter> parameters,
       const expression_builder& body, scope& s) {
-    auto existing_element = s.find_within(name);
     auto f = [&] {
+      auto existing_element = s.find_within(name);
       if(existing_element == nullptr) {
         auto f = std::make_shared<function>(l, name);
         s.add(f);
@@ -71,7 +71,6 @@ namespace darcel {
       return f;
     }();
     scope parameter_scope(&s);
-    std::vector<std::shared_ptr<variable>> parameter_variables;
     for(auto& parameter : parameters) {
       if(parameter.m_type.has_value()) {
         if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
@@ -84,12 +83,11 @@ namespace darcel {
         }
       }
       parameter_scope.add(parameter.m_variable);
-      parameter_variables.push_back(parameter.m_variable);
     }
     scope body_scope(&parameter_scope);
     auto e = body(body_scope);
     return std::make_unique<bind_function_statement>(std::move(l), std::move(f),
-      std::move(parameter_variables), std::move(e));
+      std::move(parameters), std::move(e));
   }
 
   //! Binds a new function.

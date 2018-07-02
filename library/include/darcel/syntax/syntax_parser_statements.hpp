@@ -91,8 +91,7 @@ namespace darcel {
       return nullptr;
     }
     ++c;
-    std::vector<function_data_type::parameter> parameters;
-    std::vector<std::shared_ptr<variable>> parameter_elements;
+    std::vector<bind_function_statement::parameter> parameters;
     push_scope();
     m_generic_index = 0;
     if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
@@ -102,18 +101,21 @@ namespace darcel {
         auto existing_parameter = std::find_if(parameters.begin(),
           parameters.end(),
           [&] (auto& p) {
-            return p.m_name == parameter_name;
+            return p.m_variable->get_name() == parameter_name;
           });
         if(existing_parameter != parameters.end()) {
           throw syntax_error(
             syntax_error_code::FUNCTION_PARAMETER_ALREADY_DEFINED,
             name_location);
         }
-        expect(c, punctuation::mark::COLON);
-        auto parameter_type = expect_data_type(c);
-        parameters.emplace_back(parameter_name, std::move(parameter_type));
-        parameter_elements.push_back(std::make_shared<variable>(name_location,
-          parameter_name, parameters.back().m_type));
+        auto v = std::make_shared<variable>(name_location, parameter_name);
+        if(match(*c, punctuation::mark::COLON)) {
+          ++c;
+          auto t = expect_data_type(c);
+          parameters.emplace_back(std::move(v), std::move(t));
+        } else {
+          parameters.emplace_back(std::move(v));
+        }
         if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
           break;
         }
@@ -122,21 +124,17 @@ namespace darcel {
     }
     ++c;
     expect(c, operation::symbol::ASSIGN);
-    for(auto& parameter : parameter_elements) {
-      get_current_scope().add(parameter);
+    for(auto& parameter : parameters) {
+      get_current_scope().add(parameter.m_variable);
     }
     push_scope();
     auto initializer = expect_expression(c);
     pop_scope();
     pop_scope();
-    auto type = std::make_shared<function_data_type>(std::move(parameters),
-      initializer->get_data_type());
-    auto existing_element = get_current_scope().find_within(name);
-    auto v = std::make_shared<variable>(cursor.get_location(), name,
-      std::move(type));
     auto f = [&] {
+      auto existing_element = get_current_scope().find_within(name);
       if(existing_element == nullptr) {
-        auto f = std::make_shared<function>(v);
+        auto f = std::make_shared<function>(name_location, name);
         get_current_scope().add(f);
         return f;
       }
@@ -145,15 +143,11 @@ namespace darcel {
         throw redefinition_syntax_error(name_location, name,
           existing_element->get_location());
       }
-      if(!f->add(v)) {
-        throw redefinition_syntax_error(name_location, name,
-          existing_element->get_location());
-      }
       return f;
     }();
     auto statement = std::make_unique<bind_function_statement>(
-      cursor.get_location(), std::move(f), std::move(v),
-      std::move(parameter_elements), std::move(initializer));
+      cursor.get_location(), std::move(f), std::move(parameters),
+      std::move(initializer));
     cursor = c;
     return statement;
   }

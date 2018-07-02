@@ -6,62 +6,54 @@
 using namespace darcel;
 using namespace darcel::tests;
 
+namespace {
+  std::unique_ptr<bind_function_statement> ensure_bind_function(
+      syntax_parser& p, int parameter_count) {
+    auto f = dynamic_pointer_cast<bind_function_statement>(p.parse_node());
+    REQUIRE(f != nullptr);
+    REQUIRE(f->get_parameters().size() == parameter_count);
+    return f;
+  }
+
+  void ensure_generic(const bind_function_statement& f, int index,
+      const generic_data_type& t) {
+    REQUIRE(static_cast<int>(f.get_parameters().size()) > index);
+    REQUIRE(f.get_parameters()[index].m_type.has_value());
+    REQUIRE(**f.get_parameters()[index].m_type == t);
+  }
+}
+
 TEST_CASE("test_parsing_generic_type", "[syntax_parser]") {
   SECTION("Single generic.") {
     syntax_parser p;
-    feed(p, R"(let f(x: `T) = x
-               let y = f(5))");
-    p.parse_node();
-    auto y = dynamic_pointer_cast<bind_variable_statement>(p.parse_node());
-    REQUIRE(y != nullptr);
-    REQUIRE(*y->get_variable()->get_data_type() == integer_data_type());
+    feed(p, R"(let f(x: `T) = x)");
+    auto f = ensure_bind_function(p, 1);
+    ensure_generic(*f, 0, generic_data_type(location::global(), "`T", 0));
   }
-  SECTION("Call two equal generics with equal types.") {
+  SECTION("Two equal generics.") {
     syntax_parser p;
-    feed(p, R"(let f(x: `T, y: `T) = y
-               let z = f(true, false))");
-    p.parse_node();
-    auto z = dynamic_pointer_cast<bind_variable_statement>(p.parse_node());
-    REQUIRE(z != nullptr);
-    REQUIRE(*z->get_variable()->get_data_type() == bool_data_type());
+    feed(p, R"(let f(x: `T, y: `T) = y)");
+    auto f = ensure_bind_function(p, 2);
+    ensure_generic(*f, 0, generic_data_type(location::global(), "`T", 0));
+    ensure_generic(*f, 1, generic_data_type(location::global(), "`T", 0));
   }
-  SECTION("Call two equal generics with distinct types.") {
+  SECTION("Two distinct generics.") {
     syntax_parser p;
-    feed(p, R"(let f(x: `T, y: `T) = y
-               let z = f(true, 5))");
-    p.parse_node();
-    REQUIRE_THROWS(p.parse_node());
+    feed(p, R"(let f(x: `T, y: `U) = y)");
+    auto f = ensure_bind_function(p, 2);
+    ensure_generic(*f, 0, generic_data_type(location::global(), "`T", 0));
+    ensure_generic(*f, 1, generic_data_type(location::global(), "`U", 1));
   }
-}
-
-TEST_CASE("test_generic_instantiation", "[syntax_parser]") {
-  syntax_parser p;
-  feed(p, R"(let f(x: `T, y: `T) = x
-             let g(x: `T, y: `U) = f(x, y))");
-  p.parse_node();
-  REQUIRE_THROWS(p.parse_node());
-}
-
-TEST_CASE("test_built_in_generic_instantiation", "[syntax_parser]") {
-  syntax_parser p(make_builtin_scope());
-  feed(p, R"(let x = fold(add, 5))");
-  auto x = dynamic_pointer_cast<bind_variable_statement>(p.parse_node());
-  REQUIRE(x != nullptr);
 }
 
 TEST_CASE("test_parsing_generic_function_type_one_parameter",
     "[syntax_parser]") {
   syntax_parser p(make_builtin_scope());
   feed(p, R"(let f(x: (a: `T) -> Int) = 1)");
-  auto f = dynamic_pointer_cast<bind_function_statement>(p.parse_node());
-  REQUIRE(f != nullptr);
-  REQUIRE(f->get_function()->get_name() == "f");
-  auto t = std::dynamic_pointer_cast<function_data_type>(
-    f->get_overload()->get_data_type());
-  REQUIRE(t != nullptr);
-  REQUIRE(t->get_parameters().size() == 1);
+  auto f = ensure_bind_function(p, 1);
+  REQUIRE(f->get_parameters()[0].m_type.has_value());
   auto x = std::dynamic_pointer_cast<function_data_type>(
-    t->get_parameters().front().m_type);
+    *f->get_parameters()[0].m_type);
   REQUIRE(x != nullptr);
   REQUIRE(x->get_parameters().size() == 1);
   REQUIRE(*x->get_parameters()[0].m_type ==
@@ -72,23 +64,14 @@ TEST_CASE("test_parsing_generic_function_type_two_equal_parameters",
     "[syntax_parser]") {
   syntax_parser p(make_builtin_scope());
   feed(p, R"(let f(x: (a: `T) -> Int, y: `T) = 1)");
-  auto f = dynamic_pointer_cast<bind_function_statement>(p.parse_node());
-  REQUIRE(f != nullptr);
-  REQUIRE(f->get_function()->get_name() == "f");
-  auto t = std::dynamic_pointer_cast<function_data_type>(
-    f->get_overload()->get_data_type());
-  REQUIRE(t != nullptr);
-  REQUIRE(t->get_parameters().size() == 2);
+  auto f = ensure_bind_function(p, 2);
   auto x = std::dynamic_pointer_cast<function_data_type>(
-    t->get_parameters()[0].m_type);
+    *f->get_parameters()[0].m_type);
   REQUIRE(x != nullptr);
   REQUIRE(x->get_parameters().size() == 1);
   REQUIRE(*x->get_parameters()[0].m_type ==
     generic_data_type(location::global(), "`T", 0));
-  auto y = std::dynamic_pointer_cast<generic_data_type>(
-    t->get_parameters()[1].m_type);
-  REQUIRE(y != nullptr);
-  REQUIRE(*x->get_parameters()[0].m_type == *y);
+  ensure_generic(*f, 1, generic_data_type(location::global(), "`T", 0));
 }
 
 TEST_CASE("test_generic_function_substitution", "[syntax_parser]") {
