@@ -49,7 +49,7 @@ namespace darcel {
             throw syntax_error(syntax_error_code::EXPRESSION_EXPECTED,
               expression_token);
           }
-          if(*value_expression->get_data_type() !=
+          if(*value_expression->get_literal().get_type() !=
               *integer_data_type::get_instance()) {
             throw syntax_error(syntax_error_code::INTEGER_EXPRESSION_EXPECTED,
               expression_token);

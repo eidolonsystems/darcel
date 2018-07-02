@@ -8,6 +8,7 @@
 #include "darcel/data_types/generic_data_type.hpp"
 #include "darcel/data_types/integer_data_type.hpp"
 #include "darcel/semantics/scope.hpp"
+#include "darcel/syntax/bind_function_statement.hpp"
 #include "darcel/syntax/call_expression.hpp"
 #include "darcel/syntax/literal_expression.hpp"
 #include "darcel/syntax/redefinition_syntax_error.hpp"
@@ -55,6 +56,20 @@ namespace darcel {
       std::string name,
       std::vector<bind_function_statement::parameter> parameters,
       const expression_builder& body, scope& s) {
+    auto existing_element = s.find_within(name);
+    auto f = [&] {
+      if(existing_element == nullptr) {
+        auto f = std::make_shared<function>(l, name);
+        s.add(f);
+        return f;
+      }
+      auto f = std::dynamic_pointer_cast<function>(existing_element);
+      if(f == nullptr) {
+        throw redefinition_syntax_error(l, name,
+          existing_element->get_location());
+      }
+      return f;
+    }();
     scope parameter_scope(&s);
     std::vector<std::shared_ptr<variable>> parameter_variables;
     for(auto& parameter : parameters) {
@@ -73,26 +88,8 @@ namespace darcel {
     }
     scope body_scope(&parameter_scope);
     auto e = body(body_scope);
-    auto existing_element = s.find_within(name);
-    auto f = [&] {
-      if(existing_element == nullptr) {
-        auto f = std::make_shared<function>(l, name);
-        s.add(f);
-        return f;
-      }
-      auto f = std::dynamic_pointer_cast<function>(existing_element);
-      if(f == nullptr) {
-        throw redefinition_syntax_error(l, name,
-          existing_element->get_location());
-      }
-      if(!f->add(v)) {
-        throw redefinition_syntax_error(l, name,
-          existing_element->get_location());
-      }
-      return f;
-    }();
     return std::make_unique<bind_function_statement>(std::move(l), std::move(f),
-      std::move(v), std::move(parameter_variables), std::move(e));
+      std::move(parameter_variables), std::move(e));
   }
 
   //! Binds a new function.
@@ -102,7 +99,8 @@ namespace darcel {
     \param body The function called to build the body of the function.
   */
   inline std::unique_ptr<bind_function_statement> bind_function(
-      std::string name, std::vector<function_data_type::parameter> parameters,
+      std::string name,
+      std::vector<bind_function_statement::parameter> parameters,
       const expression_builder& body, scope& s) {
     return bind_function(location::global(), std::move(name),
       std::move(parameters), body, s);
@@ -121,7 +119,7 @@ namespace darcel {
       throw redefinition_syntax_error(l, name,
         existing_element->get_location());
     }
-    auto v = std::make_shared<variable>(l, std::move(name), e->get_data_type());
+    auto v = std::make_shared<variable>(l, std::move(name));
     s.add(v);
     return std::make_unique<bind_variable_statement>(std::move(l), std::move(v),
       std::move(e));
@@ -146,37 +144,7 @@ namespace darcel {
   inline std::unique_ptr<call_expression> call(location l,
       std::unique_ptr<expression> callable,
       std::vector<std::unique_ptr<expression>> arguments) {
-    if(auto f = dynamic_cast<const function_expression*>(callable.get())) {
-      std::vector<function_data_type::parameter> types;
-      std::transform(arguments.begin(), arguments.end(),
-        std::back_inserter(types),
-        [] (auto& p) {
-          return function_data_type::parameter("", p->get_data_type());
-        });
-      auto overload = find_overload(*f->get_function(), types);
-      if(overload == nullptr) {
-        throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND, l);
-      }
-      callable = std::make_unique<variable_expression>(f->get_location(),
-        std::move(overload));
-    }
-    if(auto type = std::dynamic_pointer_cast<function_data_type>(
-        callable->get_data_type())) {
-      if(type->get_parameters().size() != arguments.size()) {
-        throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND, l);
-      }
-      for(std::size_t i = 0; i < arguments.size(); ++i) {
-        auto conversion = convert(std::move(arguments[i]),
-          type->get_parameters()[i].m_type);
-        if(conversion == nullptr) {
-          throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND, l);
-        }
-        arguments[i] = std::move(conversion);
-      }
-      return std::make_unique<call_expression>(l, std::move(callable),
-        std::move(arguments));
-    }
-    throw syntax_error(syntax_error_code::EXPRESSION_NOT_CALLABLE, l);
+    return nullptr;
   }
 
   //! Makes a call expression.
