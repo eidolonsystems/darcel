@@ -22,8 +22,6 @@ namespace darcel {
       //! Returns the literal that is evaluated.
       const literal& get_literal() const;
 
-      const std::shared_ptr<data_type>& get_data_type() const override;
-
       void apply(syntax_node_visitor& visitor) const override;
 
     private:
@@ -36,11 +34,6 @@ namespace darcel {
 
   inline const literal& literal_expression::get_literal() const {
     return m_literal;
-  }
-
-  inline const std::shared_ptr<data_type>& literal_expression::
-      get_data_type() const {
-    return m_literal.get_type();
   }
 
   inline void literal_expression::apply(syntax_node_visitor& visitor) const {

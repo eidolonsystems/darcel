@@ -23,8 +23,6 @@ namespace darcel {
       //! Returns the variable to evaluate.
       const std::shared_ptr<variable>& get_variable() const;
 
-      const std::shared_ptr<data_type>& get_data_type() const override;
-
       void apply(syntax_node_visitor& visitor) const override;
 
     private:
@@ -39,11 +37,6 @@ namespace darcel {
   inline const std::shared_ptr<variable>& variable_expression::
       get_variable() const {
     return m_variable;
-  }
-
-  inline const std::shared_ptr<data_type>&
-      variable_expression::get_data_type() const {
-    return m_variable->get_data_type();
   }
 
   inline void variable_expression::apply(syntax_node_visitor& visitor) const {

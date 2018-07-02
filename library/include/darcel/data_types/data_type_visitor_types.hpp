@@ -7,7 +7,6 @@
 #include "darcel/data_types/function_data_type.hpp"
 #include "darcel/data_types/generic_data_type.hpp"
 #include "darcel/data_types/integer_data_type.hpp"
-#include "darcel/data_types/overloaded_data_type.hpp"
 #include "darcel/data_types/text_data_type.hpp"
 
 #endif

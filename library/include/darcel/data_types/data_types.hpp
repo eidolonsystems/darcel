@@ -11,7 +11,6 @@ namespace darcel {
   class function_data_type;
   class generic_data_type;
   class integer_data_type;
-  class overloaded_data_type;
   class text_data_type;
 }
 

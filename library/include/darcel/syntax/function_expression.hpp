@@ -2,7 +2,6 @@
 #define DARCEL_FUNCTION_EXPRESSION_HPP
 #include <memory>
 #include <utility>
-#include "darcel/data_types/overloaded_data_type.hpp"
 #include "darcel/semantics/function.hpp"
 #include "darcel/syntax/expression.hpp"
 #include "darcel/syntax/syntax.hpp"
@@ -24,29 +23,20 @@ namespace darcel {
       //! Returns the function to evaluate.
       const std::shared_ptr<function>& get_function() const;
 
-      const std::shared_ptr<data_type>& get_data_type() const override;
-
       void apply(syntax_node_visitor& visitor) const override;
 
     private:
       std::shared_ptr<function> m_function;
-      std::shared_ptr<data_type> m_data_type;
   };
 
   inline function_expression::function_expression(location l,
       std::shared_ptr<function> f)
       : expression(std::move(l)),
-        m_function(std::move(f)),
-        m_data_type(make_overloaded_data_type(*m_function)) {}
+        m_function(std::move(f)) {}
 
   inline const std::shared_ptr<function>& function_expression::
       get_function() const {
     return m_function;
-  }
-
-  inline const std::shared_ptr<data_type>&
-      function_expression::get_data_type() const {
-    return m_data_type;
   }
 
   inline void function_expression::apply(syntax_node_visitor& visitor) const {

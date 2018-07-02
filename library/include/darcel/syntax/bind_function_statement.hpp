@@ -1,5 +1,8 @@
 #ifndef DARCEL_BIND_FUNCTION_STATEMENT_HPP
 #define DARCEL_BIND_FUNCTION_STATEMENT_HPP
+#include <memory>
+#include <optional>
+#include "darcel/data_types/data_type.hpp"
 #include "darcel/semantics/function.hpp"
 #include "darcel/semantics/variable.hpp"
 #include "darcel/syntax/expression.hpp"
@@ -13,27 +16,45 @@ namespace darcel {
   class bind_function_statement final : public statement {
     public:
 
+      //! Represents a function parameter.
+      struct parameter {
+
+        //! The variable representing the parameter.
+        std::shared_ptr<variable> m_variable;
+
+        //! The parameter's type, if specified.
+        std::optional<std::shared_ptr<data_type>> m_data_type;
+
+        //! Constructs a parameter.
+        /*!
+          \param v The variable representing the parameter.
+        */
+        parameter(std::shared_ptr<variable> v);
+
+        //! Constructs a parameter.
+        /*!
+          \param v The variable representing the parameter.
+          \param t The parameter's type.
+        */
+        parameter(std::shared_ptr<variable> v, std::shared_ptr<data_type> t);
+      };
+
       //! Constructs a bind statement.
       /*!
         \param l The location of the statement.
         \param f The function that the binding belongs to.
-        \param o The specific overload to bind.
         \param p The function parameters.
         \param e The expression to bind to the function.
       */
       bind_function_statement(location l, std::shared_ptr<function> f,
-        std::shared_ptr<variable> o, std::vector<std::shared_ptr<variable>> p,
-        std::unique_ptr<expression> e);
+        std::vector<parameter> p, std::unique_ptr<expression> e);
 
       //! Returns the function (potentially overloaded) that the binding belongs
       //! to.
       const std::shared_ptr<function>& get_function() const;
 
-      //! Returns the specific overload that was bound.
-      const std::shared_ptr<variable>& get_overload() const;
-
       //! Returns the function parameters.
-      const std::vector<std::shared_ptr<variable>>& get_parameters() const;
+      const std::vector<parameter>& get_parameters() const;
 
       //! Returns the expression that was bound.
       const expression& get_expression() const;
@@ -43,16 +64,24 @@ namespace darcel {
     private:
       std::shared_ptr<function> m_function;
       std::shared_ptr<variable> m_overload;
-      std::vector<std::shared_ptr<variable>> m_parameters;
+      std::vector<parameter> m_parameters;
       std::unique_ptr<expression> m_expression;
   };
 
+  inline bind_function_statement::parameter::parameter(
+      std::shared_ptr<variable> v)
+      : m_variable(std::move(v)) {}
+
+  inline bind_function_statement::parameter::parameter(
+      std::shared_ptr<variable> v, std::shared_ptr<data_type> t)
+      : m_variable(std::move(v)),
+        m_data_type(std::move(t)) {}
+
   inline bind_function_statement::bind_function_statement(location l,
-      std::shared_ptr<function> f, std::shared_ptr<variable> o,
-      std::vector<std::shared_ptr<variable>> p, std::unique_ptr<expression> e)
+      std::shared_ptr<function> f, std::vector<parameter> p,
+      std::unique_ptr<expression> e)
       : statement(std::move(l)),
         m_function(std::move(f)),
-        m_overload(std::move(o)),
         m_parameters(std::move(p)),
         m_expression(std::move(e)) {}
 
@@ -61,12 +90,7 @@ namespace darcel {
     return m_function;
   }
 
-  inline const std::shared_ptr<variable>&
-      bind_function_statement::get_overload() const {
-    return m_overload;
-  }
-
-  inline const std::vector<std::shared_ptr<variable>>&
+  inline const std::vector<bind_function_statement::parameter>&
       bind_function_statement::get_parameters() const {
     return m_parameters;
   }
