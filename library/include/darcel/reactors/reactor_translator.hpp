@@ -21,7 +21,7 @@
 namespace darcel {
 
   //! Implements a syntax visitor to translate a node into a reactor.
-  class reactor_translator : private syntax_node_visitor {
+  class reactor_translator final : private syntax_node_visitor {
     public:
 
       //! Function used to instantiate generic functions.
@@ -63,19 +63,19 @@ namespace darcel {
       //! Returns the main reactor.
       std::shared_ptr<base_reactor> get_main() const;
 
-      void visit(const bind_function_statement& node) override final;
+      void visit(const bind_function_statement& node) override;
 
-      void visit(const bind_variable_statement& node) override final;
+      void visit(const bind_variable_statement& node) override;
 
-      void visit(const call_expression& node) override final;
+      void visit(const call_expression& node) override;
 
-      void visit(const enum_expression& node) override final;
+      void visit(const enum_expression& node) override;
 
-      void visit(const function_expression& node) override final;
+      void visit(const function_expression& node) override;
 
-      void visit(const literal_expression& node) override final;
+      void visit(const literal_expression& node) override;
 
-      void visit(const variable_expression& node) override final;
+      void visit(const variable_expression& node) override;
 
     private:
       trigger* m_trigger;
@@ -124,7 +124,7 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const bind_function_statement& node) {
-    struct parameter_reactor_builder : reactor_builder {
+    struct parameter_reactor_builder final : reactor_builder {
       std::shared_ptr<reactor_builder> m_builder;
 
       void set_builder(std::shared_ptr<reactor_builder> builder) {
@@ -133,7 +133,7 @@ namespace darcel {
 
       std::shared_ptr<base_reactor> build(
           const std::vector<std::shared_ptr<reactor_builder>>& parameters,
-          trigger& t) const override final {
+          trigger& t) const override {
         return m_builder->build(parameters, t);
       }
     };

@@ -10,7 +10,7 @@
 namespace darcel {
 
   //! Countes the number of evaluations produced by a reactor.
-  class tally_reactor : public reactor<int> {
+  class tally_reactor final : public reactor<int> {
     public:
 
       //! Constructs a tally reactor.
@@ -19,9 +19,9 @@ namespace darcel {
       */
       tally_reactor(std::shared_ptr<base_reactor> source);
 
-      update commit(int sequence) override final;
+      update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
 
     private:
       std::shared_ptr<base_reactor> m_source;

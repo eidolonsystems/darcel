@@ -42,7 +42,7 @@ namespace darcel {
   };
 
   //! Implements a reactor builder using a function.
-  class function_reactor_builder : public reactor_builder {
+  class function_reactor_builder final : public reactor_builder {
     public:
 
       //! Constructs a function reactor builder.
@@ -54,7 +54,7 @@ namespace darcel {
 
       std::shared_ptr<base_reactor> build(
         const std::vector<std::shared_ptr<reactor_builder>>& parameters,
-        trigger& t) const override final;
+        trigger& t) const override;
 
     private:
       std::function<std::shared_ptr<base_reactor> (

@@ -9,7 +9,7 @@
 namespace darcel {
 
   //! Binds a new variable to an expression.
-  class bind_variable_statement : public statement {
+  class bind_variable_statement final : public statement {
     public:
 
       //! Constructs a bind statement.
@@ -27,7 +27,7 @@ namespace darcel {
       //! Returns the expression that was bound.
       const expression& get_expression() const;
 
-      void apply(syntax_node_visitor& visitor) const override final;
+      void apply(syntax_node_visitor& visitor) const override;
 
     private:
       std::shared_ptr<variable> m_variable;

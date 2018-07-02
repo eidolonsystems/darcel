@@ -12,7 +12,7 @@ namespace darcel {
     \param out The output stream to print to.
   */
   inline void pretty_print(const syntax_node& node, std::ostream& out) {
-    struct pretty_print_visitor : syntax_node_visitor {
+    struct pretty_print_visitor final : syntax_node_visitor {
       int m_indent_level;
       std::ostream* m_out;
 
@@ -22,7 +22,7 @@ namespace darcel {
         node.apply(*this);
       }
 
-      void visit(const bind_enum_statement& node) override final {
+      void visit(const bind_enum_statement& node) override {
         *m_out << "let " << node.get_enum()->get_name() << " = enum(\n";
         ++m_indent_level;
         auto next_value = 0;
@@ -44,7 +44,7 @@ namespace darcel {
         --m_indent_level;
       }
 
-      void visit(const bind_function_statement& node) override final {
+      void visit(const bind_function_statement& node) override {
         *m_out << "let " << node.get_function()->get_name() << "(";
         auto is_first = true;
         for(auto& parameter : node.get_parameters()) {
@@ -62,12 +62,12 @@ namespace darcel {
         node.get_expression().apply(*this);
       }
 
-      void visit(const bind_variable_statement& node) override final {
+      void visit(const bind_variable_statement& node) override {
         *m_out << "let " << node.get_variable()->get_name() << " = ";
         node.get_expression().apply(*this);
       }
 
-      void visit(const call_expression& node) override final {
+      void visit(const call_expression& node) override {
         node.get_callable().apply(*this);
         *m_out << '(';
         auto is_first = true;
@@ -82,17 +82,17 @@ namespace darcel {
         *m_out << ')';
       }
 
-      void visit(const enum_expression& node) override final {
+      void visit(const enum_expression& node) override {
         auto e = node.get_enum();
         *m_out << e->get_name() << "." <<
           e->get_symbols()[node.get_index()].m_name;
       }
 
-      void visit(const function_expression& node) override final {
+      void visit(const function_expression& node) override {
         *m_out << node.get_function()->get_name();
       }
 
-      void visit(const literal_expression& node) override final {
+      void visit(const literal_expression& node) override {
         if(*node.get_literal().get_type() == *text_data_type::get_instance()) {
           *m_out << '"' << node.get_literal().get_value() << '"';
         } else {
@@ -100,7 +100,7 @@ namespace darcel {
         }
       }
 
-      void visit(const variable_expression& node) override final {
+      void visit(const variable_expression& node) override {
         *m_out << node.get_variable()->get_name();
       }
 

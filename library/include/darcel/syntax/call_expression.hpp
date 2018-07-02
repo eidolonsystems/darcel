@@ -12,7 +12,7 @@ namespace darcel {
 
   //! Represents applying a callable expression to its parameters,
   //! ie. a function call.
-  class call_expression : public expression {
+  class call_expression final : public expression {
     public:
 
       //! Constructs a call_expression.
@@ -30,9 +30,9 @@ namespace darcel {
       //! Returns the parameters to apply to the callable.
       const std::vector<std::unique_ptr<expression>>& get_parameters() const;
 
-      const std::shared_ptr<data_type>& get_data_type() const override final;
+      const std::shared_ptr<data_type>& get_data_type() const override;
 
-      void apply(syntax_node_visitor& visitor) const override final;
+      void apply(syntax_node_visitor& visitor) const override;
 
     private:
       std::unique_ptr<expression> m_callable;

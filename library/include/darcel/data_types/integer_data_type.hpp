@@ -8,7 +8,7 @@
 namespace darcel {
 
   //! Represents an integer data type.
-  class integer_data_type : public data_type {
+  class integer_data_type final : public data_type {
     public:
 
       //! Returns an instance of this type.
@@ -17,14 +17,14 @@ namespace darcel {
       //! Constructs a integer data type.
       integer_data_type() = default;
 
-      const location& get_location() const override final;
+      const location& get_location() const override;
 
-      const std::string& get_name() const override final;
+      const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override final;
+      void apply(data_type_visitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override final;
+      bool is_equal(const data_type& rhs) const override;
   };
 
   inline const std::shared_ptr<integer_data_type>&

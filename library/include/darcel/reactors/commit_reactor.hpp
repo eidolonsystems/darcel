@@ -7,7 +7,7 @@
 namespace darcel {
 
   //! Helper class used to determine the aggregate state of a list of reactors.
-  class commit_reactor : public reactor<base_reactor::update> {
+  class commit_reactor final : public reactor<base_reactor::update> {
     public:
 
       //! Constructs a commit reactor.
@@ -16,9 +16,9 @@ namespace darcel {
       */
       commit_reactor(const std::vector<base_reactor*>& children);
 
-      base_reactor::update commit(int sequence) override final;
+      base_reactor::update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
 
     private:
       struct child {

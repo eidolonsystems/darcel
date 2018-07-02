@@ -17,7 +17,7 @@ namespace darcel {
       const bind_function_statement& node, std::shared_ptr<variable> overload,
       std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<function>>&
       functions) {
-    struct instantiate_visitor : syntax_node_visitor {
+    struct instantiate_visitor final : syntax_node_visitor {
       std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<function>>*
         m_functions;
       std::unordered_map<std::shared_ptr<variable>,
@@ -49,17 +49,17 @@ namespace darcel {
         return instantiation;
       }
 
-      void visit(const bind_enum_statement& node) override final {
+      void visit(const bind_enum_statement& node) override {
         m_clone = std::make_unique<bind_enum_statement>(node.get_enum());
       }
 
-      void visit(const bind_function_statement& node) override final {
+      void visit(const bind_function_statement& node) override {
         m_clone = std::make_unique<bind_function_statement>(node.get_location(),
           node.get_function(), node.get_overload(), node.get_parameters(),
           clone_structure(node.get_expression()));
       }
 
-      void visit(const bind_variable_statement& node) override final {
+      void visit(const bind_variable_statement& node) override {
         auto v = [&] {
           auto v = m_substitutions.find(node.get_variable());
           if(v == m_substitutions.end()) {
@@ -74,7 +74,7 @@ namespace darcel {
           v, std::move(e));
       }
 
-      void visit(const call_expression& node) override final {
+      void visit(const call_expression& node) override {
         std::vector<std::unique_ptr<expression>> arguments;
         for(auto& p : node.get_parameters()) {
           p->apply(*this);
@@ -111,22 +111,22 @@ namespace darcel {
           std::move(callable), std::move(arguments));
       }
 
-      void visit(const enum_expression& node) override final {
+      void visit(const enum_expression& node) override {
         m_clone = std::make_unique<enum_expression>(node.get_location(),
           node.get_enum(), node.get_index());
       }
 
-      void visit(const function_expression& node) override final {
+      void visit(const function_expression& node) override {
         m_clone = std::make_unique<function_expression>(node.get_location(),
           node.get_function());
       }
 
-      void visit(const literal_expression& node) override final {
+      void visit(const literal_expression& node) override {
         m_clone = std::make_unique<literal_expression>(node.get_location(),
           node.get_literal());
       }
 
-      void visit(const variable_expression& node) override final {
+      void visit(const variable_expression& node) override {
         auto v = m_substitutions.find(node.get_variable());
         if(v == m_substitutions.end()) {
           m_clone = std::make_unique<variable_expression>(node.get_location(),

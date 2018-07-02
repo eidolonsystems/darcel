@@ -11,7 +11,7 @@ namespace darcel {
 
   //! Evaluates to a constant.
   template<typename T>
-  class constant_reactor : public reactor<T> {
+  class constant_reactor final : public reactor<T> {
     public:
       using type = typename reactor<T>::type;
 
@@ -22,9 +22,9 @@ namespace darcel {
       template<typename V>
       constant_reactor(V&& value);
 
-      base_reactor::update commit(int sequence) override final;
+      base_reactor::update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
 
     private:
       type m_value;

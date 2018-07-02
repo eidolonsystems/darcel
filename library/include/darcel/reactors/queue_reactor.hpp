@@ -17,7 +17,7 @@ namespace darcel {
     \tparam T the type of value to queue.
   */
   template<typename T>
-  class queue_reactor : public reactor<T> {
+  class queue_reactor final : public reactor<T> {
     public:
       using type = reactor_type_t<reactor<T>>;
 
@@ -49,9 +49,9 @@ namespace darcel {
       template<typename E>
       void set_complete(const E& e);
 
-      base_reactor::update commit(int sequence) override final;
+      base_reactor::update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
 
     private:
       std::mutex m_mutex;

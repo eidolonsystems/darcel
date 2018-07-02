@@ -8,7 +8,7 @@
 namespace darcel {
 
   //! Represents a data type used by overloaded function expressions.
-  class overloaded_data_type : public data_type {
+  class overloaded_data_type final : public data_type {
     public:
 
       //! Constructs an empty overloaded data type.
@@ -29,14 +29,14 @@ namespace darcel {
       */
       bool add(std::shared_ptr<data_type> overload);
 
-      const location& get_location() const override final;
+      const location& get_location() const override;
 
-      const std::string& get_name() const override final;
+      const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override final;
+      void apply(data_type_visitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override final;
+      bool is_equal(const data_type& rhs) const override;
 
     private:
       location m_location;

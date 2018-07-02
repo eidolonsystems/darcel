@@ -26,16 +26,16 @@ namespace details {
       \tparam T The type of placeholder to evaluate to.
    */
   template<typename T>
-  class fold_parameter_reactor : public reactor<T> {
+  class fold_parameter_reactor final : public reactor<T> {
     public:
       using type = typename reactor<T>::type;
 
       //! Constructs a fold parameter reactor.
       fold_parameter_reactor();
 
-      base_reactor::update commit(int sequence) override final;
+      base_reactor::update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
 
     private:
       template<typename> friend class fold_reactor;
@@ -51,7 +51,7 @@ namespace details {
       \tparam T The type of value to evaluate.
    */
   template<typename T>
-  class fold_reactor : public reactor<T> {
+  class fold_reactor final : public reactor<T> {
     public:
       using type = typename reactor<T>::type;
 
@@ -68,9 +68,9 @@ namespace details {
         std::shared_ptr<fold_parameter_reactor<type>> right,
         std::shared_ptr<reactor<type>> producer);
 
-      base_reactor::update commit(int sequence) override final;
+      base_reactor::update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
 
     private:
       std::shared_ptr<reactor<type>> m_evaluation;

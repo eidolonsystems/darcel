@@ -9,7 +9,7 @@
 namespace darcel {
 
   //! An expression that evaluates to an enum symbol.
-  class enum_expression : public expression {
+  class enum_expression final : public expression {
     public:
 
       //! Constructs an enum expression.
@@ -26,9 +26,9 @@ namespace darcel {
       //! Returns the index of the symbol being accessed.
       int get_index() const;
 
-      const std::shared_ptr<data_type>& get_data_type() const override final;
+      const std::shared_ptr<data_type>& get_data_type() const override;
 
-      void apply(syntax_node_visitor& visitor) const override final;
+      void apply(syntax_node_visitor& visitor) const override;
 
     private:
       std::shared_ptr<data_type> m_enum;

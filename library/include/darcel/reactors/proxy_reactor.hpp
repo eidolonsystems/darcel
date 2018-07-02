@@ -24,18 +24,18 @@ namespace darcel {
 
   //! A reactor that delegates all operations to another reactor.
   template<typename T>
-  class proxy_reactor : public reactor<T>, public base_proxy_reactor {
+  class proxy_reactor final : public reactor<T>, public base_proxy_reactor {
     public:
       using type = typename reactor<T>::type;
 
       //! Constructs a proxy reactor.
       proxy_reactor() = default;
 
-      base_reactor::update commit(int sequence) override final;
+      base_reactor::update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
 
-      void set_source(std::shared_ptr<base_reactor> source) override final;
+      void set_source(std::shared_ptr<base_reactor> source) override;
 
     private:
       std::shared_ptr<reactor<T>> m_source;

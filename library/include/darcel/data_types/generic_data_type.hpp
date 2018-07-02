@@ -8,7 +8,7 @@
 namespace darcel {
 
   //! Represents a generic data type.
-  class generic_data_type : public data_type {
+  class generic_data_type final : public data_type {
     public:
 
       //! Constructs a generic data type.
@@ -22,14 +22,14 @@ namespace darcel {
       //! Returns the generic's index.
       int get_index() const;
 
-      const location& get_location() const override final;
+      const location& get_location() const override;
 
-      const std::string& get_name() const override final;
+      const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override final;
+      void apply(data_type_visitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override final;
+      bool is_equal(const data_type& rhs) const override;
 
     private:
       location m_location;

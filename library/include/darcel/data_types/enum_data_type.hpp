@@ -9,7 +9,7 @@
 namespace darcel {
 
   //! Represents a list of symbolic constants.
-  class enum_data_type : public data_type {
+  class enum_data_type final : public data_type {
     public:
 
       //! The symbols belonging to the enum.
@@ -33,14 +33,14 @@ namespace darcel {
       //! Returns the symbols belonging to this enum.
       const std::vector<symbol>& get_symbols() const;
 
-      const location& get_location() const override final;
+      const location& get_location() const override;
 
-      const std::string& get_name() const override final;
+      const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override final;
+      void apply(data_type_visitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override final;
+      bool is_equal(const data_type& rhs) const override;
 
     private:
       location m_location;

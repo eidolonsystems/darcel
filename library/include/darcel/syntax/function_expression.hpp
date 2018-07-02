@@ -11,7 +11,7 @@
 namespace darcel {
 
   //! An expression that evaluates to an overloaded function.
-  class function_expression : public expression {
+  class function_expression final : public expression {
     public:
 
       //! Constructs a function expression.
@@ -24,9 +24,9 @@ namespace darcel {
       //! Returns the function to evaluate.
       const std::shared_ptr<function>& get_function() const;
 
-      const std::shared_ptr<data_type>& get_data_type() const override final;
+      const std::shared_ptr<data_type>& get_data_type() const override;
 
-      void apply(syntax_node_visitor& visitor) const override final;
+      void apply(syntax_node_visitor& visitor) const override;
 
     private:
       std::shared_ptr<function> m_function;

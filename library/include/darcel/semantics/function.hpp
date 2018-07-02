@@ -12,7 +12,7 @@
 namespace darcel {
 
   //! Represents a potentially overloaded, named function.
-  class function : public element {
+  class function final : public element {
     public:
 
       //! Constructs a function.
@@ -53,9 +53,9 @@ namespace darcel {
       bool add(std::shared_ptr<variable> definition,
         std::shared_ptr<variable> instance);
 
-      const location& get_location() const override final;
+      const location& get_location() const override;
 
-      const std::string& get_name() const override final;
+      const std::string& get_name() const override;
 
     private:
       std::shared_ptr<function> m_parent;

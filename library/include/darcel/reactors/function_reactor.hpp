@@ -174,7 +174,7 @@ namespace details {
       \tparam P The type of parameters to apply the function to.
    */
   template<typename F, typename... P>
-  class function_reactor : public reactor<
+  class function_reactor final : public reactor<
       typename details::function_reactor_type<details::invocation_type_t<F,
       const maybe<reactor_type_t<P>>&...>>::type> {
     public:
@@ -193,9 +193,9 @@ namespace details {
       template<typename FF, typename... PF>
       function_reactor(FF&& function, PF&&... parameters);
 
-      base_reactor::update commit(int sequence) override final;
+      base_reactor::update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
 
     private:
       function m_function;

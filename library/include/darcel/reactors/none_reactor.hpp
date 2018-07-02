@@ -9,16 +9,16 @@ namespace darcel {
 
   //! A reactor that never produces an evaluation.
   template<typename T>
-  class none_reactor : public reactor<T> {
+  class none_reactor final : public reactor<T> {
     public:
       using type = typename reactor<T>::type;
 
       //! Constructs a none reactor.
       none_reactor() = default;
 
-      base_reactor::update commit(int sequence) override final;
+      base_reactor::update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
   };
 
   //! Makes a none reactor.

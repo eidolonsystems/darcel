@@ -8,7 +8,7 @@
 namespace darcel {
 
   //! Binds a name to an enum data type.
-  class bind_enum_statement : public statement {
+  class bind_enum_statement final : public statement {
     public:
 
       //! Constructs a bind statement.
@@ -20,7 +20,7 @@ namespace darcel {
       //! Returns the enum.
       const std::shared_ptr<enum_data_type>& get_enum() const;
 
-      void apply(syntax_node_visitor& visitor) const override final;
+      void apply(syntax_node_visitor& visitor) const override;
 
     private:
       std::shared_ptr<enum_data_type> m_enum;

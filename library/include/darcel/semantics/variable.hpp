@@ -7,7 +7,7 @@
 namespace darcel {
 
   //! Represents a variable.
-  class variable : public element {
+  class variable final : public element {
     public:
 
       //! Constructs a variable.
@@ -21,9 +21,9 @@ namespace darcel {
       //! Returns the variable's data type.
       const std::shared_ptr<data_type>& get_data_type() const;
 
-      const location& get_location() const override final;
+      const location& get_location() const override;
 
-      const std::string& get_name() const override final;
+      const std::string& get_name() const override;
 
     private:
       location m_location;

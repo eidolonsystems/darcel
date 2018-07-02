@@ -8,7 +8,7 @@
 namespace darcel {
 
   //! Represents a boolean data type.
-  class bool_data_type : public data_type {
+  class bool_data_type final : public data_type {
     public:
 
       //! Returns an instance of this type.
@@ -17,14 +17,14 @@ namespace darcel {
       //! Constructs a bool data type.
       bool_data_type() = default;
 
-      const location& get_location() const override final;
+      const location& get_location() const override;
 
-      const std::string& get_name() const override final;
+      const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override final;
+      void apply(data_type_visitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override final;
+      bool is_equal(const data_type& rhs) const override;
   };
 
   inline const std::shared_ptr<bool_data_type>& bool_data_type::get_instance() {

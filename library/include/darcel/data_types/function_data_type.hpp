@@ -10,7 +10,7 @@
 namespace darcel {
 
   //! The data type used to represent functions.
-  class function_data_type : public data_type {
+  class function_data_type final : public data_type {
     public:
 
       //! Stores a single parameter.
@@ -40,14 +40,14 @@ namespace darcel {
       //! Returns the return type.
       const std::shared_ptr<data_type>& get_return_type() const;
 
-      const location& get_location() const override final;
+      const location& get_location() const override;
 
-      const std::string& get_name() const override final;
+      const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override final;
+      void apply(data_type_visitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override final;
+      bool is_equal(const data_type& rhs) const override;
 
     private:
       std::vector<parameter> m_parameters;

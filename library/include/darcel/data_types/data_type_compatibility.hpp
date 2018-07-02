@@ -28,7 +28,7 @@ namespace darcel {
   */
   inline data_type_compatibility get_compatibility(
       const data_type& source, const data_type& target) {
-    struct data_type_compatibility_visitor : data_type_visitor {
+    struct data_type_compatibility_visitor final : data_type_visitor {
       const data_type* m_source;
       data_type_compatibility m_compatibility;
 
@@ -39,7 +39,7 @@ namespace darcel {
         return m_compatibility;
       }
 
-      void visit(const data_type& type) override final {
+      void visit(const data_type& type) override {
         if(*m_source == type) {
           m_compatibility = data_type_compatibility::EQUAL;
         } else {
@@ -47,7 +47,7 @@ namespace darcel {
         }
       }
 
-      void visit(const generic_data_type& type) override final {
+      void visit(const generic_data_type& type) override {
         if(*m_source == type) {
           m_compatibility = data_type_compatibility::EQUAL;
         } else if(dynamic_cast<const generic_data_type*>(m_source) == nullptr) {

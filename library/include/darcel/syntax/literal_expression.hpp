@@ -9,7 +9,7 @@
 namespace darcel {
 
   //! Represents an expression evaluating to a literal value.
-  class literal_expression : public expression {
+  class literal_expression final : public expression {
     public:
 
       //! Constructs a literal_expression.
@@ -22,9 +22,9 @@ namespace darcel {
       //! Returns the literal that is evaluated.
       const literal& get_literal() const;
 
-      const std::shared_ptr<data_type>& get_data_type() const override final;
+      const std::shared_ptr<data_type>& get_data_type() const override;
 
-      void apply(syntax_node_visitor& visitor) const override final;
+      void apply(syntax_node_visitor& visitor) const override;
 
     private:
       literal m_literal;

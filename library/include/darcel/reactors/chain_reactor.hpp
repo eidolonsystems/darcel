@@ -16,7 +16,7 @@ namespace darcel {
       \tparam T The type of values to chain.
    */
   template<typename T>
-  class chain_reactor : public reactor<T> {
+  class chain_reactor final : public reactor<T> {
     public:
       using type = typename reactor<T>::type;
 
@@ -28,9 +28,9 @@ namespace darcel {
       chain_reactor(std::shared_ptr<reactor<type>> initial,
         std::shared_ptr<reactor<type>> continuation);
 
-      base_reactor::update commit(int sequence) override final;
+      base_reactor::update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
 
     private:
       enum state {

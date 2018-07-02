@@ -8,11 +8,11 @@
 namespace darcel {
 
   //! Represents a terminal token.
-  class terminal_node : public syntax_node {
+  class terminal_node final : public syntax_node {
     public:
       using syntax_node::syntax_node;
 
-      void apply(syntax_node_visitor& visitor) const override final;
+      void apply(syntax_node_visitor& visitor) const override;
   };
 
   inline void terminal_node::apply(syntax_node_visitor& visitor) const {

@@ -7,7 +7,7 @@
 namespace darcel {
 
   //! A reactor that evaluates to another reactor's most recent update.
-  class update_reactor : public reactor<base_reactor::update> {
+  class update_reactor final : public reactor<base_reactor::update> {
     public:
 
       //! Constructs an update reactor.
@@ -16,9 +16,9 @@ namespace darcel {
       */
       update_reactor(std::shared_ptr<base_reactor> r);
 
-      base_reactor::update commit(int sequence) override final;
+      base_reactor::update commit(int sequence) override;
 
-      type eval() const override final;
+      type eval() const override;
 
     private:
       std::shared_ptr<base_reactor> m_reactor;
