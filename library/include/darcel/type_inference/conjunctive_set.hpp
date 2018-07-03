@@ -4,6 +4,7 @@
 #include <vector>
 #include "darcel/data_types/data_type.hpp"
 #include "darcel/syntax/expression.hpp"
+#include "darcel/type_inference/deduce_data_type.hpp"
 #include "darcel/type_inference/type_inference.hpp"
 
 namespace darcel {
@@ -41,11 +42,18 @@ namespace darcel {
   };
 
   inline bool conjunctive_set::is_satisfied(const type_map& t) const {
-    return false;
+    for(auto& term : m_terms) {
+      auto term_type = deduce_data_type(*term.m_expression, t);
+      if(term_type == nullptr || *term_type != *term.m_type) {
+        return false;
+      }
+    }
+    return true;
   }
 
   inline void conjunctive_set::add(const expression& e,
       std::shared_ptr<data_type> t) {
+    m_terms.push_back({&e, std::move(t)});
   }
 }
 

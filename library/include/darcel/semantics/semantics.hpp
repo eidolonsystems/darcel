@@ -5,6 +5,7 @@
 namespace darcel {
   class element;
   class function;
+  class function_definition;
   class scope;
   class variable;
 }

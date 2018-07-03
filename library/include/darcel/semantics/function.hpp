@@ -5,27 +5,16 @@
 
 namespace darcel {
 
-  //! Represents a named function.
+  //! Represents a potentially overloaded function declaration.
   class function final : public element {
     public:
 
-      //! Constructs a top-level function.
+      //! Constructs a function.
       /*!
-        \param l The location where the function was declared.
+        \param l The location where the function was first declared.
         \param name The name of the function.
       */
       function(location l, std::string name);
-
-      //! Constructs a function sharing the same name as a function in the
-      //! parent scope.
-      /*!
-        \param l The location where the function was declared.
-        \param f The parent function.
-      */
-      function(location l, const function& parent);
-
-      //! Returns the parent function.
-      const function* get_parent() const;
 
       const location& get_location() const override;
 
@@ -34,22 +23,11 @@ namespace darcel {
     private:
       location m_location;
       std::string m_name;
-      const function* m_parent;
   };
 
   inline function::function(location l, std::string name)
       : m_location(std::move(l)),
-        m_name(std::move(name)),
-        m_parent(nullptr) {}
-
-  inline function::function(location l, const function& parent)
-      : m_location(std::move(l)),
-        m_name(parent.get_name()),
-        m_parent(&parent) {}
-
-  inline const function* function::get_parent() const {
-    return m_parent;
-  }
+        m_name(std::move(name)) {}
 
   inline const location& function::get_location() const {
     return m_location;
