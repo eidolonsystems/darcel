@@ -1,8 +1,10 @@
 #ifndef DARCEL_FUNCTION_DEFINITION_HPP
 #define DARCEL_FUNCTION_DEFINITION_HPP
+#include <memory>
+#include "darcel/data_types/function_data_type.hpp"
 #include "darcel/semantics/element.hpp"
+#include "darcel/semantics/function.hpp"
 #include "darcel/semantics/semantics.hpp"
-#include "darcel/syntax/bind_function_statement.hpp"
 
 namespace darcel {
 
@@ -12,33 +14,43 @@ namespace darcel {
 
       //! Constructs a function_definition.
       /*!
-        \param definition The statement defining the function.
+        \param l The location of the definition.
+        \param f The function being defined.
+        \param t The function definition's data type.
       */
-      function_definition(const bind_function_statement& definition);
+      function_definition(location l, std::shared_ptr<function> f,
+        std::shared_ptr<function_data_type> t);
 
-      //! Returns the function definition.
-      const bind_function_statement& get_definition() const;
+      //! Returns the function being defined.
+      const std::shared_ptr<function>& get_function() const;
+
+      //! Returns the function definition's data type.
+      const std::shared_ptr<function_data_type>& get_type() const;
 
       const location& get_location() const override;
 
       const std::string& get_name() const override;
 
     private:
-      const bind_function_statement* m_definition;
+      location m_location;
+      std::shared_ptr<function> m_function;
+      std::shared_ptr<function_data_type> m_type;
   };
 
-  inline function_definition::function_definition(
-      const bind_function_statement& definition)
-      : m_definition(&definition) {}
+  inline function_definition::function_definition(location l,
+      std::shared_ptr<function> f, std::shared_ptr<function_data_type> t)
+      : m_location(std::move(l)),
+        m_function(std::move(f)),
+        m_type(std::move(t)) {}
 
-  inline const bind_function_statement&
-      function_definition::get_definition() const {
-    return *m_definition;
+  inline const std::shared_ptr<function>&
+      function_definition::get_function() const {
+    return m_function;
   }
 
   inline const std::shared_ptr<function_data_type>&
-      function_definition::get_data_type() const {
-    return m_data_type;
+      function_definition::get_type() const {
+    return m_type;
   }
 
   inline const location& function_definition::get_location() const {
