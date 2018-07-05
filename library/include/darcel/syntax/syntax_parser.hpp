@@ -25,14 +25,11 @@ namespace darcel {
   class syntax_parser {
     public:
 
-      //! Constructs a default syntax parser.
-      syntax_parser();
-
-      //! Constructs a syntax parser within an existing scope.
+      //! Constructs a syntax parser.
       /*!
         \param s The top-level scope.
       */
-      syntax_parser(std::unique_ptr<scope> s);
+      syntax_parser(scope& s);
 
       //! Returns the top-level scope.
       const scope& get_scope() const;
@@ -54,7 +51,7 @@ namespace darcel {
       std::unique_ptr<syntax_node> parse_node();
 
     private:
-      std::deque<std::unique_ptr<scope>> m_scopes;
+      std::deque<scope*> m_scopes;
       std::vector<token> m_tokens;
       token_iterator m_cursor;
       int m_generic_index;
@@ -179,11 +176,8 @@ namespace darcel {
     cursor = c;
   }
 
-  inline syntax_parser::syntax_parser()
-      : syntax_parser(std::make_unique<scope>()) {}
-
-  inline syntax_parser::syntax_parser(std::unique_ptr<scope> s) {
-    m_scopes.push_back(std::move(s));
+  inline syntax_parser::syntax_parser(scope& s) {
+    m_scopes.push_back(&s);
   }
 
   inline const scope& syntax_parser::get_scope() const {
@@ -210,7 +204,7 @@ namespace darcel {
   }
 
   inline scope& syntax_parser::push_scope() {
-    m_scopes.push_back(std::make_unique<scope>(&get_current_scope()));
+    m_scopes.push_back(&get_current_scope().build_child());
     return get_current_scope();
   }
 

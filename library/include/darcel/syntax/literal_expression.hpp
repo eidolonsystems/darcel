@@ -15,9 +15,10 @@ namespace darcel {
       //! Constructs a literal_expression.
       /*!
         \param l The location of the token representing the literal value.
+        \param s The scope containing the expression.
         \param literal The literal to evaluate to.
       */
-      literal_expression(location l, literal literal);
+      literal_expression(location l, const scope& s, literal literal);
 
       //! Returns the literal that is evaluated.
       const literal& get_literal() const;
@@ -28,8 +29,9 @@ namespace darcel {
       literal m_literal;
   };
 
-  inline literal_expression::literal_expression(location l, literal literal)
-      : expression(std::move(l)),
+  inline literal_expression::literal_expression(location l, const scope& s,
+      literal literal)
+      : expression(std::move(l), s),
         m_literal(std::move(literal)) {}
 
   inline const literal& literal_expression::get_literal() const {

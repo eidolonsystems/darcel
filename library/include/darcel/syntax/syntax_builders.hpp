@@ -31,31 +31,30 @@ namespace darcel {
   //! Binds a new enum.
   /*!
     \param l The location of the binding.
+    \param s The scope that the binding belongs to.
     \param name The name of the enum to bind.
     \param symbols The symbols belonging to the enum.
-    \param s The scope that the binding belongs to.
   */
-  inline std::unique_ptr<bind_enum_statement> bind_enum(location l,
-      std::string name, std::vector<enum_data_type::symbol> symbols,
-      scope& s) {
-    auto type = std::make_shared<enum_data_type>(std::move(l),
-      std::move(name), std::move(symbols));
+  inline std::unique_ptr<bind_enum_statement> bind_enum(location l, scope& s,
+      std::string name, std::vector<enum_data_type::symbol> symbols) {
+    auto type = std::make_shared<enum_data_type>(std::move(l), std::move(name),
+      std::move(symbols));
     s.add(type);
-    return std::make_unique<bind_enum_statement>(std::move(type));
+    return std::make_unique<bind_enum_statement>(s, std::move(type));
   }
 
   //! Binds a new function.
   /*!
     \param l The location of the binding.
+    \param s The scope that the binding belongs to.
     \param name The name of the function to bind.
     \param parameters The list of function parameters.
     \param body The function called to build the body of the function.
-    \param s The scope that the binding belongs to.
   */
   inline std::unique_ptr<bind_function_statement> bind_function(location l,
-      std::string name,
+      scope& s, std::string name,
       std::vector<bind_function_statement::parameter> parameters,
-      const expression_builder& body, scope& s) {
+      const expression_builder& body) {
     auto f = [&] {
       auto existing_element = s.find_within(name);
       if(existing_element == nullptr) {
@@ -70,48 +69,50 @@ namespace darcel {
       }
       return f;
     }();
-    scope parameter_scope(&s);
+    auto& body_scope = s.build_child();
     for(auto& parameter : parameters) {
       if(parameter.m_type.has_value()) {
         if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
             *parameter.m_type)) {
-          auto existing_element = parameter_scope.find<data_type>(
+          auto existing_element = body_scope.find<data_type>(
             generic->get_name());
           if(existing_element == nullptr) {
-            parameter_scope.add(generic);
+            body_scope.add(generic);
           }
         }
       }
-      parameter_scope.add(parameter.m_variable);
+      body_scope.add(parameter.m_variable);
     }
-    scope body_scope(&parameter_scope);
-    auto e = body(body_scope);
-    return std::make_unique<bind_function_statement>(std::move(l), std::move(f),
-      std::move(parameters), std::move(e));
+    auto& expression_scope = body_scope.build_child();
+    auto e = body(expression_scope);
+    return std::make_unique<bind_function_statement>(std::move(l), s,
+      std::move(f), std::move(parameters), std::move(e));
   }
 
   //! Binds a new function.
   /*!
+    \param s The scope the statement belongs to.
     \param name The name of the function to bind.
     \param parameters The list of function parameters.
     \param body The function called to build the body of the function.
   */
-  inline std::unique_ptr<bind_function_statement> bind_function(
+  inline std::unique_ptr<bind_function_statement> bind_function(scope& s,
       std::string name,
       std::vector<bind_function_statement::parameter> parameters,
-      const expression_builder& body, scope& s) {
-    return bind_function(location::global(), std::move(name),
-      std::move(parameters), body, s);
+      const expression_builder& body) {
+    return bind_function(location::global(), s, std::move(name),
+      std::move(parameters), body);
   }
 
   //! Binds a new variable to an expression.
   /*!
     \param l The location of the binding.
+    \param s The scope the statement belongs to.
     \param name The name of the variable to bind.
     \param e The expression to bind to the variable.
   */
   inline std::unique_ptr<bind_variable_statement> bind_variable(location l,
-      std::string name, std::unique_ptr<expression> e, scope& s) {
+      scope& s, std::string name, std::unique_ptr<expression> e) {
     auto existing_element = s.find_within(name);
     if(existing_element != nullptr) {
       throw redefinition_syntax_error(l, name,
@@ -119,55 +120,58 @@ namespace darcel {
     }
     auto v = std::make_shared<variable>(l, std::move(name));
     s.add(v);
-    return std::make_unique<bind_variable_statement>(std::move(l), std::move(v),
-      std::move(e));
+    return std::make_unique<bind_variable_statement>(std::move(l), s,
+      std::move(v), std::move(e));
   }
 
   //! Binds a new variable to an expression.
   /*!
+    \param s The scope the statement belongs to.
     \param name The name of the variable to bind.
     \param e The expression to bind to the variable.
   */
-  inline std::unique_ptr<bind_variable_statement> bind_variable(
-      std::string name, std::unique_ptr<expression> e, scope& s) {
-    return bind_variable(location::global(), std::move(name), std::move(e), s);
+  inline std::unique_ptr<bind_variable_statement> bind_variable(scope& s,
+      std::string name, std::unique_ptr<expression> e) {
+    return bind_variable(location::global(), s, std::move(name), std::move(e));
   }
 
   //! Makes a call expression.
   /*!
     \param l The location of the expression.
+    \param s The scope containing the expression.
     \param callable The expression to call.
     \param arguments The list of arguments to pass to the function.
   */
-  inline std::unique_ptr<call_expression> call(location l,
+  inline std::unique_ptr<call_expression> call(location l, const scope& s,
       std::unique_ptr<expression> callable,
       std::vector<std::unique_ptr<expression>> arguments) {
-    return std::make_unique<call_expression>(l, std::move(callable),
+    return std::make_unique<call_expression>(l, s, std::move(callable),
       std::move(arguments));
   }
 
   //! Makes a call expression.
   /*!
     \param l The location of the expression.
+    \param s The scope containing the expression.
     \param name The name of the function to call.
     \param arguments The list of arguments to pass to the function.
     \param s The scope to find the function in.
   */
-  inline std::unique_ptr<call_expression> call(location l, std::string name,
-      std::vector<std::unique_ptr<expression>> arguments, scope& s) {
+  inline std::unique_ptr<call_expression> call(location l, const scope& s,
+      std::string name, std::vector<std::unique_ptr<expression>> arguments) {
     auto callable = find_term(l, name, s);
-    return call(std::move(l), std::move(callable), std::move(arguments));
+    return call(std::move(l), s, std::move(callable), std::move(arguments));
   }
 
   //! Makes a call expression.
   /*!
+    \param s The scope to find the function in.
     \param name The name of the function to call.
     \param arguments The list of arguments to pass to the function.
-    \param s The scope to find the function in.
   */
-  inline std::unique_ptr<call_expression> call(std::string name,
-      std::vector<std::unique_ptr<expression>> arguments, scope& s) {
-    return call(location::global(), std::move(name), std::move(arguments), s);
+  inline std::unique_ptr<call_expression> call(const scope& s, std::string name,
+      std::vector<std::unique_ptr<expression>> arguments) {
+    return call(location::global(), s, std::move(name), std::move(arguments));
   }
 
   //! Makes a call expression.
@@ -175,118 +179,122 @@ namespace darcel {
     \param name The name of the function to call.
     \param s The scope to find the function in.
   */
-  inline std::unique_ptr<call_expression> call(std::string name, scope& s) {
-    return call(location::global(), std::move(name), {}, s);
+  inline std::unique_ptr<call_expression> call(const scope& s,
+      std::string name) {
+    return call(location::global(), s, std::move(name), {});
   }
 
   //! Makes a call expression.
   /*!
+    \param s The scope to find the function in.
     \param name The name of the function to call.
     \param arg1 The argument to pass to the function.
-    \param s The scope to find the function in.
   */
-  inline std::unique_ptr<call_expression> call(std::string name,
-      std::unique_ptr<expression> arg1, scope& s) {
+  inline std::unique_ptr<call_expression> call(const scope& s, std::string name,
+      std::unique_ptr<expression> arg1) {
     std::vector<std::unique_ptr<expression>> arguments;
     arguments.push_back(std::move(arg1));
-    return call(location::global(), std::move(name), std::move(arguments), s);
+    return call(location::global(), s, std::move(name), std::move(arguments));
   }
 
   //! Makes a call expression.
   /*!
+    \param s The scope to find the function in.
     \param name The name of the function to call.
     \param arg1 The first argument to pass to the function.
     \param arg2 The second argument to pass to the function.
-    \param s The scope to find the function in.
   */
-  inline std::unique_ptr<call_expression> call(std::string name,
-      std::unique_ptr<expression> arg1, std::unique_ptr<expression> arg2,
-      scope& s) {
+  inline std::unique_ptr<call_expression> call(const scope& s, std::string name,
+      std::unique_ptr<expression> arg1, std::unique_ptr<expression> arg2) {
     std::vector<std::unique_ptr<expression>> arguments;
     arguments.push_back(std::move(arg1));
     arguments.push_back(std::move(arg2));
-    return call(location::global(), std::move(name), std::move(arguments), s);
+    return call(location::global(), s, std::move(name), std::move(arguments));
   }
 
   //! Makes a literal boolean expression.
   /*!
     \param l The location of the expression.
+    \param s The scope containing the expression.
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_literal_expression(
-      location l, bool value) {
-    std::string s = [&] {
+      const scope& s, location l, bool value) {
+    std::string v = [&] {
       if(value) {
         return "true";
       }
       return "false";
     }();
-    return std::make_unique<literal_expression>(std::move(l),
-      literal(s, bool_data_type::get_instance()));
+    return std::make_unique<literal_expression>(std::move(l), s,
+      literal(v, bool_data_type::get_instance()));
   }
 
   //! Makes a literal integer expression.
   /*!
+    \param s The scope containing the expression.
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_literal_expression(
-      bool value) {
-    return make_literal_expression(location::global(), value);
+      const scope& s, bool value) {
+    return make_literal_expression(location::global(), s, value);
   }
 
   //! Makes a literal integer expression.
   /*!
     \param l The location of the expression.
+    \param s The scope containing the expression.
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_literal_expression(
-      location l, int value) {
-    return std::make_unique<literal_expression>(std::move(l),
+      location l, const scope& s, int value) {
+    return std::make_unique<literal_expression>(std::move(l), s
       literal(std::to_string(value), integer_data_type::get_instance()));
   }
 
   //! Makes a literal integer expression.
   /*!
+    \param s The scope containing the expression.
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_literal_expression(
-      int value) {
-    return make_literal_expression(location::global(), value);
+      const scope& s, int value) {
+    return make_literal_expression(location::global(), s, value);
   }
 
   //! Makes a variable expression.
   /*!
     \param l The location of the expression.
+    \param s The scope containing the expression.
     \param name The name of the variable.
-    \param s The scope the variable can be found in.
   */
   inline std::unique_ptr<variable_expression> make_variable_expression(
-      location l, const std::string& name, const scope& s) {
+      location l, const scope& s, const std::string& name) {
     auto v = s.find<variable>(name);
     if(v == nullptr) {
       throw variable_not_found_error(l, name);
     }
-    return std::make_unique<variable_expression>(l, std::move(v));
+    return std::make_unique<variable_expression>(l, s, std::move(v));
   }
 
   //! Makes a variable expression.
   /*!
-    \param name The name of the variable.
     \param s The scope the variable can be found in.
+    \param name The name of the variable.
   */
   inline std::unique_ptr<variable_expression> make_variable_expression(
-      const std::string& name, const scope& s) {
-    return make_variable_expression(location::global(), name, s);
+      const scope& s, const std::string& name) {
+    return make_variable_expression(location::global(), s, name);
   }
 
   //! Returns an expression that is either a variable term or a function term.
   /*!
     \param l The location of the term.
-    \param name The name of the term.
     \param s The scope to find the term in.
+    \param name The name of the term.
   */
-  inline std::unique_ptr<expression> find_term(location l,
-      const std::string& name, const scope& s) {
+  inline std::unique_ptr<expression> find_term(location l, const scope& s,
+      const std::string& name) {
     auto e = s.find(name);
     if(auto f = std::dynamic_pointer_cast<function>(e)) {
       return std::make_unique<function_expression>(std::move(l), std::move(f));

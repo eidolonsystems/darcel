@@ -17,12 +17,6 @@ namespace darcel {
       //! Constructs an empty global scope.
       scope();
 
-      //! Constructs a child scope.
-      /*!
-        \param parent The parent scope.
-      */
-      scope(const scope* parent);
-
       //! Tests if an element with a specified name is contained within this
       //! scope (that is directly within this scope, not a parent scope).
       bool contains(const std::string& name) const;
@@ -47,19 +41,21 @@ namespace darcel {
       */
       bool add(std::shared_ptr<element> e);
 
+      //! Builds an empty child scope directly owned by this scope.
+      scope& build_child();
+
     private:
       const scope* m_parent;
+      std::vector<std::unique_ptr<scope>> m_children;
       std::unordered_map<std::string, std::shared_ptr<element>> m_elements;
 
+      scope(const scope* parent);
       scope(const scope&) = delete;
       scope& operator =(const scope&) = delete;
   };
 
   inline scope::scope()
       : m_parent(nullptr) {}
-
-  inline scope::scope(const scope* parent)
-      : m_parent(parent) {}
 
   inline bool scope::contains(const std::string& name) const {
     return m_elements.count(name) == 1;
@@ -94,6 +90,15 @@ namespace darcel {
   inline bool scope::add(std::shared_ptr<element> e) {
     return m_elements.try_emplace(e->get_name(), e).second;
   }
+
+  inline scope& scope::build_child() {
+    m_children.push_back(std::unique_ptr<scope>(new scope(this)));
+    return *m_children.back();
+  }
+
+  inline scope::scope(const scope* parent)
+      : m_parent(parent) {}
+
 }
 
 #endif

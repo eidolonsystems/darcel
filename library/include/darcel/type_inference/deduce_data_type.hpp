@@ -12,7 +12,7 @@ namespace darcel {
     \param t A map containing previously deduced expression data types.
   */
   inline std::shared_ptr<data_type> deduce_data_type(const expression& e,
-      const type_map& t) {
+      const scope& s, const type_map& t) {
     struct deduction_visitor final : syntax_node_visitor {
       const type_map* m_type_map;
       std::shared_ptr<data_type> m_result;
@@ -25,13 +25,18 @@ namespace darcel {
       }
 
       void visit(const call_expression& node) override {
+        auto callable_type =
+          [&] {
+            if(auto f = dynamic_cast<const function_expression*>(
+                &node.get_callable())) {
+              
+            } else {
+              return deduce_data_type(node.get_callable(), *m_type_map);
+            }
+          }();
         std::vector<std::shared_ptr<data_type>> parameters;
         for(auto& parameter : node.get_parameters()) {
-          auto t = deduce_data_type(*parameter, *m_type_map);
-          if(t == nullptr) {
-            return;
-          }
-          parameters.push_back(std::move(t));
+          parameters.push_back(deduce_data_type(*parameter, *m_type_map));
         }
       }
 
