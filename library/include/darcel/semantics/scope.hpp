@@ -2,8 +2,10 @@
 #define DARCEL_SCOPE_HPP
 #include <memory>
 #include <unordered_map>
+#include <vector>
 #include "darcel/semantics/element.hpp"
 #include "darcel/semantics/function.hpp"
+#include "darcel/semantics/function_definition.hpp"
 #include "darcel/semantics/semantics.hpp"
 #include "darcel/semantics/variable.hpp"
 
@@ -48,6 +50,9 @@ namespace darcel {
       const scope* m_parent;
       std::vector<std::unique_ptr<scope>> m_children;
       std::unordered_map<std::string, std::shared_ptr<element>> m_elements;
+      std::unordered_map<std::string,
+        std::vector<std::shared_ptr<function_definition>>>
+        m_function_definitions;
 
       scope(const scope* parent);
       scope(const scope&) = delete;
@@ -88,7 +93,18 @@ namespace darcel {
   }
 
   inline bool scope::add(std::shared_ptr<element> e) {
-    return m_elements.try_emplace(e->get_name(), e).second;
+    if(auto f = std::dynamic_pointer_cast<function_definition>(e)) {
+      auto& definitions = m_function_definitions[e->get_name()];
+      for(auto& definition : definitions) {
+        if(*definition->get_type() == *f->get_type()) {
+          return false;
+        }
+      }
+      definitions.push_back(std::move(f));
+      return true;
+    } else {
+      return m_elements.try_emplace(e->get_name(), e).second;
+    }
   }
 
   inline scope& scope::make_child() {

@@ -4,6 +4,7 @@
 #include <utility>
 #include "darcel/data_types/bool_data_type.hpp"
 #include "darcel/data_types/float_data_type.hpp"
+#include "darcel/data_types/generic_data_type.hpp"
 #include "darcel/data_types/integer_data_type.hpp"
 #include "darcel/data_types/text_data_type.hpp"
 #include "darcel/semantics/scope.hpp"
@@ -68,42 +69,64 @@ namespace darcel {
 
   //! Populates a scope with the last function.
   /*!
-    \param scope The scope to populate.
+    \param s The scope to populate.
   */
-  inline void populate_last(scope& scope) {
-    scope.add(std::make_shared<function>(location::global(), "last"));
+  inline void populate_last(scope& s) {
+    auto f = std::make_shared<function>(location::global(), "last");
+    s.add(f);
+    std::vector<function_data_type::parameter> parameters;
+    auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
+    parameters.emplace_back("source", t);
+    auto d = std::make_shared<function_definition>(location::global(), f,
+      std::make_shared<function_data_type>(parameters, t));
+    s.add(d);
   }
 
   //! Populates a scope with the print function.
   /*!
-    \param scope The scope to populate.
+    \param s The scope to populate.
   */
-  inline void populate_print(scope& scope) {
-    scope.add(std::make_shared<function>(location::global(), "print"));
+  inline void populate_print(scope& s) {
+    auto f = std::make_shared<function>(location::global(), "print");
+    s.add(f);
+    std::vector<function_data_type::parameter> parameters;
+    auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
+    parameters.emplace_back("source", t);
+    auto d = std::make_shared<function_definition>(location::global(), f,
+      std::make_shared<function_data_type>(parameters, t));
+    s.add(d);
   }
 
   //! Populates a scope with the tally function.
   /*!
-    \param scope The scope to populate.
+    \param s The scope to populate.
   */
-  inline void populate_tally(scope& scope) {
-    scope.add(std::make_shared<function>(location::global(), "tally"));
+  inline void populate_tally(scope& s) {
+    auto f = std::make_shared<function>(location::global(), "tally");
+    s.add(f);
+    std::vector<function_data_type::parameter> parameters;
+    auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
+    parameters.emplace_back("source", t);
+    auto d = std::make_shared<function_definition>(location::global(), f,
+      std::make_shared<function_data_type>(parameters,
+      integer_data_type::get_instance()));
+    s.add(d);
   }
 
   //! Populates a scope with all builtin elements.
   /*!
-    \param scope The scope to populate.
+    \param s The scope to populate.
   */
-  inline void populate_builtins(scope& scope) {
-    populate_data_types(scope);
-    populate_arithmetic(scope);
-    populate_chain(scope);
-    populate_count(scope);
-    populate_first(scope);
-    populate_fold(scope);
-    populate_last(scope);
-    populate_print(scope);
-    populate_tally(scope);
+  inline void populate_builtins(scope& s) {
+    populate_data_types(s);
+    populate_arithmetic(s);
+    populate_chain(s);
+    populate_count(s);
+    populate_first(s);
+    populate_fold(s);
+    populate_last(s);
+    populate_print(s);
+    populate_tally(s);
   }
 
   //! Constructs a scope with all builtins populated.
