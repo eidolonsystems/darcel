@@ -1,7 +1,7 @@
 #ifndef DARCEL_DISJUNCTIVE_SET_HPP
 #define DARCEL_DISJUNCTIVE_SET_HPP
-#include "darcel/type_inference/conjunctive_set.hpp"
-#include "darcel/type_inference/type_inference.hpp"
+#include "darcel/type_checker/conjunctive_set.hpp"
+#include "darcel/type_checker/type_checker.hpp"
 
 namespace darcel {
 

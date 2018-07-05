@@ -2,7 +2,7 @@
 #define DARCEL_DEDUCE_DATA_TYPE_HPP
 #include "darcel/syntax/syntax_node_visitor.hpp"
 #include "darcel/syntax/syntax_nodes.hpp"
-#include "darcel/type_inference/type_inference.hpp"
+#include "darcel/type_checker/type_checker.hpp"
 
 namespace darcel {
 

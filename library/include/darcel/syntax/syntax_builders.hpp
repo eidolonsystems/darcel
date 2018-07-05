@@ -10,6 +10,7 @@
 #include "darcel/semantics/scope.hpp"
 #include "darcel/syntax/bind_function_statement.hpp"
 #include "darcel/syntax/call_expression.hpp"
+#include "darcel/syntax/function_expression.hpp"
 #include "darcel/syntax/literal_expression.hpp"
 #include "darcel/syntax/redefinition_syntax_error.hpp"
 #include "darcel/syntax/syntax.hpp"
@@ -18,8 +19,8 @@
 
 
 namespace darcel {
-  std::unique_ptr<expression> find_term(location l, const std::string& name,
-    const scope& s);
+  std::unique_ptr<expression> find_term(location l, const scope& s,
+    const std::string& name);
 
   //! Function used to build a sub-expression.
   /*!
@@ -159,7 +160,7 @@ namespace darcel {
   */
   inline std::unique_ptr<call_expression> call(location l, const scope& s,
       std::string name, std::vector<std::unique_ptr<expression>> arguments) {
-    auto callable = find_term(l, name, s);
+    auto callable = find_term(l, s, name);
     return call(std::move(l), s, std::move(callable), std::move(arguments));
   }
 
@@ -313,7 +314,7 @@ namespace darcel {
   */
   inline std::unique_ptr<expression> find_term(const std::string& name,
       const scope& s) {
-    return find_term(location::global(), name, s);
+    return find_term(location::global(), s, name);
   }
 }
 

@@ -1,5 +1,5 @@
 #include <catch.hpp>
-#include "darcel/type_inference/conjunctive_set.hpp"
+#include "darcel/type_checker/conjunctive_set.hpp"
 
 using namespace darcel;
 

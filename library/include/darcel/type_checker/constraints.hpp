@@ -1,7 +1,7 @@
 #ifndef DARCEL_CONSTRAINTS_HPP
 #define DARCEL_CONSTRAINTS_HPP
-#include "darcel/type_inference/disjunctive_set.hpp"
-#include "darcel/type_inference/type_inference.hpp"
+#include "darcel/type_checker/disjunctive_set.hpp"
+#include "darcel/type_checker/type_checker.hpp"
 
 namespace darcel {
 
