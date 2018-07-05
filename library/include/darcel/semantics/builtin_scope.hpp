@@ -26,45 +26,103 @@ namespace darcel {
 
   //! Populates a scope with builtin arithmetic operators.
   /*!
-    \param scope The scope to populate.
+    \param s The scope to populate.
   */
-  inline void populate_arithmetic(scope& scope) {
+  inline void populate_arithmetic(scope& s) {
     for(auto& o : {op::ADD, op::SUBTRACT, op::MULTIPLY, op::DIVIDE}) {
-      scope.add(std::make_shared<function>(location::global(),
-        get_function_name(o)));
+      auto f = std::make_shared<function>(location::global(),
+        get_function_name(o));
+      s.add(f);
+      for(auto& t : std::vector<std::shared_ptr<data_type>>{
+          integer_data_type::get_instance(), float_data_type::get_instance()}) {
+        std::vector<function_data_type::parameter> parameters;
+        parameters.emplace_back("left", t);
+        parameters.emplace_back("right", t);
+        auto d = std::make_shared<function_definition>(location::global(), f,
+          std::make_shared<function_data_type>(parameters, t));
+        s.add(d);
+      }
+    }
+    {
+      std::vector<function_data_type::parameter> parameters;
+      parameters.emplace_back("left", text_data_type::get_instance());
+      parameters.emplace_back("right", text_data_type::get_instance());
+      auto name = get_function_name(op::ADD);
+      auto f = s.find<function>(name);
+      auto d = std::make_shared<function_definition>(location::global(), f,
+        std::make_shared<function_data_type>(parameters,
+        text_data_type::get_instance()));
+      s.add(d);
     }
   }
 
   //! Populates a scope with the print function.
   /*!
-    \param scope The scope to populate.
+    \param s The scope to populate.
   */
-  inline void populate_chain(scope& scope) {
-    scope.add(std::make_shared<function>(location::global(), "chain"));
+  inline void populate_chain(scope& s) {
+    auto f = std::make_shared<function>(location::global(), "chain");
+    s.add(f);
+    std::vector<function_data_type::parameter> parameters;
+    auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
+    parameters.emplace_back("initial", t);
+    parameters.emplace_back("continuation", t);
+    auto d = std::make_shared<function_definition>(location::global(), f,
+      std::make_shared<function_data_type>(parameters, t));
+    s.add(d);
   }
 
   //! Populates a scope with the count function.
   /*!
-    \param scope The scope to populate.
+    \param s The scope to populate.
   */
-  inline void populate_count(scope& scope) {
-    scope.add(std::make_shared<function>(location::global(), "count"));
+  inline void populate_count(scope& s) {
+    auto f = std::make_shared<function>(location::global(), "count");
+    s.add(f);
+    std::vector<function_data_type::parameter> parameters;
+    parameters.emplace_back("start", integer_data_type::get_instance());
+    parameters.emplace_back("end", integer_data_type::get_instance());
+    auto d = std::make_shared<function_definition>(location::global(), f,
+      std::make_shared<function_data_type>(parameters,
+      integer_data_type::get_instance()));
+    s.add(d);
   }
 
   //! Populates a scope with the first function.
   /*!
-    \param scope The scope to populate.
+    \param s The scope to populate.
   */
-  inline void populate_first(scope& scope) {
-    scope.add(std::make_shared<function>(location::global(), "first"));
+  inline void populate_first(scope& s) {
+    auto f = std::make_shared<function>(location::global(), "first");
+    s.add(f);
+    std::vector<function_data_type::parameter> parameters;
+    auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
+    parameters.emplace_back("source", t);
+    auto d = std::make_shared<function_definition>(location::global(), f,
+      std::make_shared<function_data_type>(parameters, t));
+    s.add(d);
   }
 
   //! Populates a scope with the fold function.
   /*!
-    \param scope The scope to populate.
+    \param s The scope to populate.
   */
-  inline void populate_fold(scope& scope) {
-    scope.add(std::make_shared<function>(location::global(), "fold"));
+  inline void populate_fold(scope& s) {
+    auto f = std::make_shared<function>(location::global(), "fold");
+    s.add(f);
+    auto t = std::make_shared<generic_data_type>(location::global(), "`T", 0);
+    std::vector<function_data_type::parameter> parameters;
+    auto r = [&] {
+      std::vector<function_data_type::parameter> parameters;
+      parameters.emplace_back("left", t);
+      parameters.emplace_back("right", t);
+      return std::make_shared<function_data_type>(std::move(parameters), t);
+    }();
+    parameters.emplace_back("f", std::move(r));
+    parameters.emplace_back("r", t);
+    auto d = std::make_shared<function_definition>(location::global(), f,
+      std::make_shared<function_data_type>(parameters, t));
+    s.add(d);
   }
 
   //! Populates a scope with the last function.
