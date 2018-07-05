@@ -204,7 +204,7 @@ namespace darcel {
   }
 
   inline scope& syntax_parser::push_scope() {
-    m_scopes.push_back(&get_current_scope().build_child());
+    m_scopes.push_back(&get_current_scope().make_child());
     return get_current_scope();
   }
 

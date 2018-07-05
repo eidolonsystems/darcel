@@ -41,8 +41,8 @@ namespace darcel {
       */
       bool add(std::shared_ptr<element> e);
 
-      //! Builds an empty child scope directly owned by this scope.
-      scope& build_child();
+      //! Makes an empty child scope directly owned by this scope.
+      scope& make_child();
 
     private:
       const scope* m_parent;
@@ -91,7 +91,7 @@ namespace darcel {
     return m_elements.try_emplace(e->get_name(), e).second;
   }
 
-  inline scope& scope::build_child() {
+  inline scope& scope::make_child() {
     m_children.push_back(std::unique_ptr<scope>(new scope(this)));
     return *m_children.back();
   }

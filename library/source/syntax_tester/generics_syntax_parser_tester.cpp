@@ -25,20 +25,23 @@ namespace {
 
 TEST_CASE("test_parsing_generic_type", "[syntax_parser]") {
   SECTION("Single generic.") {
-    syntax_parser p;
+    auto top_scope = make_builtin_scope();
+    syntax_parser p(*top_scope);
     feed(p, R"(let f(x: `T) = x)");
     auto f = ensure_bind_function(p, 1);
     ensure_generic(*f, 0, generic_data_type(location::global(), "`T", 0));
   }
   SECTION("Two equal generics.") {
-    syntax_parser p;
+    auto top_scope = make_builtin_scope();
+    syntax_parser p(*top_scope);
     feed(p, R"(let f(x: `T, y: `T) = y)");
     auto f = ensure_bind_function(p, 2);
     ensure_generic(*f, 0, generic_data_type(location::global(), "`T", 0));
     ensure_generic(*f, 1, generic_data_type(location::global(), "`T", 0));
   }
   SECTION("Two distinct generics.") {
-    syntax_parser p;
+    auto top_scope = make_builtin_scope();
+    syntax_parser p(*top_scope);
     feed(p, R"(let f(x: `T, y: `U) = y)");
     auto f = ensure_bind_function(p, 2);
     ensure_generic(*f, 0, generic_data_type(location::global(), "`T", 0));
@@ -48,7 +51,8 @@ TEST_CASE("test_parsing_generic_type", "[syntax_parser]") {
 
 TEST_CASE("test_parsing_generic_function_type_one_parameter",
     "[syntax_parser]") {
-  syntax_parser p(make_builtin_scope());
+  auto top_scope = make_builtin_scope();
+  syntax_parser p(*top_scope);
   feed(p, R"(let f(x: (a: `T) -> Int) = 1)");
   auto f = ensure_bind_function(p, 1);
   REQUIRE(f->get_parameters()[0].m_type.has_value());
@@ -62,7 +66,8 @@ TEST_CASE("test_parsing_generic_function_type_one_parameter",
 
 TEST_CASE("test_parsing_generic_function_type_two_equal_parameters",
     "[syntax_parser]") {
-  syntax_parser p(make_builtin_scope());
+  auto top_scope = make_builtin_scope();
+  syntax_parser p(*top_scope);
   feed(p, R"(let f(x: (a: `T) -> Int, y: `T) = 1)");
   auto f = ensure_bind_function(p, 2);
   auto x = std::dynamic_pointer_cast<function_data_type>(
@@ -75,7 +80,8 @@ TEST_CASE("test_parsing_generic_function_type_two_equal_parameters",
 }
 
 TEST_CASE("test_generic_function_substitution", "[syntax_parser]") {
-  syntax_parser p(make_builtin_scope());
+  auto top_scope = make_builtin_scope();
+  syntax_parser p(*top_scope);
   feed(p, R"(let f(x: Int) = x
              let h(f: (x: `T) -> `T) = f
              let g = h(f))");

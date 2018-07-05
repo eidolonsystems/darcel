@@ -69,7 +69,7 @@ namespace darcel {
       }
       return f;
     }();
-    auto& body_scope = s.build_child();
+    auto& body_scope = s.make_child();
     for(auto& parameter : parameters) {
       if(parameter.m_type.has_value()) {
         if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
@@ -83,7 +83,7 @@ namespace darcel {
       }
       body_scope.add(parameter.m_variable);
     }
-    auto& expression_scope = body_scope.build_child();
+    auto& expression_scope = body_scope.make_child();
     auto e = body(expression_scope);
     return std::make_unique<bind_function_statement>(std::move(l), s,
       std::move(f), std::move(parameters), std::move(e));
@@ -219,7 +219,7 @@ namespace darcel {
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_literal_expression(
-      const scope& s, location l, bool value) {
+      location l, const scope& s, bool value) {
     std::string v = [&] {
       if(value) {
         return "true";
@@ -248,7 +248,7 @@ namespace darcel {
   */
   inline std::unique_ptr<literal_expression> make_literal_expression(
       location l, const scope& s, int value) {
-    return std::make_unique<literal_expression>(std::move(l), s
+    return std::make_unique<literal_expression>(std::move(l), s,
       literal(std::to_string(value), integer_data_type::get_instance()));
   }
 
@@ -297,9 +297,11 @@ namespace darcel {
       const std::string& name) {
     auto e = s.find(name);
     if(auto f = std::dynamic_pointer_cast<function>(e)) {
-      return std::make_unique<function_expression>(std::move(l), std::move(f));
+      return std::make_unique<function_expression>(std::move(l), s,
+        std::move(f));
     } else if(auto v = std::dynamic_pointer_cast<variable>(e)) {
-      return std::make_unique<variable_expression>(std::move(l), std::move(v));
+      return std::make_unique<variable_expression>(std::move(l), s,
+        std::move(v));
     }
     throw variable_not_found_error(l, name);
   }

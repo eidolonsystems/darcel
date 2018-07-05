@@ -13,7 +13,7 @@ TEST_CASE("test_bind_function_statement", "[bind_function_statement]") {
   auto top_scope = make_builtin_scope();
   auto f = std::make_shared<function>(location::global(), "f");
   top_scope->add(f);
-  auto& body_scope = top_scope->build_child();
+  auto& body_scope = top_scope->make_child();
   auto p1 = std::make_shared<variable>(location::global(), "a");
   body_scope.add(p1);
   auto p = std::vector<bind_function_statement::parameter>{
