@@ -136,7 +136,10 @@ namespace darcel {
           return compatibility;
         }
       }();
-      return definition;
+      if(compatibility == data_type_compatibility::EQUAL ||
+          compatibility == data_type_compatibility::GENERIC) {
+        return definition;
+      }
     }
     if(s.get_parent() != nullptr) {
       return find_overload(f, parameters, *s.get_parent());

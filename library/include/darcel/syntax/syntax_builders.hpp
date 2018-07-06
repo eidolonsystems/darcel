@@ -263,6 +263,28 @@ namespace darcel {
     return make_literal_expression(location::global(), s, value);
   }
 
+  //! Makes a literal text expression.
+  /*!
+    \param l The location of the expression.
+    \param s The scope containing the expression.
+    \param value The value to represent.
+  */
+  inline std::unique_ptr<literal_expression> make_text_expression(
+      location l, const scope& s, std::string value) {
+    return std::make_unique<literal_expression>(std::move(l), s,
+      literal(std::move(value), text_data_type::get_instance()));
+  }
+
+  //! Makes a literal text expression.
+  /*!
+    \param s The scope containing the expression.
+    \param value The value to represent.
+  */
+  inline std::unique_ptr<literal_expression> make_text_expression(
+      const scope& s, std::string value) {
+    return make_text_expression(location::global(), s, std::move(value));
+  }
+
   //! Makes a variable expression.
   /*!
     \param l The location of the expression.

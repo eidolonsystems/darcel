@@ -4,6 +4,22 @@
 
 using namespace darcel;
 
+TEST_CASE("test_single_parameter_function_overload", "[function_overloads]") {
+  SECTION("No matching overload.") {
+    scope top_scope;
+    auto f = std::make_shared<function>(location::global(), "f");
+    top_scope.add(f);
+    auto definition = std::make_shared<function_definition>(
+      location::global(), f,
+      make_function_data_type({{"a", integer_data_type::get_instance()}},
+      integer_data_type::get_instance()));
+    top_scope.add(definition);
+    auto overload = find_overload(*f,
+      {{"a", bool_data_type::get_instance()}}, top_scope);
+    REQUIRE(overload == nullptr);
+  }
+}
+
 TEST_CASE("test_generic_function_parameter_overload", "[function_overloads]") {
   SECTION("Valid substitution.") {
     scope top_scope;
@@ -19,7 +35,7 @@ TEST_CASE("test_generic_function_parameter_overload", "[function_overloads]") {
       location::global(), h, make_function_data_type({{"f", generic_type}},
       integer_data_type::get_instance()));
     top_scope.add(h_definition);
-    auto overload = find_overload(*h, *instantiated_type, top_scope);
+    auto overload = find_overload(*h, {{"f", instantiated_type}}, top_scope);
     REQUIRE(overload == h_definition);
   }
   SECTION("Invalid substitution.") {
