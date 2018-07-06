@@ -1,7 +1,7 @@
 #include <catch.hpp>
 #include "darcel/data_types/bool_data_type.hpp"
 #include "darcel/semantics/builtin_scope.hpp"
-#include "darcel/syntax_tester/syntax_tester.hpp"
+#include "darcel/syntax_tests/syntax_tests.hpp"
 
 using namespace darcel;
 using namespace darcel::tests;

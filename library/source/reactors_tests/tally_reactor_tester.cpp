@@ -3,7 +3,7 @@
 #include "darcel/reactors/count_reactor.hpp"
 #include "darcel/reactors/none_reactor.hpp"
 #include "darcel/reactors/tally_reactor.hpp"
-#include "darcel/reactors_tester/assertions.hpp"
+#include "darcel/reactors_tests/assertions.hpp"
 
 using namespace darcel;
 using namespace darcel::tests;

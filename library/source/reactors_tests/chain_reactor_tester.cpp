@@ -2,7 +2,7 @@
 #include "darcel/reactors/chain_reactor.hpp"
 #include "darcel/reactors/constant_reactor.hpp"
 #include "darcel/reactors/none_reactor.hpp"
-#include "darcel/reactors_tester/assertions.hpp"
+#include "darcel/reactors_tests/assertions.hpp"
 
 using namespace darcel;
 using namespace darcel::tests;

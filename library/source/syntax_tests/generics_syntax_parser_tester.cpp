@@ -1,6 +1,6 @@
 #include <catch.hpp>
 #include "darcel/semantics/builtin_scope.hpp"
-#include "darcel/syntax_tester/syntax_tester.hpp"
+#include "darcel/syntax_tests/syntax_tests.hpp"
 #include "darcel/utilities/utilities.hpp"
 
 using namespace darcel;
