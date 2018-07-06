@@ -3,7 +3,7 @@
 #include "darcel/data_types/generic_data_type.hpp"
 #include "darcel/data_types/data_type_compatibility.hpp"
 #include "darcel/semantics/scope.hpp"
-#include "darcel/type_checker/type_checker.hpp"
+#include "darcel/type_checks/type_checks.hpp"
 
 namespace darcel {
 

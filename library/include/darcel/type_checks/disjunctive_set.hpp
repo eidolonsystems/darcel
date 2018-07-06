@@ -1,8 +1,8 @@
 #ifndef DARCEL_DISJUNCTIVE_SET_HPP
 #define DARCEL_DISJUNCTIVE_SET_HPP
 #include <vector>
-#include "darcel/type_checker/conjunctive_set.hpp"
-#include "darcel/type_checker/type_checker.hpp"
+#include "darcel/type_checks/conjunctive_set.hpp"
+#include "darcel/type_checks/type_checks.hpp"
 
 namespace darcel {
 

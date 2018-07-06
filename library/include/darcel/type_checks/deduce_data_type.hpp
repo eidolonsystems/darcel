@@ -3,8 +3,8 @@
 #include "darcel/semantics/scope.hpp"
 #include "darcel/syntax/syntax_node_visitor.hpp"
 #include "darcel/syntax/syntax_nodes.hpp"
-#include "darcel/type_checker/function_overloads.hpp"
-#include "darcel/type_checker/type_checker.hpp"
+#include "darcel/type_checks/function_overloads.hpp"
+#include "darcel/type_checks/type_checks.hpp"
 
 namespace darcel {
 

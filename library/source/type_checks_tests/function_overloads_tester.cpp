@@ -1,6 +1,6 @@
 #include <catch.hpp>
 #include "darcel/data_types/integer_data_type.hpp"
-#include "darcel/type_checker/function_overloads.hpp"
+#include "darcel/type_checks/function_overloads.hpp"
 
 using namespace darcel;
 

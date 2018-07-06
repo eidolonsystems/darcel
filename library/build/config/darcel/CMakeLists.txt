@@ -12,15 +12,15 @@ file(GLOB semantics_header_files ./../../../include/darcel/semantics/*.hpp)
 source_group("semantics" FILES ${semantics_header_files})
 file(GLOB syntax_header_files ./../../../include/darcel/syntax/*.hpp)
 source_group("syntax" FILES ${syntax_header_files})
-file(GLOB type_checker_header_files
-  ./../../../include/darcel/type_checker/*.hpp)
-source_group("type_checker" FILES ${type_checker_header_files})
+file(GLOB type_checks_header_files
+  ./../../../include/darcel/type_checks/*.hpp)
+source_group("type_checks" FILES ${type_checks_header_files})
 file(GLOB utilities_header_files ./../../../include/darcel/utilities/*.hpp)
 source_group("utilities" FILES ${utilities_header_files})
 
 file(GLOB header_files ${darcel_header_files} ${data_types_header_files}
   ${lexicon_header_files} ${operations_header_files} ${reactors_header_files}
-  ${semantics_header_files} ${syntax_header_files} ${type_checker_header_files}
+  ${semantics_header_files} ${syntax_header_files} ${type_checks_header_files}
   ${utilities_header_files})
 
 if(MSVC)

@@ -1,5 +1,5 @@
-#ifndef DARCEL_TYPE_CHECKER_HPP
-#define DARCEL_TYPE_CHECKER_HPP
+#ifndef DARCEL_TYPE_CHECKS_HPP
+#define DARCEL_TYPE_CHECKS_HPP
 #include <memory>
 #include <unordered_map>
 #include "darcel/data_types/data_types.hpp"

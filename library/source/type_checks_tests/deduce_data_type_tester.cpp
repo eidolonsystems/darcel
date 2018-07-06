@@ -2,7 +2,7 @@
 #include "darcel/data_types/integer_data_type.hpp"
 #include "darcel/semantics/builtin_scope.hpp"
 #include "darcel/syntax/syntax_builders.hpp"
-#include "darcel/type_checker/deduce_data_type.hpp"
+#include "darcel/type_checks/deduce_data_type.hpp"
 
 using namespace darcel;
 

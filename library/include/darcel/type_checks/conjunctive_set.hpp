@@ -4,8 +4,8 @@
 #include <vector>
 #include "darcel/data_types/data_type.hpp"
 #include "darcel/syntax/expression.hpp"
-#include "darcel/type_checker/deduce_data_type.hpp"
-#include "darcel/type_checker/type_checker.hpp"
+#include "darcel/type_checks/deduce_data_type.hpp"
+#include "darcel/type_checks/type_checks.hpp"
 
 namespace darcel {
 
