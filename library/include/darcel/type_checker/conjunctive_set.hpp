@@ -18,7 +18,7 @@ namespace darcel {
       conjunctive_set() = default;
 
       //! Tests if all requirements are satisfied using a specified mapping
-      //! from expressions to types.
+      //! from variables to types.
       /*!
         \param t The mapping to test for satisfiability.
         \return true iff all requirements are satisfied using <i>t</i>.
@@ -43,8 +43,12 @@ namespace darcel {
 
   inline bool conjunctive_set::is_satisfied(const type_map& t) const {
     for(auto& term : m_terms) {
-      auto term_type = deduce_data_type(*term.m_expression, t);
-      if(term_type == nullptr || *term_type != *term.m_type) {
+      try {
+        auto term_type = deduce_data_type(*term.m_expression, t);
+        if(term_type == nullptr || *term_type != *term.m_type) {
+          return false;
+        }
+      } catch(const syntax_error&) {
         return false;
       }
     }

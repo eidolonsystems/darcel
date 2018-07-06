@@ -12,6 +12,7 @@ namespace darcel {
   /*!
     \param e The expression whose data type is to be deduced.
     \param t A map containing previously deduced expression data types.
+    \throw syntax_error If the expression has a type error.
   */
   inline std::shared_ptr<data_type> deduce_data_type(const expression& e,
       const type_map& t) {
@@ -61,16 +62,24 @@ namespace darcel {
       }
 
       void visit(const function_expression& node) override {
+
+        // TODO: Add a custom type to represent overloaded functions.
       }
 
       void visit(const literal_expression& node) override {
         m_result = node.get_literal().get_type();
       }
 
+      void visit(const syntax_node& node) override {
+        throw syntax_error(syntax_error_code::EXPRESSION_EXPECTED,
+          node.get_location());
+      }
+
       void visit(const variable_expression& node) override {
         auto i = m_type_map->find(node.get_variable());
         if(i == m_type_map->end()) {
-          return;
+          throw syntax_error(syntax_error_code::VARIABLE_NOT_FOUND,
+            node.get_location());
         }
         m_result = i->second;
       }

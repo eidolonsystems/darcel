@@ -219,8 +219,8 @@ namespace darcel {
     \param s The scope containing the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_literal_expression(
-      location l, const scope& s, bool value) {
+  inline std::unique_ptr<literal_expression> make_literal(location l,
+      const scope& s, bool value) {
     std::string v = [&] {
       if(value) {
         return "true";
@@ -236,9 +236,9 @@ namespace darcel {
     \param s The scope containing the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_literal_expression(
-      const scope& s, bool value) {
-    return make_literal_expression(location::global(), s, value);
+  inline std::unique_ptr<literal_expression> make_literal(const scope& s,
+      bool value) {
+    return make_literal(location::global(), s, value);
   }
 
   //! Makes a literal integer expression.
@@ -247,8 +247,8 @@ namespace darcel {
     \param s The scope containing the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_literal_expression(
-      location l, const scope& s, int value) {
+  inline std::unique_ptr<literal_expression> make_literal(location l,
+      const scope& s, int value) {
     return std::make_unique<literal_expression>(std::move(l), s,
       literal(std::to_string(value), integer_data_type::get_instance()));
   }
@@ -258,9 +258,9 @@ namespace darcel {
     \param s The scope containing the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_literal_expression(
-      const scope& s, int value) {
-    return make_literal_expression(location::global(), s, value);
+  inline std::unique_ptr<literal_expression> make_literal(const scope& s,
+      int value) {
+    return make_literal(location::global(), s, value);
   }
 
   //! Makes a literal text expression.
@@ -269,8 +269,8 @@ namespace darcel {
     \param s The scope containing the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_text_expression(
-      location l, const scope& s, std::string value) {
+  inline std::unique_ptr<literal_expression> make_text(location l,
+      const scope& s, std::string value) {
     return std::make_unique<literal_expression>(std::move(l), s,
       literal(std::move(value), text_data_type::get_instance()));
   }
@@ -280,9 +280,9 @@ namespace darcel {
     \param s The scope containing the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_text_expression(
-      const scope& s, std::string value) {
-    return make_text_expression(location::global(), s, std::move(value));
+  inline std::unique_ptr<literal_expression> make_text(const scope& s,
+      std::string value) {
+    return make_text(location::global(), s, std::move(value));
   }
 
   //! Makes a variable expression.
