@@ -19,6 +19,9 @@ namespace darcel {
       //! Constructs an empty global scope.
       scope();
 
+      //! Returns the parent scope (potentially null).
+      const scope* get_parent() const;
+
       //! Tests if an element with a specified name is contained within this
       //! scope (that is directly within this scope, not a parent scope).
       bool contains(const std::string& name) const;
@@ -35,6 +38,10 @@ namespace darcel {
       //! scope, not a parent scope).
       std::shared_ptr<element> find_within(const std::string& name) const;
 
+      //! Returns a function's definitions contained strictly within this scope.
+      const std::vector<std::shared_ptr<function_definition>>&
+        get_definitions(const function& f) const;
+
       //! Adds an element to this scope.
       /*!
         \param e The element to add.
@@ -50,7 +57,7 @@ namespace darcel {
       const scope* m_parent;
       std::vector<std::unique_ptr<scope>> m_children;
       std::unordered_map<std::string, std::shared_ptr<element>> m_elements;
-      std::unordered_map<std::string,
+      std::unordered_map<const function*,
         std::vector<std::shared_ptr<function_definition>>>
         m_function_definitions;
 
@@ -61,6 +68,10 @@ namespace darcel {
 
   inline scope::scope()
       : m_parent(nullptr) {}
+
+  inline const scope* scope::get_parent() const {
+    return m_parent;
+  }
 
   inline bool scope::contains(const std::string& name) const {
     return m_elements.count(name) == 1;
@@ -92,15 +103,29 @@ namespace darcel {
     return e->second;
   }
 
+  inline const std::vector<std::shared_ptr<function_definition>>&
+      scope::get_definitions(const function& f) const {
+    static std::vector<std::shared_ptr<function_definition>> EMPTY;
+    auto i = m_function_definitions.find(&f);
+    if(i == m_function_definitions.end()) {
+      return EMPTY;
+    }
+    return i->second;
+  }
+
   inline bool scope::add(std::shared_ptr<element> e) {
-    if(auto f = std::dynamic_pointer_cast<function_definition>(e)) {
-      auto& definitions = m_function_definitions[e->get_name()];
-      for(auto& definition : definitions) {
-        if(*definition->get_type() == *f->get_type()) {
+    if(auto definition = std::dynamic_pointer_cast<function_definition>(e)) {
+      auto f = find<function>(e->get_name());
+      if(f == nullptr) {
+        return false;
+      }
+      auto& definitions = m_function_definitions[f.get()];
+      for(auto& d : definitions) {
+        if(*d->get_type() == *definition->get_type()) {
           return false;
         }
       }
-      definitions.push_back(std::move(f));
+      definitions.push_back(std::move(definition));
       return true;
     } else {
       return m_elements.try_emplace(e->get_name(), e).second;

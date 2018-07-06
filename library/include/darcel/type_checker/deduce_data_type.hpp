@@ -1,7 +1,9 @@
 #ifndef DARCEL_DEDUCE_DATA_TYPE_HPP
 #define DARCEL_DEDUCE_DATA_TYPE_HPP
+#include "darcel/semantics/scope.hpp"
 #include "darcel/syntax/syntax_node_visitor.hpp"
 #include "darcel/syntax/syntax_nodes.hpp"
+#include "darcel/type_checker/function_overloads.hpp"
 #include "darcel/type_checker/type_checker.hpp"
 
 namespace darcel {
@@ -25,18 +27,32 @@ namespace darcel {
       }
 
       void visit(const call_expression& node) override {
+        std::vector<function_data_type::parameter> parameters;
+        for(auto& parameter : node.get_parameters()) {
+          parameters.emplace_back("",
+            deduce_data_type(*parameter, *m_type_map));
+        }
         auto callable_type =
           [&] {
             if(auto f = dynamic_cast<const function_expression*>(
                 &node.get_callable())) {
-              return deduce_data_type(node.get_callable(), *m_type_map);
+              auto overload = find_overload(*f->get_function(),
+                parameters, node.get_scope());
+              if(overload == nullptr) {
+                throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
+                  node.get_callable().get_location());
+              }
+              return std::static_pointer_cast<data_type>(overload->get_type());
             } else {
               return deduce_data_type(node.get_callable(), *m_type_map);
             }
           }();
-        std::vector<std::shared_ptr<data_type>> parameters;
-        for(auto& parameter : node.get_parameters()) {
-          parameters.push_back(deduce_data_type(*parameter, *m_type_map));
+        if(auto f = std::dynamic_pointer_cast<function_data_type>(
+            callable_type)) {
+          m_result = f->get_return_type();
+        } else {
+          throw syntax_error(syntax_error_code::EXPRESSION_NOT_CALLABLE,
+            node.get_callable().get_location());
         }
       }
 
