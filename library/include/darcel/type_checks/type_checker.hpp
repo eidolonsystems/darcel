@@ -3,7 +3,6 @@
 #include "darcel/semantics/variable.hpp"
 #include "darcel/syntax/syntax_node_visitor.hpp"
 #include "darcel/syntax/syntax_nodes.hpp"
-#include "darcel/type_checks/deduce_data_type.hpp"
 #include "darcel/type_checks/type_checks.hpp"
 
 namespace darcel {
@@ -38,6 +37,7 @@ namespace darcel {
   inline void type_checker::check(const syntax_node& node) {
     struct type_check_visitor final : syntax_node_visitor {
       type_map* m_types;
+      std::shared_ptr<data_type> m_last;
 
       void operator ()(type_map& types, const syntax_node& node) {
         m_types = &types;
@@ -48,18 +48,42 @@ namespace darcel {
         std::vector<function_data_type::parameter> parameters;
         for(auto& parameter : node.get_parameters()) {
           parameters.emplace_back(parameter.m_variable->get_name(),
-            parameter.m_type);
+            *parameter.m_type);
+          m_types->insert(std::make_pair(parameter.m_variable.get(),
+            *parameter.m_type));
         }
-        auto r = deduce_data_type(node.get_expression(), *m_types);
+        node.get_expression().apply(*this);
         auto t = std::make_shared<function_data_type>(std::move(parameters),
-          std::move(r));
-        
+          std::move(m_last));
 //        m_types->insert(std::make_pair(node.get_function().get(), t));
       }
 
       void visit(const bind_variable_statement& node) override {
-        auto t = deduce_data_type(node.get_expression(), *m_types);
-        m_types->insert(std::make_pair(node.get_variable().get(), t));
+        node.get_expression().apply(*this);
+        m_types->insert(std::make_pair(node.get_variable().get(),
+          std::move(m_last)));
+      }
+
+      void visit(const enum_expression& node) override {
+        m_last = node.get_enum();
+      }
+
+      void visit(const literal_expression& node) override {
+        m_last = node.get_literal().get_type();
+      }
+
+      void visit(const syntax_node& node) override {
+        throw syntax_error(syntax_error_code::EXPRESSION_EXPECTED,
+          node.get_location());
+      }
+
+      void visit(const variable_expression& node) override {
+        auto i = m_types->find(node.get_variable().get());
+        if(i == m_types->end()) {
+          throw syntax_error(syntax_error_code::VARIABLE_NOT_FOUND,
+            node.get_location());
+        }
+        m_last = i->second;
       }
     };
     type_check_visitor()(m_types, node);

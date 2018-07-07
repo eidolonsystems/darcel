@@ -13,3 +13,14 @@ TEST_CASE("test_bind_variable_type_checker", "[type_checker]") {
   REQUIRE(*checker.get_type(*binding->get_variable()) ==
     integer_data_type());
 }
+
+TEST_CASE("test_bind_function_type_checker", "[type_checker]") {
+  auto top_scope = make_builtin_scope();
+  auto binding = bind_function(*top_scope, "f",
+    {{"x", integer_data_type::get_instance()}},
+    [&] (scope& s) {
+      return find_term("x", s);
+    });
+  type_checker checker;
+  REQUIRE_NOTHROW(checker.check(*binding));
+}
