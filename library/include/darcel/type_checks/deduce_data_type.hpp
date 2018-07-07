@@ -76,7 +76,7 @@ namespace darcel {
       }
 
       void visit(const variable_expression& node) override {
-        auto i = m_type_map->find(node.get_variable());
+        auto i = m_type_map->find(node.get_variable().get());
         if(i == m_type_map->end()) {
           throw syntax_error(syntax_error_code::VARIABLE_NOT_FOUND,
             node.get_location());

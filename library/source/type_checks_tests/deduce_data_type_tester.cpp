@@ -19,7 +19,7 @@ TEST_CASE("test_deduce_variable", "[deduce_data_type]") {
   auto top_scope = make_builtin_scope();
   type_map m;
   auto x = std::make_shared<variable>(location::global(), "x");
-  m.insert(std::make_pair(x, integer_data_type::get_instance()));
+  m.insert(std::make_pair(x.get(), integer_data_type::get_instance()));
   auto s = std::make_unique<variable_expression>(location::global(),
     *top_scope, x);
   auto t = deduce_data_type(*s, m);

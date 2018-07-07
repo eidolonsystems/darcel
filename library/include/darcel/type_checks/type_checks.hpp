@@ -10,7 +10,7 @@ namespace darcel {
   class constraints;
   class disjunctive_set;
   class type_checker;
-  using type_map = std::unordered_map<std::shared_ptr<variable>,
+  using type_map = std::unordered_map<const variable*,
     std::shared_ptr<data_type>>;
 }
 
