@@ -42,7 +42,7 @@ namespace darcel {
         std::move(e), std::move(symbol));
     }
     auto s = std::make_unique<enum_expression>(cursor.get_location(),
-      get_current_scope(), std::move(e), index);
+      std::move(e), index);
     cursor = c;
     return s;
   }
@@ -59,7 +59,7 @@ namespace darcel {
       return nullptr;
     }
     auto node = std::make_unique<function_expression>(cursor.get_location(),
-      get_current_scope(), std::move(f));
+      std::move(f));
     cursor = c;
     return node;
   }
@@ -71,7 +71,7 @@ namespace darcel {
         using T = std::decay_t<decltype(value)>;
         if constexpr(std::is_same_v<T, literal>) {
           auto expression = std::make_unique<literal_expression>(
-            cursor.get_location(), get_current_scope(), value);
+            cursor.get_location(), value);
           ++cursor;
           return expression;
         }
@@ -141,9 +141,9 @@ namespace darcel {
             o.m_location);
         }
         auto callable = std::make_unique<function_expression>(o.m_location,
-          get_current_scope(), std::move(f));
-        auto call_expression = call(o.m_location, get_current_scope(),
-          std::move(callable), std::move(arguments));
+          std::move(f));
+        auto call_expression = call(o.m_location, std::move(callable),
+          std::move(arguments));
         expressions.push_back(std::move(call_expression));
       };
     auto c = cursor;
@@ -184,8 +184,8 @@ namespace darcel {
           }
           auto callable = std::move(expressions.back());
           expressions.pop_back();
-          auto call_expression = call(call_location, get_current_scope(),
-            std::move(callable), std::move(arguments));
+          auto call_expression = call(call_location, std::move(callable),
+            std::move(arguments));
           expressions.push_back(std::move(call_expression));
           ++c;
         } else if(c->get_type() == token::type::OPERATION) {

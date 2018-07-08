@@ -7,8 +7,8 @@ using namespace darcel;
 
 TEST_CASE("test_bind_variable_type_checker", "[type_checker]") {
   auto top_scope = make_builtin_scope();
-  auto binding = bind_variable(*top_scope, "x", make_literal(*top_scope, 123));
-  type_checker checker;
+  auto binding = bind_variable(*top_scope, "x", make_literal(123));
+  type_checker checker(*top_scope);
   REQUIRE_NOTHROW(checker.check(*binding));
   REQUIRE(*checker.get_type(*binding->get_variable()) ==
     integer_data_type());
@@ -21,6 +21,6 @@ TEST_CASE("test_bind_function_type_checker", "[type_checker]") {
     [&] (scope& s) {
       return find_term("x", s);
     });
-  type_checker checker;
+  type_checker checker(*top_scope);
   REQUIRE_NOTHROW(checker.check(*binding));
 }

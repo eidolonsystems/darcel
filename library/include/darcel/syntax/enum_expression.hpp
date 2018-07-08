@@ -15,12 +15,10 @@ namespace darcel {
       //! Constructs an enum expression.
       /*!
         \param l The location of the token representing the enum value.
-        \param s The scope containing the expression.
         \param e The enum data type being accessed.
         \param index The index of the symbol being accessed.
       */
-      enum_expression(location l, const scope& s,
-        std::shared_ptr<enum_data_type> e, int index);
+      enum_expression(location l, std::shared_ptr<enum_data_type> e, int index);
 
       //! Returns the enum data type being accessed.
       const std::shared_ptr<enum_data_type>& get_enum() const;
@@ -35,9 +33,9 @@ namespace darcel {
       int m_index;
   };
 
-  inline enum_expression::enum_expression(location l, const scope& s,
+  inline enum_expression::enum_expression(location l,
       std::shared_ptr<enum_data_type> e, int index)
-      : expression(std::move(l), s),
+      : expression(std::move(l)),
         m_enum(std::move(e)),
         m_index(index) {}
 

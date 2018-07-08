@@ -15,12 +15,11 @@ namespace darcel {
       //! Constructs a bind statement.
       /*!
         \param l The location of the statement.
-        \param s The scope containing the statement.
         \param v The variable to bind.
         \param e The expression to bind to the variable.
       */
-      bind_variable_statement(location l, const scope& s,
-        std::shared_ptr<variable> v, std::unique_ptr<expression> e);
+      bind_variable_statement(location l, std::shared_ptr<variable> v,
+        std::unique_ptr<expression> e);
 
       //! Returns the variable.
       const std::shared_ptr<variable>& get_variable() const;
@@ -36,9 +35,8 @@ namespace darcel {
   };
 
   inline bind_variable_statement::bind_variable_statement(location l,
-      const scope& s, std::shared_ptr<variable> v,
-      std::unique_ptr<expression> e)
-      : statement(std::move(l), s),
+      std::shared_ptr<variable> v, std::unique_ptr<expression> e)
+      : statement(std::move(l)),
         m_variable(std::move(v)),
         m_expression(std::move(e)) {}
 

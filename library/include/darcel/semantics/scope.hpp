@@ -2,7 +2,6 @@
 #define DARCEL_SCOPE_HPP
 #include <memory>
 #include <unordered_map>
-#include <vector>
 #include "darcel/semantics/element.hpp"
 #include "darcel/semantics/function.hpp"
 #include "darcel/semantics/function_definition.hpp"
@@ -18,6 +17,12 @@ namespace darcel {
 
       //! Constructs an empty global scope.
       scope();
+
+      //! Constructs a child scope.
+      /*!
+        \param parent The parent scope.
+      */
+      scope(const scope* parent);
 
       //! Returns the parent scope (potentially null).
       const scope* get_parent() const;
@@ -50,24 +55,22 @@ namespace darcel {
       */
       bool add(std::shared_ptr<element> e);
 
-      //! Makes an empty child scope directly owned by this scope.
-      scope& make_child();
-
     private:
       const scope* m_parent;
-      std::vector<std::unique_ptr<scope>> m_children;
       std::unordered_map<std::string, std::shared_ptr<element>> m_elements;
       std::unordered_map<const function*,
         std::vector<std::shared_ptr<function_definition>>>
         m_function_definitions;
 
-      scope(const scope* parent);
       scope(const scope&) = delete;
       scope& operator =(const scope&) = delete;
   };
 
   inline scope::scope()
-      : m_parent(nullptr) {}
+      : scope(nullptr) {}
+
+  inline scope::scope(const scope* parent)
+      : m_parent(parent) {}
 
   inline const scope* scope::get_parent() const {
     return m_parent;
@@ -131,15 +134,6 @@ namespace darcel {
       return m_elements.try_emplace(e->get_name(), e).second;
     }
   }
-
-  inline scope& scope::make_child() {
-    m_children.push_back(std::unique_ptr<scope>(new scope(this)));
-    return *m_children.back();
-  }
-
-  inline scope::scope(const scope* parent)
-      : m_parent(parent) {}
-
 }
 
 #endif

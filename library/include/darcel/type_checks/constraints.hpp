@@ -17,10 +17,10 @@ namespace darcel {
       //! Tests if all requirements are satisfied using a specified mapping
       //! from variables to types.
       /*!
-        \param t The mapping to test for satisfiability.
+        \param t The type checker used to test for satisfiability.
         \return true iff all requirements are satisfied using <i>t</i>.
       */
-      bool is_satisfied(const type_map& t) const;
+      bool is_satisfied(const type_checker& t) const;
 
       //! Adds a requirement that an expression must evaluate to a particular
       //! data type.
@@ -46,9 +46,9 @@ namespace darcel {
       std::vector<disjunctive_set> m_constraints;
   };
 
-  inline bool constraints::is_satisfied(const type_map& s) const {
+  inline bool constraints::is_satisfied(const type_checker& t) const {
     for(auto& constraint : m_constraints) {
-      if(!constraint.is_satisfied(s)) {
+      if(!constraint.is_satisfied(t)) {
         return false;
       }
     }

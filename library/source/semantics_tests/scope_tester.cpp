@@ -17,7 +17,7 @@ TEST_CASE("test_scope_lookup", "[scope]") {
     REQUIRE(s1.find_within("abc") == abc);
   }
   {
-    auto& s2 = s1.make_child();
+    scope s2(&s1);
     REQUIRE(!s2.contains("abc"));
     REQUIRE(s2.find_within("abc") == nullptr);
     auto abc = s2.find<variable>("abc");

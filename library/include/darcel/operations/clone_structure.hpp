@@ -23,46 +23,44 @@ namespace darcel {
       }
 
       void visit(const bind_enum_statement& node) override {
-        m_clone = std::make_unique<bind_enum_statement>(node.get_scope(),
-          node.get_enum());
+        m_clone = std::make_unique<bind_enum_statement>(node.get_enum());
       }
 
       void visit(const bind_function_statement& node) override {
         m_clone = std::make_unique<bind_function_statement>(node.get_location(),
-          node.get_scope(), node.get_function(), node.get_parameters(),
+          node.get_function(), node.get_parameters(),
           clone_structure(node.get_expression()));
       }
 
       void visit(const bind_variable_statement& node) override {
         m_clone = std::make_unique<bind_variable_statement>(node.get_location(),
-          node.get_scope(), node.get_variable(),
-          clone_structure(node.get_expression()));
+          node.get_variable(), clone_structure(node.get_expression()));
       }
 
       void visit(const call_expression& node) override {
         m_clone = std::make_unique<call_expression>(node.get_location(),
-          node.get_scope(), clone_structure(node.get_callable()),
+          clone_structure(node.get_callable()),
           clone_structure(node.get_parameters()));
       }
 
       void visit(const enum_expression& node) override {
         m_clone = std::make_unique<enum_expression>(node.get_location(),
-          node.get_scope(), node.get_enum(), node.get_index());
+          node.get_enum(), node.get_index());
       }
 
       void visit(const function_expression& node) override {
         m_clone = std::make_unique<function_expression>(node.get_location(),
-          node.get_scope(), node.get_function());
+        node.get_function());
       }
 
       void visit(const literal_expression& node) override {
         m_clone = std::make_unique<literal_expression>(node.get_location(),
-          node.get_scope(), node.get_literal());
+          node.get_literal());
       }
 
       void visit(const variable_expression& node) override {
         m_clone = std::make_unique<variable_expression>(node.get_location(),
-          node.get_scope(), node.get_variable());
+          node.get_variable());
       }
     };
     return clone_visitor()(node);

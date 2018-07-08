@@ -146,8 +146,8 @@ namespace darcel {
       return f;
     }();
     auto statement = std::make_unique<bind_function_statement>(
-      cursor.get_location(), get_current_scope(), std::move(f),
-      std::move(parameters), std::move(initializer));
+      cursor.get_location(), std::move(f), std::move(parameters),
+      std::move(initializer));
     cursor = c;
     return statement;
   }
@@ -172,8 +172,7 @@ namespace darcel {
   inline std::unique_ptr<terminal_node> syntax_parser::parse_terminal_node(
       token_iterator& cursor) {
     if(!cursor.is_empty() && match(*cursor, terminal::type::end_of_file)) {
-      auto t = std::make_unique<terminal_node>(cursor.get_location(),
-        get_current_scope());
+      auto t = std::make_unique<terminal_node>(cursor.get_location());
       ++cursor;
       return t;
     }

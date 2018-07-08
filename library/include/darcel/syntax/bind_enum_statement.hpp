@@ -13,10 +13,9 @@ namespace darcel {
 
       //! Constructs a bind statement.
       /*!
-        \param s The scope containing the statement.
         \param e The enum to bind.
       */
-      bind_enum_statement(const scope& s, std::shared_ptr<enum_data_type> e);
+      bind_enum_statement(std::shared_ptr<enum_data_type> e);
 
       //! Returns the enum.
       const std::shared_ptr<enum_data_type>& get_enum() const;
@@ -27,9 +26,9 @@ namespace darcel {
       std::shared_ptr<enum_data_type> m_enum;
   };
 
-  inline bind_enum_statement::bind_enum_statement(const scope& s,
+  inline bind_enum_statement::bind_enum_statement(
       std::shared_ptr<enum_data_type> e)
-      : statement(e->get_location(), s),
+      : statement(e->get_location()),
         m_enum(std::move(e)) {}
 
   inline const std::shared_ptr<enum_data_type>&

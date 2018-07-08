@@ -17,12 +17,10 @@ namespace darcel {
       //! Constructs a call_expression.
       /*!
         \param l The location of the opening bracket.
-        \param s The scope containing the expression.
         \param callable The expression to call.
         \param parameters The parameters to apply to the <i>callable</i>.
       */
-      call_expression(location l, const scope& s,
-        std::unique_ptr<expression> callable,
+      call_expression(location l, std::unique_ptr<expression> callable,
         std::vector<std::unique_ptr<expression>> parameters);
 
       //! Returns the callable expression.
@@ -38,10 +36,10 @@ namespace darcel {
       std::vector<std::unique_ptr<expression>> m_parameters;
   };
 
-  inline call_expression::call_expression(location l, const scope& s,
+  inline call_expression::call_expression(location l,
       std::unique_ptr<expression> callable,
       std::vector<std::unique_ptr<expression>> parameters)
-      : expression(std::move(l), s),
+      : expression(std::move(l)),
         m_callable(std::move(callable)),
         m_parameters(std::move(parameters)) {}
 

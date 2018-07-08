@@ -43,7 +43,7 @@ namespace darcel {
     auto type = std::make_shared<enum_data_type>(std::move(l), std::move(name),
       std::move(symbols));
     s.add(type);
-    return std::make_unique<bind_enum_statement>(s, std::move(type));
+    return std::make_unique<bind_enum_statement>(std::move(type));
   }
 
   //! Binds a new function.
@@ -72,7 +72,7 @@ namespace darcel {
       }
       return f;
     }();
-    auto& body_scope = s.make_child();
+    scope body_scope(&s);
     for(auto& parameter : parameters) {
       if(parameter.m_type.has_value()) {
         if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
@@ -86,10 +86,10 @@ namespace darcel {
       }
       body_scope.add(parameter.m_variable);
     }
-    auto& expression_scope = body_scope.make_child();
+    scope expression_scope(&body_scope);
     auto e = body(expression_scope);
-    return std::make_unique<bind_function_statement>(std::move(l), s,
-      std::move(f), std::move(parameters), std::move(e));
+    return std::make_unique<bind_function_statement>(std::move(l), std::move(f),
+      std::move(parameters), std::move(e));
   }
 
   //! Binds a new function.
@@ -142,8 +142,8 @@ namespace darcel {
     }
     auto v = std::make_shared<variable>(l, std::move(name));
     s.add(v);
-    return std::make_unique<bind_variable_statement>(std::move(l), s,
-      std::move(v), std::move(e));
+    return std::make_unique<bind_variable_statement>(std::move(l), std::move(v),
+      std::move(e));
   }
 
   //! Binds a new variable to an expression.
@@ -160,14 +160,13 @@ namespace darcel {
   //! Makes a call expression.
   /*!
     \param l The location of the expression.
-    \param s The scope containing the expression.
     \param callable The expression to call.
     \param arguments The list of arguments to pass to the function.
   */
-  inline std::unique_ptr<call_expression> call(location l, const scope& s,
+  inline std::unique_ptr<call_expression> call(location l,
       std::unique_ptr<expression> callable,
       std::vector<std::unique_ptr<expression>> arguments) {
-    return std::make_unique<call_expression>(l, s, std::move(callable),
+    return std::make_unique<call_expression>(l, std::move(callable),
       std::move(arguments));
   }
 
@@ -182,7 +181,7 @@ namespace darcel {
   inline std::unique_ptr<call_expression> call(location l, const scope& s,
       std::string name, std::vector<std::unique_ptr<expression>> arguments) {
     auto callable = find_term(l, s, name);
-    return call(std::move(l), s, std::move(callable), std::move(arguments));
+    return call(std::move(l), std::move(callable), std::move(arguments));
   }
 
   //! Makes a call expression.
@@ -241,69 +240,61 @@ namespace darcel {
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_literal(location l,
-      const scope& s, bool value) {
+      bool value) {
     std::string v = [&] {
       if(value) {
         return "true";
       }
       return "false";
     }();
-    return std::make_unique<literal_expression>(std::move(l), s,
+    return std::make_unique<literal_expression>(std::move(l),
       literal(v, bool_data_type::get_instance()));
   }
 
   //! Makes a literal integer expression.
   /*!
-    \param s The scope containing the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_literal(const scope& s,
-      bool value) {
-    return make_literal(location::global(), s, value);
+  inline std::unique_ptr<literal_expression> make_literal(bool value) {
+    return make_literal(location::global(), value);
   }
 
   //! Makes a literal integer expression.
   /*!
     \param l The location of the expression.
-    \param s The scope containing the expression.
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_literal(location l,
-      const scope& s, int value) {
-    return std::make_unique<literal_expression>(std::move(l), s,
+      int value) {
+    return std::make_unique<literal_expression>(std::move(l),
       literal(std::to_string(value), integer_data_type::get_instance()));
   }
 
   //! Makes a literal integer expression.
   /*!
-    \param s The scope containing the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_literal(const scope& s,
-      int value) {
-    return make_literal(location::global(), s, value);
+  inline std::unique_ptr<literal_expression> make_literal(int value) {
+    return make_literal(location::global(), value);
   }
 
   //! Makes a literal text expression.
   /*!
     \param l The location of the expression.
-    \param s The scope containing the expression.
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_text(location l,
-      const scope& s, std::string value) {
-    return std::make_unique<literal_expression>(std::move(l), s,
+      std::string value) {
+    return std::make_unique<literal_expression>(std::move(l),
       literal(std::move(value), text_data_type::get_instance()));
   }
 
   //! Makes a literal text expression.
   /*!
-    \param s The scope containing the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_text(const scope& s,
-      std::string value) {
-    return make_text(location::global(), s, std::move(value));
+  inline std::unique_ptr<literal_expression> make_text(std::string value) {
+    return make_text(location::global(), std::move(value));
   }
 
   //! Makes a variable expression.
@@ -318,7 +309,7 @@ namespace darcel {
     if(v == nullptr) {
       throw variable_not_found_error(l, name);
     }
-    return std::make_unique<variable_expression>(l, s, std::move(v));
+    return std::make_unique<variable_expression>(l, std::move(v));
   }
 
   //! Makes a variable expression.
@@ -341,11 +332,9 @@ namespace darcel {
       const std::string& name) {
     auto e = s.find(name);
     if(auto f = std::dynamic_pointer_cast<function>(e)) {
-      return std::make_unique<function_expression>(std::move(l), s,
-        std::move(f));
+      return std::make_unique<function_expression>(std::move(l), std::move(f));
     } else if(auto v = std::dynamic_pointer_cast<variable>(e)) {
-      return std::make_unique<variable_expression>(std::move(l), s,
-        std::move(v));
+      return std::make_unique<variable_expression>(std::move(l), std::move(v));
     }
     throw variable_not_found_error(l, name);
   }

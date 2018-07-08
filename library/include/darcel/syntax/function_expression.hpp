@@ -16,11 +16,9 @@ namespace darcel {
       //! Constructs a function expression.
       /*!
         \param l The location of the identifier token.
-        \param s The scope containing the expression.
         \param f The function to evaluate.
       */
-      function_expression(location l, const scope& s,
-        std::shared_ptr<function> f);
+      function_expression(location l, std::shared_ptr<function> f);
 
       //! Returns the function to evaluate.
       const std::shared_ptr<function>& get_function() const;
@@ -31,9 +29,9 @@ namespace darcel {
       std::shared_ptr<function> m_function;
   };
 
-  inline function_expression::function_expression(location l, const scope& s,
+  inline function_expression::function_expression(location l,
       std::shared_ptr<function> f)
-      : expression(std::move(l), s),
+      : expression(std::move(l)),
         m_function(std::move(f)) {}
 
   inline const std::shared_ptr<function>& function_expression::

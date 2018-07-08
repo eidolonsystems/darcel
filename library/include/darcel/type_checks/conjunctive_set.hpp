@@ -4,8 +4,8 @@
 #include <vector>
 #include "darcel/data_types/data_type.hpp"
 #include "darcel/syntax/expression.hpp"
-#include "darcel/type_checks/deduce_data_type.hpp"
 #include "darcel/type_checks/type_checks.hpp"
+#include "darcel/type_checks/type_checker.hpp"
 
 namespace darcel {
 
@@ -20,10 +20,10 @@ namespace darcel {
       //! Tests if all requirements are satisfied using a specified mapping
       //! from variables to types.
       /*!
-        \param t The mapping to test for satisfiability.
+        \param t The type checker used to test for satisfiability.
         \return true iff all requirements are satisfied using <i>t</i>.
       */
-      bool is_satisfied(const type_map& t) const;
+      bool is_satisfied(const type_checker& t) const;
 
       //! Adds a requirement that an expression must evaluate to a particular
       //! data type.
@@ -41,10 +41,10 @@ namespace darcel {
       std::vector<term> m_terms;
   };
 
-  inline bool conjunctive_set::is_satisfied(const type_map& t) const {
+  inline bool conjunctive_set::is_satisfied(const type_checker& t) const {
     for(auto& term : m_terms) {
       try {
-        auto term_type = deduce_data_type(*term.m_expression, t);
+        auto term_type = t.get_type(*term.m_expression);
         if(term_type == nullptr || *term_type != *term.m_type) {
           return false;
         }
