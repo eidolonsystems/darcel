@@ -104,11 +104,6 @@ namespace darcel {
 
   inline void reactor_translator::add(std::shared_ptr<function> f,
       std::shared_ptr<variable> v, generic_builder definition) {
-    for(auto& overload : f->get_overloads()) {
-      m_overloads.insert(std::make_pair(overload, f));
-    }
-    m_generic_builders.insert(std::make_pair(std::move(v),
-      std::move(definition)));
   }
 
   inline void reactor_translator::translate(const syntax_node& node) {
@@ -124,44 +119,6 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const bind_function_statement& node) {
-    struct parameter_reactor_builder final : reactor_builder {
-      std::shared_ptr<reactor_builder> m_builder;
-
-      void set_builder(std::shared_ptr<reactor_builder> builder) {
-        m_builder = std::move(builder);
-      }
-
-      std::shared_ptr<base_reactor> build(
-          const std::vector<std::shared_ptr<reactor_builder>>& parameters,
-          trigger& t) const override {
-        return m_builder->build(parameters, t);
-      }
-    };
-    if(is_generic(*node.get_overload()->get_data_type())) {
-      m_generic_definitions.insert(
-        std::make_pair(node.get_overload(), clone_structure(node)));
-      for(auto& overload : node.get_function()->get_overloads()) {
-        m_overloads.insert(std::make_pair(overload, node.get_function()));
-      }
-      return;
-    }
-    std::vector<std::shared_ptr<parameter_reactor_builder>> proxies;
-    for(auto& parameter : node.get_parameters()) {
-      proxies.push_back(std::make_shared<parameter_reactor_builder>());
-      m_variables[parameter] = proxies.back();
-    }
-    auto evaluation = evaluate(node.get_expression());
-    auto builder = std::make_shared<function_reactor_builder>(
-      [=] (auto& parameters, auto& t) {
-        for(std::size_t i = 0; i < parameters.size(); ++i) {
-          proxies[i]->set_builder(parameters[i]);
-        }
-        return evaluation->build(t);
-      });
-    m_variables[node.get_overload()] = std::move(builder);
-    for(auto& parameter : node.get_parameters()) {
-      m_variables.erase(parameter);
-    }
   }
 
   inline void reactor_translator::visit(const bind_variable_statement& node) {
@@ -189,13 +146,6 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const function_expression& node) {
-    auto overload = node.get_function()->get_overloads().front();
-    auto evaluation = m_variables.find(overload);
-    if(evaluation != m_variables.end()) {
-      m_evaluation = evaluation->second;
-    } else {
-      m_evaluation = instantiate(overload);
-    }
   }
 
   inline void reactor_translator::visit(const literal_expression& node) {
@@ -229,7 +179,7 @@ namespace darcel {
       }
     };
     literal_visitor v(node.get_literal());
-    node.get_data_type()->apply(v);
+    node.get_literal().get_type()->apply(v);
     m_evaluation = std::move(v.m_builder);
   }
 
@@ -250,18 +200,7 @@ namespace darcel {
 
   inline std::shared_ptr<reactor_builder> reactor_translator::instantiate(
       std::shared_ptr<variable> v) {
-    auto f = m_overloads.at(v);
-    auto definition = f->get_definition(v);
-    auto builtin = m_generic_builders.find(definition);
-    if(builtin != m_generic_builders.end()) {
-      std::shared_ptr<reactor_builder> builder = builtin->second(v);
-      m_variables.insert(std::make_pair(v, builder));
-      return builder;
-    }
-    auto& node = m_generic_definitions.at(definition);
-    auto implementation = darcel::instantiate(*node, v, m_overloads);
-    implementation->apply(*this);
-    return m_variables.at(v);
+    return nullptr;
   }
 }
 

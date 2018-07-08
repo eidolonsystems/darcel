@@ -142,10 +142,13 @@ namespace darcel {
           m_checker->m_variable_types.insert(
             std::make_pair(parameter.m_variable.get(), *parameter.m_type));
         }
+        m_checker->m_scopes.back()->add(node.get_function());
         node.get_expression().apply(*this);
         auto t = std::make_shared<function_data_type>(std::move(parameters),
           std::move(m_last));
-//        m_types->insert(std::make_pair(node.get_function().get(), t));
+        m_checker->m_scopes.back()->add(
+          std::make_shared<function_definition>(node.get_location(),
+          node.get_function(), std::move(t)));
       }
 
       void visit(const bind_variable_statement& node) override {
