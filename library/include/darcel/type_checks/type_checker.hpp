@@ -190,7 +190,8 @@ namespace darcel {
             &node.get_callable())) {
           std::vector<function_data_type::parameter> parameters;
           for(auto& parameter : node.get_parameters()) {
-            parameters.emplace_back("", m_checker->get_type(*parameter));
+            parameter->apply(*this);
+            parameters.emplace_back("", std::move(m_last));
           }
           auto overload = find_overload(*f->get_function(), parameters,
             *m_checker->m_scopes.back());
@@ -199,9 +200,8 @@ namespace darcel {
               node.get_callable().get_location());
           }
           m_checker->m_call_definitions.insert(std::make_pair(f, overload));
-        } else {
-          visit(static_cast<const expression&>(node));
         }
+        visit(static_cast<const expression&>(node));
       }
 
       void visit(const expression& node) override {

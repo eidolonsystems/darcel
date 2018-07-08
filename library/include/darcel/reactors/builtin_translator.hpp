@@ -263,29 +263,27 @@ namespace darcel {
     \param s The scope to find the function in.
   */
   inline void translate_print(reactor_translator& translator, const scope& s) {
-/*
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<variable>& v) const {
-        auto signature = std::static_pointer_cast<function_data_type>(
-          v->get_data_type());
-        if(*signature->get_parameters()[0].m_type == bool_data_type()) {
+          const std::shared_ptr<function_definition>& f) const {
+        if(*f->get_type()->get_parameters()[0].m_type == bool_data_type()) {
           return make_ostream_reactor_builder<bool>(std::cout);
-        } else if(*signature->get_parameters()[0].m_type ==
+        } else if(*f->get_type()->get_parameters()[0].m_type ==
             float_data_type()) {
           return make_ostream_reactor_builder<double>(std::cout);
-        } else if(*signature->get_parameters()[0].m_type ==
+        } else if(*f->get_type()->get_parameters()[0].m_type ==
             integer_data_type()) {
           return make_ostream_reactor_builder<int>(std::cout);
-        } else if(*signature->get_parameters()[0].m_type ==
+        } else if(*f->get_type()->get_parameters()[0].m_type ==
             text_data_type()) {
           return make_ostream_reactor_builder<std::string>(std::cout);
         } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
-            signature->get_parameters()[0].m_type)) {
+            f->get_type()->get_parameters()[0].m_type)) {
           return std::make_unique<function_reactor_builder>(
             [=] (auto& parameters, auto& t) {
               return make_ostream_reactor(std::cout,
-                std::static_pointer_cast<reactor<std::string>>(make_enum_to_string_reactor(e,
+                std::static_pointer_cast<reactor<std::string>>(
+                make_enum_to_string_reactor(e,
                 std::static_pointer_cast<reactor<int>>(
                 parameters.front()->build(t)))));
             });
@@ -296,8 +294,9 @@ namespace darcel {
       }
     };
     auto f = s.find<function>("print");
-    translator.add(f, f->get_overloads().back(), builder());
-*/
+    if(f != nullptr) {
+      translator.add(s.get_definitions(*f).front(), builder());
+    }
   }
 
   //! Adds definitions for the builtin subtract functions.

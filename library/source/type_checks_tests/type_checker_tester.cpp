@@ -90,3 +90,20 @@ TEST_CASE("test_call_two_distinct_generics_type_checker", "[type_checker]") {
   auto expr3 = call(top_scope, "f", make_literal(false));
   REQUIRE_THROWS(checker.check(*expr3));
 }
+
+TEST_CASE("test_nested_generics_type_checker", "[type_checker]") {
+  scope top_scope;
+  type_checker checker(top_scope);
+  auto f = bind_function(top_scope, "f",
+    {{"x", make_generic_data_type("`T", 0)}},
+    [&] (auto& s) {
+      return find_term("x", s);
+    });
+  auto g = bind_function(top_scope, "g",
+    {{"x", make_generic_data_type("`T", 0)}},
+    [&] (auto& s) {
+      return call(s, "f", find_term("x", s));
+    });
+  REQUIRE_NOTHROW(checker.check(*f));
+  REQUIRE_NOTHROW(checker.check(*g));
+}

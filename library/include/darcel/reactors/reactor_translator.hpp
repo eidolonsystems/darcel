@@ -27,10 +27,10 @@ namespace darcel {
 
       //! Function used to instantiate generic functions.
       /*!
-        \param v The generic to instantiate.
+        \param f The generic to instantiate.
       */
-      using generic_builder = std::function<
-        std::unique_ptr<reactor_builder>(const std::shared_ptr<variable>& v)>;
+      using generic_builder = std::function<std::unique_ptr<reactor_builder>(
+        const std::shared_ptr<function_definition>& f)>;
 
       //! Constructs a reactor translator.
       /*!
@@ -58,10 +58,9 @@ namespace darcel {
       //! Adds a generic definition to the translator.
       /*!
         \param f The generic function being defined.
-        \param v The variable to define.
         \param definition The definition of the variable.
       */
-      void add(std::shared_ptr<function> f, std::shared_ptr<variable> v,
+      void add(std::shared_ptr<function_definition> f,
         generic_builder definition);
 
       //! Builds a reactor from a syntax node.
@@ -95,9 +94,9 @@ namespace darcel {
         std::shared_ptr<reactor_builder>> m_variables;
       std::unordered_map<std::shared_ptr<function_definition>,
         std::shared_ptr<reactor_builder>> m_functions;
-      std::unordered_map<std::shared_ptr<variable>,
+      std::unordered_map<std::shared_ptr<function_definition>,
         std::unique_ptr<bind_function_statement>> m_generic_definitions;
-      std::unordered_map<std::shared_ptr<variable>, generic_builder>
+      std::unordered_map<std::shared_ptr<function_definition>, generic_builder>
         m_generic_builders;
       std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<function>>
         m_overloads;
@@ -121,8 +120,8 @@ namespace darcel {
     m_functions.insert(std::make_pair(std::move(f), std::move(definition)));
   }
 
-  inline void reactor_translator::add(std::shared_ptr<function> f,
-      std::shared_ptr<variable> v, generic_builder definition) {
+  inline void reactor_translator::add(std::shared_ptr<function_definition> f,
+      generic_builder definition) {
   }
 
   inline void reactor_translator::translate(const syntax_node& node) {
@@ -152,6 +151,12 @@ namespace darcel {
         return m_builder->build(parameters, t);
       }
     };
+    auto definition = m_checker.get_definition(node);
+    if(is_generic(*definition->get_type())) {
+      m_generic_definitions.insert(std::make_pair(definition,
+        clone_structure(node)));
+      return;
+    }
     std::vector<std::shared_ptr<parameter_reactor_builder>> proxies;
     for(auto& parameter : node.get_parameters()) {
       proxies.push_back(std::make_shared<parameter_reactor_builder>());
@@ -165,7 +170,6 @@ namespace darcel {
         }
         return evaluation->build(t);
       });
-    auto definition = m_checker.get_definition(node);
     m_functions[definition] = std::move(builder);
     for(auto& parameter : node.get_parameters()) {
       m_variables.erase(parameter.m_variable);
@@ -198,7 +202,11 @@ namespace darcel {
 
   inline void reactor_translator::visit(const function_expression& node) {
     auto definition = m_checker.get_definition(node);
-    m_evaluation = m_functions[definition];
+    if(is_generic(*definition->get_type())) {
+      node;
+    } else {
+      m_evaluation = m_functions[definition];
+    }
   }
 
   inline void reactor_translator::visit(const literal_expression& node) {
