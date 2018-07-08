@@ -34,7 +34,8 @@ int main(int argc, const char** argv) {
     std::istreambuf_iterator<char>());
   token_parser tp;
   tp.feed(contents.c_str(), contents.size());
-  syntax_parser sp(make_builtin_scope());
+  auto top_scope = make_builtin_scope();
+  syntax_parser sp(*top_scope);
   while(auto t = tp.parse_token())  {
     sp.feed(*t);
   }
@@ -50,8 +51,8 @@ int main(int argc, const char** argv) {
     return -1;
   }
   trigger t;
-  reactor_translator rt(t);
-  translate_builtins(rt, sp.get_scope());
+  reactor_translator rt(*top_scope, t);
+  translate_builtins(rt, *top_scope);
   for(auto& node : nodes) {
     rt.translate(*node);
   }

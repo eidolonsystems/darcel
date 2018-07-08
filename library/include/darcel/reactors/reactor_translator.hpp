@@ -17,6 +17,7 @@
 #include "darcel/reactors/trigger.hpp"
 #include "darcel/syntax/syntax_nodes.hpp"
 #include "darcel/syntax/syntax_node_visitor.hpp"
+#include "darcel/type_checks/type_checker.hpp"
 
 namespace darcel {
 
@@ -33,9 +34,10 @@ namespace darcel {
 
       //! Constructs a reactor translator.
       /*!
+        \param s The global scope.
         \param t The trigger used to indicate reactor updates.
       */
-      reactor_translator(trigger& t);
+      reactor_translator(const scope& s, trigger& t);
 
       //! Adds a definition to the translator.
       /*!
@@ -43,6 +45,14 @@ namespace darcel {
         \param definition The definition of the variable.
       */
       void add(std::shared_ptr<variable> v,
+        std::shared_ptr<reactor_builder> definition);
+
+      //! Adds a definition to the translator.
+      /*!
+        \param f The function to define.
+        \param definition The definition of the variable.
+      */
+      void add(std::shared_ptr<function_definition> v,
         std::shared_ptr<reactor_builder> definition);
 
       //! Adds a generic definition to the translator.
@@ -79,9 +89,12 @@ namespace darcel {
 
     private:
       trigger* m_trigger;
+      type_checker m_checker;
       std::shared_ptr<variable> m_main;
       std::unordered_map<std::shared_ptr<variable>,
         std::shared_ptr<reactor_builder>> m_variables;
+      std::unordered_map<std::shared_ptr<function_definition>,
+        std::shared_ptr<reactor_builder>> m_functions;
       std::unordered_map<std::shared_ptr<variable>,
         std::unique_ptr<bind_function_statement>> m_generic_definitions;
       std::unordered_map<std::shared_ptr<variable>, generic_builder>
@@ -94,12 +107,18 @@ namespace darcel {
       std::shared_ptr<reactor_builder> instantiate(std::shared_ptr<variable> v);
   };
 
-  inline reactor_translator::reactor_translator(trigger& t)
-      : m_trigger(&t) {}
+  inline reactor_translator::reactor_translator(const scope& s, trigger& t)
+      : m_trigger(&t),
+        m_checker(s) {}
 
   inline void reactor_translator::add(std::shared_ptr<variable> v,
       std::shared_ptr<reactor_builder> definition) {
     m_variables.insert(std::make_pair(std::move(v), std::move(definition)));
+  }
+
+  inline void reactor_translator::add(std::shared_ptr<function_definition> f,
+      std::shared_ptr<reactor_builder> definition) {
+    m_functions.insert(std::make_pair(std::move(f), std::move(definition)));
   }
 
   inline void reactor_translator::add(std::shared_ptr<function> f,
@@ -107,6 +126,7 @@ namespace darcel {
   }
 
   inline void reactor_translator::translate(const syntax_node& node) {
+    m_checker.check(node);
     node.apply(*this);
   }
 
@@ -119,6 +139,37 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const bind_function_statement& node) {
+    struct parameter_reactor_builder final : reactor_builder {
+      std::shared_ptr<reactor_builder> m_builder;
+
+      void set_builder(std::shared_ptr<reactor_builder> builder) {
+        m_builder = std::move(builder);
+      }
+
+      std::shared_ptr<base_reactor> build(
+          const std::vector<std::shared_ptr<reactor_builder>>& parameters,
+          trigger& t) const override {
+        return m_builder->build(parameters, t);
+      }
+    };
+    std::vector<std::shared_ptr<parameter_reactor_builder>> proxies;
+    for(auto& parameter : node.get_parameters()) {
+      proxies.push_back(std::make_shared<parameter_reactor_builder>());
+      m_variables[parameter.m_variable] = proxies.back();
+    }
+    auto evaluation = evaluate(node.get_expression());
+    auto builder = std::make_shared<function_reactor_builder>(
+      [=] (auto& parameters, auto& t) {
+        for(std::size_t i = 0; i < parameters.size(); ++i) {
+          proxies[i]->set_builder(parameters[i]);
+        }
+        return evaluation->build(t);
+      });
+    auto definition = m_checker.get_definition(node);
+    m_functions[definition] = std::move(builder);
+    for(auto& parameter : node.get_parameters()) {
+      m_variables.erase(parameter.m_variable);
+    }
   }
 
   inline void reactor_translator::visit(const bind_variable_statement& node) {
@@ -146,6 +197,8 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const function_expression& node) {
+    auto definition = m_checker.get_definition(node);
+    m_evaluation = m_functions[definition];
   }
 
   inline void reactor_translator::visit(const literal_expression& node) {

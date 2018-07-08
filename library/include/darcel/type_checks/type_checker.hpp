@@ -31,6 +31,14 @@ namespace darcel {
       //! Returns a variable's data type.
       std::shared_ptr<data_type> get_type(const variable& v) const;
 
+      //! Returns a statement's definition.
+      const std::shared_ptr<function_definition>& get_definition(
+        const bind_function_statement& s) const;
+
+      //! Returns a function expression's particular overload.
+      const std::shared_ptr<function_definition>& get_definition(
+        const function_expression& e) const;
+
       //! Type checks a syntax node.
       void check(const syntax_node& node);
 
@@ -38,6 +46,10 @@ namespace darcel {
       std::deque<std::unique_ptr<scope>> m_scopes;
       std::unordered_map<const variable*, std::shared_ptr<data_type>>
         m_variable_types;
+      std::unordered_map<const bind_function_statement*,
+        std::shared_ptr<function_definition>> m_definitions;
+      std::unordered_map<const function_expression*,
+        std::shared_ptr<function_definition>> m_call_definitions;
   };
 
   inline type_checker::type_checker() {
@@ -62,21 +74,16 @@ namespace darcel {
       }
 
       void visit(const call_expression& node) override {
-        std::vector<function_data_type::parameter> parameters;
-        for(auto& parameter : node.get_parameters()) {
-          parameters.emplace_back("", m_checker->get_type(*parameter));
-        }
         auto callable_type =
           [&] {
             if(auto f = dynamic_cast<const function_expression*>(
                 &node.get_callable())) {
-              auto overload = find_overload(*f->get_function(), parameters,
-                *m_checker->m_scopes.back());
-              if(overload == nullptr) {
+              auto d = m_checker->m_call_definitions.find(f);
+              if(d == m_checker->m_call_definitions.end()) {
                 throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
                   node.get_callable().get_location());
               }
-              return std::static_pointer_cast<data_type>(overload->get_type());
+              return std::static_pointer_cast<data_type>(d->second->get_type());
             } else {
               return m_checker->get_type(node.get_callable());
             }
@@ -124,6 +131,26 @@ namespace darcel {
     return i->second;
   }
 
+  inline const std::shared_ptr<function_definition>&
+      type_checker::get_definition(const bind_function_statement& s) const {
+    auto i = m_definitions.find(&s);
+    if(i == m_definitions.end()) {
+      static const std::shared_ptr<function_definition> NONE;
+      return NONE;
+    }
+    return i->second;
+  }
+
+  inline const std::shared_ptr<function_definition>&
+      type_checker::get_definition(const function_expression& e) const {
+    auto i = m_call_definitions.find(&e);
+    if(i == m_call_definitions.end()) {
+      static const std::shared_ptr<function_definition> NONE;
+      return NONE;
+    }
+    return i->second;
+  }
+
   inline void type_checker::check(const syntax_node& node) {
     struct type_check_visitor final : syntax_node_visitor {
       type_checker* m_checker;
@@ -146,15 +173,35 @@ namespace darcel {
         node.get_expression().apply(*this);
         auto t = std::make_shared<function_data_type>(std::move(parameters),
           std::move(m_last));
-        m_checker->m_scopes.back()->add(
-          std::make_shared<function_definition>(node.get_location(),
-          node.get_function(), std::move(t)));
+        auto definition = std::make_shared<function_definition>(
+          node.get_location(), node.get_function(), std::move(t));
+        m_checker->m_definitions.insert(std::make_pair(&node, definition));
+        m_checker->m_scopes.back()->add(definition);
       }
 
       void visit(const bind_variable_statement& node) override {
         node.get_expression().apply(*this);
         m_checker->m_variable_types.insert(
           std::make_pair(node.get_variable().get(), std::move(m_last)));
+      }
+
+      void visit(const call_expression& node) override {
+        if(auto f = dynamic_cast<const function_expression*>(
+            &node.get_callable())) {
+          std::vector<function_data_type::parameter> parameters;
+          for(auto& parameter : node.get_parameters()) {
+            parameters.emplace_back("", m_checker->get_type(*parameter));
+          }
+          auto overload = find_overload(*f->get_function(), parameters,
+            *m_checker->m_scopes.back());
+          if(overload == nullptr) {
+            throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
+              node.get_callable().get_location());
+          }
+          m_checker->m_call_definitions.insert(std::make_pair(f, overload));
+        } else {
+          visit(static_cast<const expression&>(node));
+        }
       }
 
       void visit(const expression& node) override {
