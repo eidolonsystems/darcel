@@ -27,10 +27,10 @@ namespace darcel {
 
       //! Function used to instantiate generic functions.
       /*!
-        \param f The generic to instantiate.
+        \param f The data type to instantiate.
       */
       using generic_builder = std::function<std::unique_ptr<reactor_builder>(
-        const std::shared_ptr<function_definition>& f)>;
+        const std::shared_ptr<function_data_type>& f)>;
 
       //! Constructs a reactor translator.
       /*!
@@ -121,6 +121,8 @@ namespace darcel {
 
   inline void reactor_translator::add(std::shared_ptr<function_definition> f,
       generic_builder definition) {
+    m_generic_builders.insert(
+      std::make_pair(std::move(f), std::move(definition)));
   }
 
   inline void reactor_translator::translate(const syntax_node& node) {
@@ -197,9 +199,13 @@ namespace darcel {
   inline void reactor_translator::visit(const function_expression& node) {
     auto definition = m_checker.get_definition(node);
     if(is_generic(*definition->get_type())) {
-      auto t = m_checker.get_type(node);
-
-      // TODO
+      auto f = m_generic_builders.find(definition);
+      if(f != m_generic_builders.end()) {
+        auto t = std::static_pointer_cast<function_data_type>(
+          m_checker.get_type(node));
+        m_evaluation = f->second(t);
+        return;
+      }
     }
     m_evaluation = m_functions[definition];
   }
