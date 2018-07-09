@@ -1,7 +1,11 @@
 #ifndef DARCEL_FUNCTION_OVERLOADS_HPP
 #define DARCEL_FUNCTION_OVERLOADS_HPP
+#include <vector>
+#include "darcel/data_types/function_data_type.hpp"
 #include "darcel/data_types/generic_data_type.hpp"
 #include "darcel/data_types/data_type_compatibility.hpp"
+#include "darcel/semantics/function.hpp"
+#include "darcel/semantics/function_definition.hpp"
 #include "darcel/semantics/scope.hpp"
 #include "darcel/type_checks/type_checks.hpp"
 
@@ -167,6 +171,29 @@ namespace darcel {
       return nullptr;
     }
     return overload;
+  }
+
+  //! Instantiates a generic function called with a given list of parameters.
+  /*!
+    \param f The function definition to instantiate.
+    \param p The parameters to instantiate the function with.
+    \return The function type representing the instantiation of f with
+            parameters p.
+  */
+  inline std::shared_ptr<function_data_type> instantiate(
+      const function_definition& f,
+      const std::vector<function_data_type::parameter>& p) {
+    if(is_generic(*f.get_type())) {
+      data_type_map<std::shared_ptr<generic_data_type>,
+        std::shared_ptr<data_type>> substitutions;
+      auto t = std::make_shared<function_data_type>(p,
+        f.get_type()->get_return_type());
+      return std::static_pointer_cast<function_data_type>(
+        substitute_generic(f.get_type(), t, substitutions));
+    } else {
+      return f.get_type();
+    }
+    return nullptr;
   }
 }
 

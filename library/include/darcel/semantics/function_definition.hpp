@@ -2,7 +2,6 @@
 #define DARCEL_FUNCTION_DEFINITION_HPP
 #include <memory>
 #include "darcel/data_types/function_data_type.hpp"
-#include "darcel/semantics/element.hpp"
 #include "darcel/semantics/function.hpp"
 #include "darcel/semantics/semantics.hpp"
 

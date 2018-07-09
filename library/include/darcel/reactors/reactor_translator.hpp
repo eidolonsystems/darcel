@@ -103,7 +103,6 @@ namespace darcel {
       std::shared_ptr<reactor_builder> m_evaluation;
 
       std::shared_ptr<reactor_builder> evaluate(const expression& e);
-      std::shared_ptr<reactor_builder> instantiate(std::shared_ptr<variable> v);
   };
 
   inline reactor_translator::reactor_translator(const scope& s, trigger& t)
@@ -151,12 +150,6 @@ namespace darcel {
         return m_builder->build(parameters, t);
       }
     };
-    auto definition = m_checker.get_definition(node);
-    if(is_generic(*definition->get_type())) {
-      m_generic_definitions.insert(std::make_pair(definition,
-        clone_structure(node)));
-      return;
-    }
     std::vector<std::shared_ptr<parameter_reactor_builder>> proxies;
     for(auto& parameter : node.get_parameters()) {
       proxies.push_back(std::make_shared<parameter_reactor_builder>());
@@ -170,6 +163,7 @@ namespace darcel {
         }
         return evaluation->build(t);
       });
+    auto definition = m_checker.get_definition(node);
     m_functions[definition] = std::move(builder);
     for(auto& parameter : node.get_parameters()) {
       m_variables.erase(parameter.m_variable);
@@ -203,10 +197,11 @@ namespace darcel {
   inline void reactor_translator::visit(const function_expression& node) {
     auto definition = m_checker.get_definition(node);
     if(is_generic(*definition->get_type())) {
-      node;
-    } else {
-      m_evaluation = m_functions[definition];
+      auto t = m_checker.get_type(node);
+
+      // TODO
     }
+    m_evaluation = m_functions[definition];
   }
 
   inline void reactor_translator::visit(const literal_expression& node) {
@@ -245,23 +240,13 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const variable_expression& node) {
-    auto evaluation = m_variables.find(node.get_variable());
-    if(evaluation != m_variables.end()) {
-      m_evaluation = evaluation->second;
-    } else {
-      m_evaluation = instantiate(node.get_variable());
-    }
+    m_evaluation = m_variables[node.get_variable()];
   }
 
   inline std::shared_ptr<reactor_builder> reactor_translator::evaluate(
       const expression& e) {
     e.apply(*this);
     return m_evaluation;
-  }
-
-  inline std::shared_ptr<reactor_builder> reactor_translator::instantiate(
-      std::shared_ptr<variable> v) {
-    return nullptr;
   }
 }
 

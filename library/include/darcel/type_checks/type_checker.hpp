@@ -43,13 +43,16 @@ namespace darcel {
       void check(const syntax_node& node);
 
     private:
+      struct call_entry {
+        std::shared_ptr<function_definition> m_definition;
+        std::shared_ptr<function_data_type> m_type;
+      };
       std::deque<std::unique_ptr<scope>> m_scopes;
       std::unordered_map<const variable*, std::shared_ptr<data_type>>
         m_variable_types;
       std::unordered_map<const bind_function_statement*,
         std::shared_ptr<function_definition>> m_definitions;
-      std::unordered_map<const function_expression*,
-        std::shared_ptr<function_definition>> m_call_definitions;
+      std::unordered_map<const function_expression*, call_entry> m_call_entries;
   };
 
   inline type_checker::type_checker() {
@@ -74,31 +77,22 @@ namespace darcel {
       }
 
       void visit(const call_expression& node) override {
-        auto callable_type =
-          [&] {
-            if(auto f = dynamic_cast<const function_expression*>(
-                &node.get_callable())) {
-              auto d = m_checker->m_call_definitions.find(f);
-              if(d == m_checker->m_call_definitions.end()) {
-                throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
-                  node.get_callable().get_location());
-              }
-              return std::static_pointer_cast<data_type>(d->second->get_type());
-            } else {
-              return m_checker->get_type(node.get_callable());
-            }
-          }();
-        if(auto f = std::dynamic_pointer_cast<function_data_type>(
-            callable_type)) {
-          m_result = f->get_return_type();
-        } else {
-          throw syntax_error(syntax_error_code::EXPRESSION_NOT_CALLABLE,
-            node.get_callable().get_location());
-        }
+        auto t = std::static_pointer_cast<function_data_type>(
+          m_checker->get_type(node.get_callable()));
+        m_result = t->get_return_type();
       }
 
       void visit(const enum_expression& node) override {
         m_result = node.get_enum();
+      }
+
+      void visit(const function_expression& node) override {
+        auto entry = m_checker->m_call_entries.find(&node);
+        if(entry == m_checker->m_call_entries.end()) {
+          visit(static_cast<const expression&>(node));
+          return;
+        }
+        m_result = entry->second.m_type;
       }
 
       void visit(const literal_expression& node) override {
@@ -143,12 +137,12 @@ namespace darcel {
 
   inline const std::shared_ptr<function_definition>&
       type_checker::get_definition(const function_expression& e) const {
-    auto i = m_call_definitions.find(&e);
-    if(i == m_call_definitions.end()) {
+    auto i = m_call_entries.find(&e);
+    if(i == m_call_entries.end()) {
       static const std::shared_ptr<function_definition> NONE;
       return NONE;
     }
-    return i->second;
+    return i->second.m_definition;
   }
 
   inline void type_checker::check(const syntax_node& node) {
@@ -199,7 +193,9 @@ namespace darcel {
             throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
               node.get_callable().get_location());
           }
-          m_checker->m_call_definitions.insert(std::make_pair(f, overload));
+          auto t = instantiate(*overload, parameters);
+          type_checker::call_entry entry{std::move(overload), std::move(t)};
+          m_checker->m_call_entries.insert(std::make_pair(f, std::move(entry)));
         }
         visit(static_cast<const expression&>(node));
       }
