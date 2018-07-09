@@ -107,3 +107,15 @@ TEST_CASE("test_nested_generics_type_checker", "[type_checker]") {
   REQUIRE_NOTHROW(checker.check(*f));
   REQUIRE_NOTHROW(checker.check(*g));
 }
+
+TEST_CASE("test_function_variable_type_checker", "[type_checker]") {
+  scope top_scope;
+  type_checker checker(top_scope);
+  auto f = bind_function(top_scope, "f",
+    [&] (auto& s) {
+      return make_literal(123);
+    });
+  REQUIRE_NOTHROW(checker.check(*f));
+  auto g = bind_variable(top_scope, "g", find_term("f", top_scope));
+  REQUIRE_NOTHROW(checker.check(*g));
+}

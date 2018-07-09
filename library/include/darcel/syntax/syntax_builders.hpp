@@ -126,6 +126,19 @@ namespace darcel {
       body);
   }
 
+  //! Binds a new function.
+  /*!
+    \param s The scope the statement belongs to.
+    \param name The name of the function to bind.
+    \param body The function called to build the body of the function.
+  */
+  inline std::unique_ptr<bind_function_statement> bind_function(scope& s,
+      std::string name, const expression_builder& body) {
+    std::vector<bind_function_statement::parameter> p;
+    return bind_function(location::global(), s, std::move(name), std::move(p),
+      body);
+  }
+
   //! Binds a new variable to an expression.
   /*!
     \param l The location of the binding.

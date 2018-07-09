@@ -11,6 +11,8 @@ namespace darcel {
 
       virtual void visit(const bool_data_type& type);
 
+      virtual void visit(const callable_data_type& type);
+
       virtual void visit(const data_type& type);
 
       virtual void visit(const enum_data_type& type);
