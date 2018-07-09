@@ -53,8 +53,15 @@ int main(int argc, const char** argv) {
   trigger t;
   reactor_translator rt(*top_scope, t);
   translate_builtins(rt, *top_scope);
-  for(auto& node : nodes) {
-    rt.translate(*node);
+  try {
+    for(auto& node : nodes) {
+      rt.translate(*node);
+    }
+  } catch(const syntax_error& e) {
+    std::cerr << e.get_location().get_line_number() << ":" <<
+      e.get_location().get_column_number() << " - " <<
+      e.what() << std::endl;
+    return -1;
   }
   auto main_reactor = rt.get_main();
   if(main_reactor == nullptr) {
