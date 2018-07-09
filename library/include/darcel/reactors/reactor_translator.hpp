@@ -35,9 +35,8 @@ namespace darcel {
       //! Constructs a reactor translator.
       /*!
         \param s The global scope.
-        \param t The trigger used to indicate reactor updates.
       */
-      reactor_translator(const scope& s, trigger& t);
+      reactor_translator(const scope& s);
 
       //! Adds a definition to the translator.
       /*!
@@ -70,7 +69,10 @@ namespace darcel {
       void translate(const syntax_node& node);
 
       //! Returns the main reactor.
-      std::shared_ptr<base_reactor> get_main() const;
+      /*!
+        \param t The trigger used to execute the main reactor.
+      */
+      std::shared_ptr<base_reactor> get_main(trigger& t) const;
 
       void visit(const bind_function_statement& node) override;
 
@@ -87,27 +89,66 @@ namespace darcel {
       void visit(const variable_expression& node) override;
 
     private:
-      trigger* m_trigger;
+      struct generic_definition_builder {
+        std::shared_ptr<bind_function_statement> m_node;
+        std::shared_ptr<function_definition> m_definition;
+        reactor_translator* m_translator;
+        std::shared_ptr<data_type_map<std::shared_ptr<function_data_type>,
+          std::unique_ptr<bind_function_statement>>> m_instantiations;
+
+        generic_definition_builder(const bind_function_statement& node,
+          std::shared_ptr<function_definition> definition,
+          reactor_translator& translator);
+
+        std::unique_ptr<reactor_builder> operator ()(
+          const std::shared_ptr<function_data_type>& t) const;
+      };
       type_checker m_checker;
       std::shared_ptr<variable> m_main;
       std::unordered_map<std::shared_ptr<variable>,
         std::shared_ptr<reactor_builder>> m_variables;
       std::unordered_map<std::shared_ptr<function_definition>,
         std::shared_ptr<reactor_builder>> m_functions;
-      std::unordered_map<std::shared_ptr<function_definition>,
-        std::unique_ptr<bind_function_statement>> m_generic_definitions;
       std::unordered_map<std::shared_ptr<function_definition>, generic_builder>
         m_generic_builders;
-      std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<function>>
-        m_overloads;
       std::shared_ptr<reactor_builder> m_evaluation;
 
       std::shared_ptr<reactor_builder> evaluate(const expression& e);
   };
 
-  inline reactor_translator::reactor_translator(const scope& s, trigger& t)
-      : m_trigger(&t),
-        m_checker(s) {}
+  inline reactor_translator::generic_definition_builder::
+      generic_definition_builder(const bind_function_statement& node,
+      std::shared_ptr<function_definition> definition,
+      reactor_translator& translator)
+      : m_node(clone_structure(node)),
+        m_definition(std::move(definition)),
+        m_translator(&translator),
+        m_instantiations(std::make_shared<
+          data_type_map<std::shared_ptr<function_data_type>,
+          std::unique_ptr<bind_function_statement>>>()) {}
+
+  inline std::unique_ptr<reactor_builder>
+      reactor_translator::generic_definition_builder::operator ()(
+      const std::shared_ptr<function_data_type>& t) const {
+    auto i = m_instantiations->find(t);
+    if(i == m_instantiations->end()) {
+      auto instantiation = darcel::instantiate(*m_node, *t);
+      m_translator->m_checker.check(*instantiation);
+      instantiation->apply(*m_translator);
+      i = m_instantiations->insert(
+        std::make_pair(t, std::move(instantiation))).first;
+    }
+    auto& instantiation = i->second;
+    auto definition = m_translator->m_checker.get_definition(*instantiation);
+    auto builder = m_translator->m_functions[definition];
+    return std::make_unique<function_reactor_builder>(
+      [=] (auto& parameters, auto& t) {
+        return builder->build(parameters, t);
+      });
+  }
+
+  inline reactor_translator::reactor_translator(const scope& s)
+      : m_checker(s) {}
 
   inline void reactor_translator::add(std::shared_ptr<variable> v,
       std::shared_ptr<reactor_builder> definition) {
@@ -130,12 +171,13 @@ namespace darcel {
     node.apply(*this);
   }
 
-  inline std::shared_ptr<base_reactor> reactor_translator::get_main() const {
+  inline std::shared_ptr<base_reactor> reactor_translator::get_main(
+      trigger& t) const {
     auto r = m_variables.find(m_main);
     if(r == m_variables.end()) {
       return nullptr;
     }
-    return r->second->build(*m_trigger);
+    return r->second->build(t);
   }
 
   inline void reactor_translator::visit(const bind_function_statement& node) {
@@ -152,6 +194,12 @@ namespace darcel {
         return m_builder->build(parameters, t);
       }
     };
+    auto definition = m_checker.get_definition(node);
+    if(is_generic(*definition->get_type())) {
+      auto builder = generic_definition_builder(node, definition, *this);
+      m_generic_builders.insert(std::make_pair(definition, std::move(builder)));
+      return;
+    }
     std::vector<std::shared_ptr<parameter_reactor_builder>> proxies;
     for(auto& parameter : node.get_parameters()) {
       proxies.push_back(std::make_shared<parameter_reactor_builder>());
@@ -165,7 +213,6 @@ namespace darcel {
         }
         return evaluation->build(t);
       });
-    auto definition = m_checker.get_definition(node);
     m_functions[definition] = std::move(builder);
     for(auto& parameter : node.get_parameters()) {
       m_variables.erase(parameter.m_variable);
@@ -199,15 +246,13 @@ namespace darcel {
   inline void reactor_translator::visit(const function_expression& node) {
     auto definition = m_checker.get_definition(node);
     if(is_generic(*definition->get_type())) {
-      auto f = m_generic_builders.find(definition);
-      if(f != m_generic_builders.end()) {
-        auto t = std::static_pointer_cast<function_data_type>(
-          m_checker.get_type(node));
-        m_evaluation = f->second(t);
-        return;
-      }
+      auto t = std::static_pointer_cast<function_data_type>(
+        m_checker.get_type(node));
+      auto& builder = m_generic_builders.at(definition);
+      m_evaluation = builder(t);
+    } else {
+      m_evaluation = m_functions[definition];
     }
-    m_evaluation = m_functions[definition];
   }
 
   inline void reactor_translator::visit(const literal_expression& node) {

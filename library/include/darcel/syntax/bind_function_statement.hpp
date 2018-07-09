@@ -63,7 +63,6 @@ namespace darcel {
 
     private:
       std::shared_ptr<function> m_function;
-      std::shared_ptr<variable> m_overload;
       std::vector<parameter> m_parameters;
       std::unique_ptr<expression> m_expression;
   };

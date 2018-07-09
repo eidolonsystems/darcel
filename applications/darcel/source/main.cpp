@@ -50,8 +50,7 @@ int main(int argc, const char** argv) {
       e.what() << std::endl;
     return -1;
   }
-  trigger t;
-  reactor_translator rt(*top_scope, t);
+  reactor_translator rt(*top_scope);
   translate_builtins(rt, *top_scope);
   try {
     for(auto& node : nodes) {
@@ -63,7 +62,8 @@ int main(int argc, const char** argv) {
       e.what() << std::endl;
     return -1;
   }
-  auto main_reactor = rt.get_main();
+  trigger t;
+  auto main_reactor = rt.get_main(t);
   if(main_reactor == nullptr) {
     cerr << "Main reactor undefined." << endl;
     return -1;
