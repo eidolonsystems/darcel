@@ -47,6 +47,16 @@ namespace darcel {
       const std::vector<std::shared_ptr<function_definition>>&
         get_definitions(const function& f) const;
 
+      //! Finds a definition matching a predicate.
+      /*!
+        \param f The function whose definitions are searched over.
+        \param predicate The predicate to match.
+        \return The function definition matching the predicate.
+      */
+      template<typename F>
+      const std::shared_ptr<function_definition>& find(const function& f,
+        F&& predicate) const;
+
       //! Adds an element to this scope.
       /*!
         \param e The element to add.
@@ -114,6 +124,21 @@ namespace darcel {
       return EMPTY;
     }
     return i->second;
+  }
+
+  template<typename F>
+  const std::shared_ptr<function_definition>& scope::find(const function& f,
+      F&& predicate) const {
+    for(auto& definition : get_definitions(f)) {
+      if(predicate(*definition)) {
+        return definition;
+      }
+    }
+    if(m_parent == nullptr) {
+      static const std::shared_ptr<function_definition> NONE;
+      return NONE;
+    }
+    return m_parent->find(f, std::move(predicate));
   }
 
   inline bool scope::add(std::shared_ptr<element> e) {

@@ -33,7 +33,7 @@ TEST_CASE("test_translating_identity_function", "[reactor_translator]") {
   REQUIRE(l != nullptr);
 }
 
-TEST_CASE("test_translation_function_variable", "[reactor_translator]") {
+TEST_CASE("test_translating_function_variable", "[reactor_translator]") {
   scope s;
   auto f = bind_function(s, "f", {{"x", integer_data_type::get_instance()}},
     [&] (auto& s) {

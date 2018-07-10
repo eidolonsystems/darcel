@@ -297,10 +297,10 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const variable_expression& node) {
-    auto type = m_checker.get_type(*node.get_variable());
-    if(std::dynamic_pointer_cast<callable_data_type>(type) != nullptr) {
-
-      // TODO
+    if(auto callable_type = std::dynamic_pointer_cast<callable_data_type>(
+        m_checker.get_type(*node.get_variable()))) {
+      auto definition = m_checker.get_definition(node);
+      m_evaluation = m_functions[definition];
     } else {
       m_evaluation = m_variables.at(node.get_variable());
     }

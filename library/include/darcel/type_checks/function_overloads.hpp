@@ -16,17 +16,18 @@ namespace darcel {
   /*!
     \param generic The generic data type being substituted.
     \param concrete The concrete data type to substitute for the generic.
+    \param s The scope containing the generic and concrete data types.
     \param substitutions A map of all existing generic substitions.
     \return The data type used to perform the substitution or nullptr of no
             substitution can be performed.
   */
   inline std::shared_ptr<data_type> substitute_generic(
       const std::shared_ptr<data_type>& generic,
-      const std::shared_ptr<data_type>& concrete,
+      const std::shared_ptr<data_type>& concrete, const scope& s,
       data_type_map<std::shared_ptr<generic_data_type>,
         std::shared_ptr<data_type>>& substitutions) {
     if(!is_generic(*generic)) {
-      if(get_compatibility(*concrete, *generic) ==
+      if(get_compatibility(*concrete, *generic, s) ==
           data_type_compatibility::EQUAL) {
         return concrete;
       }
@@ -37,9 +38,10 @@ namespace darcel {
         substitutions.insert(std::make_pair(g, concrete));
         return concrete;
       }
-      if(get_compatibility(*concrete, *substitution->second) ==
-          data_type_compatibility::EQUAL || get_compatibility(*concrete,
-          *generic) == data_type_compatibility::EQUAL) {
+      if(get_compatibility(*concrete, *substitution->second, s) ==
+          data_type_compatibility::EQUAL ||
+          get_compatibility(*concrete, *generic, s) ==
+          data_type_compatibility::EQUAL) {
         return substitution->second;
       } else if(is_generic(*substitution->second) && !is_generic(*concrete)) {
         substitutions[g] = concrete;
@@ -70,7 +72,8 @@ namespace darcel {
             auto& types = std::get<1>(candidates[i]);
             auto& t = f->get_parameters()[i].m_type;
             auto& u = types[(c / cycle) % types.size()];
-            if(substitute_generic(t, u, candidate_substitutions) == nullptr) {
+            if(substitute_generic(t, u, s, candidate_substitutions) ==
+                nullptr) {
               passed = false;
               break;
             }
@@ -79,7 +82,7 @@ namespace darcel {
             auto cycle = std::get<0>(candidates.back());
             auto& types = std::get<1>(candidates.back());
             auto& r = types[(c / cycle) % types.size()];
-            if(substitute_generic(f->get_return_type(), r,
+            if(substitute_generic(f->get_return_type(), r, s,
                 candidate_substitutions) != nullptr) {
               substitutions = std::move(candidate_substitutions);
               return substitute(f, substitutions);
@@ -115,7 +118,7 @@ namespace darcel {
         if(is_generic(*type)) {
           auto t = std::make_shared<function_data_type>(parameters,
             type->get_return_type());
-          auto substitution = substitute_generic(type, t, substitutions);
+          auto substitution = substitute_generic(type, t, s, substitutions);
           if(substitution != nullptr) {
             return data_type_compatibility::GENERIC;
           }
@@ -129,7 +132,7 @@ namespace darcel {
             auto parameter = parameters[i].m_type;
             auto overload_parameter = type->get_parameters()[i].m_type;
             auto parameter_compatibility = get_compatibility(*parameter,
-              *overload_parameter);
+              *overload_parameter, s);
             if(parameter_compatibility == data_type_compatibility::NONE) {
               return data_type_compatibility::NONE;
             } else if(parameter_compatibility ==
@@ -166,7 +169,7 @@ namespace darcel {
     }
     auto return_type = overload->get_type()->get_return_type();
     auto return_compatibility = get_compatibility(*signature.get_return_type(),
-      *return_type);
+      *return_type, s);
     if(return_compatibility != data_type_compatibility::EQUAL) {
       return nullptr;
     }
@@ -177,23 +180,23 @@ namespace darcel {
   /*!
     \param f The function definition to instantiate.
     \param p The parameters to instantiate the function with.
+    \param s The scope containing the parameters.
     \return The function type representing the instantiation of f with
             parameters p.
   */
   inline std::shared_ptr<function_data_type> instantiate(
       const function_definition& f,
-      const std::vector<function_data_type::parameter>& p) {
+      const std::vector<function_data_type::parameter>& p, const scope& s) {
     if(is_generic(*f.get_type())) {
       data_type_map<std::shared_ptr<generic_data_type>,
         std::shared_ptr<data_type>> substitutions;
       auto t = std::make_shared<function_data_type>(p,
         f.get_type()->get_return_type());
       return std::static_pointer_cast<function_data_type>(
-        substitute_generic(f.get_type(), t, substitutions));
+        substitute_generic(f.get_type(), t, s, substitutions));
     } else {
       return f.get_type();
     }
-    return nullptr;
   }
 }
 

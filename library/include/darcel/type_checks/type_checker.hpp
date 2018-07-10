@@ -35,9 +35,9 @@ namespace darcel {
       const std::shared_ptr<function_definition>& get_definition(
         const bind_function_statement& s) const;
 
-      //! Returns a function expression's particular overload.
+      //! Returns an expression's particular overload.
       const std::shared_ptr<function_definition>& get_definition(
-        const function_expression& e) const;
+        const expression& e) const;
 
       //! Type checks a syntax node.
       void check(const syntax_node& node);
@@ -145,7 +145,7 @@ namespace darcel {
   }
 
   inline const std::shared_ptr<function_definition>&
-      type_checker::get_definition(const function_expression& e) const {
+      type_checker::get_definition(const expression& e) const {
     auto i = m_call_entries.find(&e);
     if(i == m_call_entries.end()) {
       static const std::shared_ptr<function_definition> NONE;
@@ -211,7 +211,8 @@ namespace darcel {
             throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
               node.get_callable().get_location());
           }
-          auto instance = instantiate(*overload, parameters);
+          auto instance = instantiate(*overload, parameters,
+            *m_checker->m_scopes.back());
           type_checker::call_entry entry{std::move(overload),
             std::move(instance)};
           m_checker->m_call_entries.insert(
