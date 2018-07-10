@@ -30,11 +30,13 @@ namespace darcel {
       bool is_equal(const data_type& rhs) const override;
 
     private:
+      std::string m_name;
       std::shared_ptr<function> m_function;
   };
 
   inline callable_data_type::callable_data_type(std::shared_ptr<function> f)
-      : m_function(std::move(f)) {}
+      : m_name("@" + f->get_name()),
+        m_function(std::move(f)) {}
 
   inline const std::shared_ptr<function>
       callable_data_type::get_function() const {
@@ -46,7 +48,7 @@ namespace darcel {
   }
 
   inline const std::string& callable_data_type::get_name() const {
-    return m_function->get_name();
+    return m_name;
   }
 
   inline void callable_data_type::apply(data_type_visitor& visitor) const {

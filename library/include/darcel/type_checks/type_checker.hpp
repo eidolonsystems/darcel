@@ -216,13 +216,16 @@ namespace darcel {
             auto& o = overload->get_type()->get_parameters()[i].m_type;
             if(auto callable_type =
                 std::dynamic_pointer_cast<callable_data_type>(p)) {
-              auto signature = std::static_pointer_cast<function_data_type>(o);
-              auto call_overload = find_overload(*callable_type->get_function(),
-                *signature, *m_checker->m_scopes.back());
-              m_checker->m_call_entries.insert(
-                std::make_pair(node.get_parameters()[i].get(),
-                type_checker::call_entry{call_overload, signature}));
-              parameters[i].m_type = o;
+              if(auto signature =
+                  std::dynamic_pointer_cast<function_data_type>(o)) {
+                auto call_overload = find_overload(
+                  *callable_type->get_function(), *signature,
+                  *m_checker->m_scopes.back());
+                m_checker->m_call_entries.insert(
+                  std::make_pair(node.get_parameters()[i].get(),
+                  type_checker::call_entry{call_overload, signature}));
+                parameters[i].m_type = o;
+              }
             }
           }
           auto instance = instantiate(*overload, parameters,

@@ -90,6 +90,23 @@ namespace darcel {
           }
         }
         return nullptr;
+      } else if(auto g =
+          std::dynamic_pointer_cast<callable_data_type>(concrete)) {
+        auto definition = s.find(*g->get_function(),
+          [&] (auto& definition) {
+            auto candidate_substitutions = substitutions;
+            if(substitute_generic(generic, definition.get_type(), s,
+                candidate_substitutions)) {
+              substitutions = std::move(candidate_substitutions);
+              return true;
+            }
+            return false;
+          });
+        if(definition != nullptr) {
+          return substitute(f, substitutions);
+        } else {
+          return nullptr;
+        }
       }
       return nullptr;
     } else {
