@@ -48,11 +48,10 @@ namespace darcel {
         std::shared_ptr<function_data_type> m_type;
       };
       std::deque<std::unique_ptr<scope>> m_scopes;
-      std::unordered_map<const variable*, std::shared_ptr<data_type>>
-        m_variable_types;
+      std::unordered_map<const element*, std::shared_ptr<data_type>> m_types;
       std::unordered_map<const bind_function_statement*,
         std::shared_ptr<function_definition>> m_definitions;
-      std::unordered_map<const function_expression*, call_entry> m_call_entries;
+      std::unordered_map<const expression*, call_entry> m_call_entries;
   };
 
   inline type_checker::type_checker() {
@@ -89,10 +88,15 @@ namespace darcel {
       void visit(const function_expression& node) override {
         auto entry = m_checker->m_call_entries.find(&node);
         if(entry == m_checker->m_call_entries.end()) {
-          visit(static_cast<const expression&>(node));
-          return;
+          auto i = m_checker->m_types.find(node.get_function().get());
+          if(i == m_checker->m_types.end()) {
+            visit(static_cast<const expression&>(node));
+            return;
+          }
+          m_result = i->second;
+        } else {
+          m_result = entry->second.m_type;
         }
-        m_result = entry->second.m_type;
       }
 
       void visit(const literal_expression& node) override {
@@ -105,12 +109,17 @@ namespace darcel {
       }
 
       void visit(const variable_expression& node) override {
-        auto i = m_checker->m_variable_types.find(node.get_variable().get());
-        if(i == m_checker->m_variable_types.end()) {
-          throw variable_not_found_error(node.get_location(),
-            node.get_variable()->get_name());
+        auto entry = m_checker->m_call_entries.find(&node);
+        if(entry != m_checker->m_call_entries.end()) {
+          m_result = entry->second.m_type;
+        } else {
+          auto i = m_checker->m_types.find(node.get_variable().get());
+          if(i == m_checker->m_types.end()) {
+            throw variable_not_found_error(node.get_location(),
+              node.get_variable()->get_name());
+          }
+          m_result = i->second;
         }
-        m_result = i->second;
       }
     };
     return type_deduction_visitor()(*this, e);
@@ -118,8 +127,8 @@ namespace darcel {
 
   inline std::shared_ptr<data_type> type_checker::get_type(
       const variable& v) const {
-    auto i = m_variable_types.find(&v);
-    if(i == m_variable_types.end()) {
+    auto i = m_types.find(&v);
+    if(i == m_types.end()) {
       throw variable_not_found_error(v.get_location(), v.get_name());
     }
     return i->second;
@@ -160,11 +169,19 @@ namespace darcel {
         for(auto& parameter : node.get_parameters()) {
           parameters.emplace_back(parameter.m_variable->get_name(),
             *parameter.m_type);
-          m_checker->m_variable_types.insert(
+          m_checker->m_types.insert(
             std::make_pair(parameter.m_variable.get(), *parameter.m_type));
         }
         m_checker->m_scopes.back()->add(node.get_function());
         node.get_expression().apply(*this);
+        if(m_checker->m_types.find(node.get_function().get()) ==
+            m_checker->m_types.end()) {
+          auto callable_type = std::make_shared<callable_data_type>(
+            node.get_function());
+          m_checker->m_types.insert(std::make_pair(node.get_function().get(),
+            callable_type));
+          m_checker->m_scopes.back()->add(callable_type);
+        }
         auto t = std::make_shared<function_data_type>(std::move(parameters),
           std::move(m_last));
         auto definition = std::make_shared<function_definition>(
@@ -175,27 +192,30 @@ namespace darcel {
 
       void visit(const bind_variable_statement& node) override {
         node.get_expression().apply(*this);
-        m_checker->m_variable_types.insert(
+        m_checker->m_types.insert(
           std::make_pair(node.get_variable().get(), std::move(m_last)));
       }
 
       void visit(const call_expression& node) override {
-        if(auto f = dynamic_cast<const function_expression*>(
-            &node.get_callable())) {
+        auto t = m_checker->get_type(node.get_callable());
+        if(auto callable_type =
+            std::dynamic_pointer_cast<callable_data_type>(t)) {
           std::vector<function_data_type::parameter> parameters;
           for(auto& parameter : node.get_parameters()) {
             parameter->apply(*this);
             parameters.emplace_back("", std::move(m_last));
           }
-          auto overload = find_overload(*f->get_function(), parameters,
-            *m_checker->m_scopes.back());
+          auto overload = find_overload(*callable_type->get_function(),
+            parameters, *m_checker->m_scopes.back());
           if(overload == nullptr) {
             throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
               node.get_callable().get_location());
           }
-          auto t = instantiate(*overload, parameters);
-          type_checker::call_entry entry{std::move(overload), std::move(t)};
-          m_checker->m_call_entries.insert(std::make_pair(f, std::move(entry)));
+          auto instance = instantiate(*overload, parameters);
+          type_checker::call_entry entry{std::move(overload),
+            std::move(instance)};
+          m_checker->m_call_entries.insert(
+            std::make_pair(&node.get_callable(), std::move(entry)));
         }
         visit(static_cast<const expression&>(node));
       }

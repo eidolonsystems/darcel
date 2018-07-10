@@ -118,4 +118,6 @@ TEST_CASE("test_function_variable_type_checker", "[type_checker]") {
   REQUIRE_NOTHROW(checker.check(*f));
   auto g = bind_variable(top_scope, "g", find_term("f", top_scope));
   REQUIRE_NOTHROW(checker.check(*g));
+  REQUIRE(*checker.get_type(*g->get_variable()) ==
+    callable_data_type(f->get_function()));
 }

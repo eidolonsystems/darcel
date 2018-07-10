@@ -220,7 +220,10 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const bind_variable_statement& node) {
-    m_variables[node.get_variable()] = evaluate(node.get_expression());
+    auto evaluation = evaluate(node.get_expression());
+    if(evaluation != nullptr) {
+      m_variables[node.get_variable()] = std::move(evaluation);
+    }
     if(node.get_variable()->get_name() == "main") {
       m_main = node.get_variable();
     }
@@ -245,6 +248,9 @@ namespace darcel {
 
   inline void reactor_translator::visit(const function_expression& node) {
     auto definition = m_checker.get_definition(node);
+    if(definition == nullptr) {
+      return;
+    }
     if(is_generic(*definition->get_type())) {
       auto t = std::static_pointer_cast<function_data_type>(
         m_checker.get_type(node));
@@ -291,13 +297,20 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const variable_expression& node) {
-    m_evaluation = m_variables[node.get_variable()];
+    auto type = m_checker.get_type(*node.get_variable());
+    if(std::dynamic_pointer_cast<callable_data_type>(type) != nullptr) {
+
+      // TODO
+    } else {
+      m_evaluation = m_variables.at(node.get_variable());
+    }
   }
 
   inline std::shared_ptr<reactor_builder> reactor_translator::evaluate(
       const expression& e) {
     e.apply(*this);
-    return m_evaluation;
+    auto evaluation = std::move(m_evaluation);
+    return evaluation;
   }
 }
 
