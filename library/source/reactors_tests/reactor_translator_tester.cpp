@@ -128,9 +128,9 @@ TEST_CASE("test_translating_generic_function_parameter",
   auto node = bind_variable(*s, "main",
     call(*s, "g", find_term("f", *s), make_literal(911)));
   reactor_translator rt(*s);
-  rt.translate(*f);
-  rt.translate(*g);
-  rt.translate(*node);
+  REQUIRE_NOTHROW(rt.translate(*f));
+  REQUIRE_NOTHROW(rt.translate(*g));
+  REQUIRE_NOTHROW(rt.translate(*node));
   trigger t;
   auto result = rt.get_main(t);
   auto l = std::dynamic_pointer_cast<constant_reactor<int>>(result);

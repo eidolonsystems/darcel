@@ -121,3 +121,23 @@ TEST_CASE("test_function_variable_type_checker", "[type_checker]") {
   REQUIRE(*checker.get_type(*g->get_variable()) ==
     callable_data_type(f->get_function()));
 }
+
+TEST_CASE("test_passing_overloaded_function_type_checker", "[type_checker]") {
+  scope top_scope;
+  type_checker checker(top_scope);
+  auto t1 = make_function_data_type({}, bool_data_type::get_instance());
+  auto f = bind_function(top_scope, "f", {{"x", t1}},
+    [&] (auto& s) {
+      return make_literal(123);
+    });
+  REQUIRE_NOTHROW(checker.check(*f));
+  auto g = bind_function(top_scope, "g",
+    [&] (auto& s) {
+      return make_literal(true);
+    });
+  REQUIRE_NOTHROW(checker.check(*g));
+  auto c = call(top_scope, "f", find_term("g", top_scope));
+  REQUIRE_NOTHROW(checker.check(*c));
+  auto r1 = checker.get_type(*c->get_parameters()[0]);
+  REQUIRE(*r1 == *t1);
+}

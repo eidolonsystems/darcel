@@ -211,6 +211,20 @@ namespace darcel {
             throw syntax_error(syntax_error_code::OVERLOAD_NOT_FOUND,
               node.get_callable().get_location());
           }
+          for(std::size_t i = 0; i < parameters.size(); ++i) {
+            auto& p = parameters[i].m_type;
+            auto& o = overload->get_type()->get_parameters()[i].m_type;
+            if(auto callable_type =
+                std::dynamic_pointer_cast<callable_data_type>(p)) {
+              auto signature = std::static_pointer_cast<function_data_type>(o);
+              auto call_overload = find_overload(*callable_type->get_function(),
+                *signature, *m_checker->m_scopes.back());
+              m_checker->m_call_entries.insert(
+                std::make_pair(node.get_parameters()[i].get(),
+                type_checker::call_entry{call_overload, signature}));
+              parameters[i].m_type = o;
+            }
+          }
           auto instance = instantiate(*overload, parameters,
             *m_checker->m_scopes.back());
           type_checker::call_entry entry{std::move(overload),
@@ -223,6 +237,10 @@ namespace darcel {
 
       void visit(const expression& node) override {
         m_last = m_checker->get_type(node);
+      }
+
+      void visit(const function_expression& node) override {
+        m_last = std::make_shared<callable_data_type>(node.get_function());
       }
     };
     type_check_visitor()(*this, node);
