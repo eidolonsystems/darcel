@@ -57,9 +57,21 @@ namespace darcel {
           candidates;
         int total_combinations = 1;
         for(auto& p : g->get_parameters()) {
-          std::vector<std::shared_ptr<data_type>> candidate;
-          candidate.push_back(p.m_type);
-          candidates.emplace_back(total_combinations, candidate);
+          if(auto c = std::dynamic_pointer_cast<callable_data_type>(p.m_type)) {
+            std::vector<std::shared_ptr<data_type>> overloads;
+            s.find(*c->get_function(),
+              [&] (auto& definition) {
+                overloads.push_back(definition.get_type());
+                return false;
+              });
+            auto combinations = static_cast<int>(overloads.size());
+            candidates.emplace_back(total_combinations, std::move(overloads));
+            total_combinations *= combinations;
+          } else {
+            std::vector<std::shared_ptr<data_type>> candidate;
+            candidate.push_back(p.m_type);
+            candidates.emplace_back(total_combinations, candidate);
+          }
         }
         std::vector<std::shared_ptr<data_type>> candidate;
         candidate.push_back(g->get_return_type());
