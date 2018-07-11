@@ -187,10 +187,11 @@ namespace darcel {
     auto return_type = overload->get_type()->get_return_type();
     auto return_compatibility = get_compatibility(*signature.get_return_type(),
       *return_type, s);
-    if(return_compatibility != data_type_compatibility::EQUAL) {
-      return nullptr;
+    if(return_compatibility == data_type_compatibility::EQUAL ||
+        return_compatibility == data_type_compatibility::GENERIC) {
+      return overload;
     }
-    return overload;
+    return nullptr;
   }
 
   //! Instantiates a generic function called with a given list of parameters.
