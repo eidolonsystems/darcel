@@ -51,25 +51,19 @@ namespace darcel {
     \param s The scope to find the function in.
   */
   inline void translate_chain(reactor_translator& translator, const scope& s) {
-/*
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<variable>& v) const {
-        auto signature = std::static_pointer_cast<function_data_type>(
-          v->get_data_type());
-        if(*signature->get_parameters()[0].m_type == bool_data_type()) {
+          const std::shared_ptr<function_data_type>& t) const {
+        if(*t->get_parameters()[0].m_type == bool_data_type()) {
           return make_chain_reactor_builder<bool>();
-        } else if(*signature->get_parameters()[0].m_type ==
-            float_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == float_data_type()) {
           return make_chain_reactor_builder<double>();
-        } else if(*signature->get_parameters()[0].m_type ==
-            integer_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == integer_data_type()) {
           return make_chain_reactor_builder<int>();
-        } else if(
-            *signature->get_parameters()[0].m_type == text_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == text_data_type()) {
           return make_chain_reactor_builder<std::string>();
         } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
-            signature->get_parameters()[0].m_type)) {
+            t->get_parameters()[0].m_type)) {
           return make_chain_reactor_builder<int>();
         }
 
@@ -78,8 +72,9 @@ namespace darcel {
       }
     };
     auto f = s.find<function>("chain");
-    translator.add(f, f->get_overloads().back(), builder());
-*/
+    if(f != nullptr) {
+      translator.add(s.get_definitions(*f).front(), builder());
+    }
   }
 
   //! Adds definitions for the builtin count function.
@@ -125,35 +120,30 @@ namespace darcel {
     \param s The scope to find the function in.
   */
   inline void translate_first(reactor_translator& translator, const scope& s) {
-/*
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<variable>& v) const {
-        auto signature = std::static_pointer_cast<function_data_type>(
-          v->get_data_type());
-        if(*signature->get_parameters()[0].m_type == bool_data_type()) {
+          const std::shared_ptr<function_data_type>& t) const {
+        if(*t->get_parameters()[0].m_type == bool_data_type()) {
           return make_first_reactor_builder<bool>();
-        } else if(*signature->get_parameters()[0].m_type ==
-            float_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == float_data_type()) {
           return make_first_reactor_builder<float>();
-        } else if(*signature->get_parameters()[0].m_type ==
-            integer_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == integer_data_type()) {
           return make_first_reactor_builder<int>();
-        } else if(*signature->get_parameters()[0].m_type ==
-            text_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == text_data_type()) {
           return make_first_reactor_builder<std::string>();
         } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
-            signature->get_parameters()[0].m_type)) {
+            t->get_parameters()[0].m_type)) {
           return make_first_reactor_builder<int>();
         }
 
-        // TODO: Print generic values
+        // TODO: Handle generic values.
         return nullptr;
       }
     };
     auto f = s.find<function>("first");
-    translator.add(f, f->get_overloads().back(), builder());
-*/
+    if(f != nullptr) {
+      translator.add(s.get_definitions(*f).front(), builder());
+    }
   }
 
   //! Adds definitions for the builtin fold functions.
@@ -162,25 +152,19 @@ namespace darcel {
     \param s The scope to find the function in.
   */
   inline void translate_fold(reactor_translator& translator, const scope& s) {
-/*
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<variable>& v) const {
-        auto signature = std::static_pointer_cast<function_data_type>(
-          v->get_data_type());
-        if(*signature->get_parameters()[1].m_type == bool_data_type()) {
+          const std::shared_ptr<function_data_type>& t) const {
+        if(*t->get_parameters()[1].m_type == bool_data_type()) {
           return make_fold_reactor_builder<bool>();
-        } else if(*signature->get_parameters()[1].m_type ==
-            float_data_type()) {
+        } else if(*t->get_parameters()[1].m_type == float_data_type()) {
           return make_fold_reactor_builder<double>();
-        } else if(*signature->get_parameters()[1].m_type ==
-            integer_data_type()) {
+        } else if(*t->get_parameters()[1].m_type == integer_data_type()) {
           return make_fold_reactor_builder<int>();
-        } else if(
-            *signature->get_parameters()[1].m_type == text_data_type()) {
+        } else if(*t->get_parameters()[1].m_type == text_data_type()) {
           return make_fold_reactor_builder<std::string>();
         } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
-            signature->get_parameters()[0].m_type)) {
+            t->get_parameters()[0].m_type)) {
           return make_fold_reactor_builder<int>();
         }
 
@@ -189,8 +173,9 @@ namespace darcel {
       }
     };
     auto f = s.find<function>("fold");
-    translator.add(f, f->get_overloads().back(), builder());
-*/
+    if(f != nullptr) {
+      translator.add(s.get_definitions(*f).front(), builder());
+    }
   }
 
   //! Adds definitions for the builtin last functions.
@@ -199,35 +184,30 @@ namespace darcel {
     \param s The scope to find the function in.
   */
   inline void translate_last(reactor_translator& translator, const scope& s) {
-/*
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<variable>& v) const {
-        auto signature = std::static_pointer_cast<function_data_type>(
-          v->get_data_type());
-        if(*signature->get_parameters()[0].m_type == bool_data_type()) {
+          const std::shared_ptr<function_data_type>& t) const {
+        if(*t->get_parameters()[0].m_type == bool_data_type()) {
           return make_last_reactor_builder<bool>();
-        } else if(*signature->get_parameters()[0].m_type ==
-            float_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == float_data_type()) {
           return make_last_reactor_builder<float>();
-        } else if(*signature->get_parameters()[0].m_type ==
-            integer_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == integer_data_type()) {
           return make_last_reactor_builder<int>();
-        } else if(*signature->get_parameters()[0].m_type ==
-            text_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == text_data_type()) {
           return make_last_reactor_builder<std::string>();
         } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
-            signature->get_parameters()[0].m_type)) {
+            t->get_parameters()[0].m_type)) {
           return make_last_reactor_builder<int>();
         }
 
-        // TODO: Print generic values
+        // TODO: Handle generic values.
         return nullptr;
       }
     };
     auto f = s.find<function>("last");
-    translator.add(f, f->get_overloads().back(), builder());
-*/
+    if(f != nullptr) {
+      translator.add(s.get_definitions(*f).front(), builder());
+    }
   }
 
   //! Adds definitions for the builtin multiply functions.
@@ -329,16 +309,16 @@ namespace darcel {
     \param s The scope to find the function in.
   */
   inline void translate_tally(reactor_translator& translator, const scope& s) {
-/*
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<variable>& v) const {
+          const std::shared_ptr<function_data_type>& t) const {
         return make_tally_reactor_builder();
       }
     };
     auto f = s.find<function>("tally");
-    translator.add(f, f->get_overloads().back(), builder());
-*/
+    if(f != nullptr) {
+      translator.add(s.get_definitions(*f).front(), builder());
+    }
   }
 
   //! Adds definitions for all the builtin functions.
