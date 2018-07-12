@@ -56,8 +56,8 @@ namespace darcel {
         std::vector<std::tuple<int, std::vector<std::shared_ptr<data_type>>>>
           candidates;
         int total_combinations = 1;
-        for(auto& p : g->get_parameters()) {
-          if(auto c = std::dynamic_pointer_cast<callable_data_type>(p.m_type)) {
+        auto add_combinations = [&] (auto& type) {
+          if(auto c = std::dynamic_pointer_cast<callable_data_type>(type)) {
             std::vector<std::shared_ptr<data_type>> overloads;
             s.find(*c->get_function(),
               [&] (auto& definition) {
@@ -69,13 +69,14 @@ namespace darcel {
             total_combinations *= combinations;
           } else {
             std::vector<std::shared_ptr<data_type>> candidate;
-            candidate.push_back(p.m_type);
+            candidate.push_back(type);
             candidates.emplace_back(total_combinations, candidate);
           }
+        };
+        for(auto& p : g->get_parameters()) {
+          add_combinations(p.m_type);
         }
-        std::vector<std::shared_ptr<data_type>> candidate;
-        candidate.push_back(g->get_return_type());
-        candidates.emplace_back(total_combinations, candidate);
+        add_combinations(g->get_return_type());
         for(auto c = 0; c < total_combinations; ++c) {
           auto candidate_substitutions = substitutions;
           auto passed = true;
