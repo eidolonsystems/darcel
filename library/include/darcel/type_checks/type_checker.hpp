@@ -76,9 +76,13 @@ namespace darcel {
       }
 
       void visit(const call_expression& node) override {
-        auto t = std::static_pointer_cast<function_data_type>(
-          m_checker->get_type(node.get_callable()));
-        m_result = t->get_return_type();
+        auto callable_type = m_checker->get_type(node.get_callable());
+        if(auto t = std::dynamic_pointer_cast<function_data_type>(
+            callable_type)) {
+          m_result = t->get_return_type();
+        } else {
+          visit(static_cast<const expression&>(node));
+        }
       }
 
       void visit(const enum_expression& node) override {
@@ -198,7 +202,8 @@ namespace darcel {
       }
 
       void visit(const call_expression& node) override {
-        auto t = m_checker->get_type(node.get_callable());
+        node.get_callable().apply(*this);
+        auto t = std::move(m_last);
         if(auto callable_type =
             std::dynamic_pointer_cast<callable_data_type>(t)) {
           std::vector<function_data_type::parameter> parameters;
