@@ -19,6 +19,6 @@ TEST_CASE("test_bind_function_statement", "[bind_function_statement]") {
   REQUIRE(s.get_function() == f);
   REQUIRE(s.get_parameters().size() == 1);
   REQUIRE(s.get_parameters()[0].m_variable == p1);
-  REQUIRE(s.get_parameters()[0].m_type.has_value());
-  REQUIRE(**s.get_parameters()[0].m_type == integer_data_type());
+  REQUIRE(s.get_parameters()[0].m_type != nullptr);
+  REQUIRE(*s.get_parameters()[0].m_type == integer_data_type());
 }

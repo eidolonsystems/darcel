@@ -2,13 +2,16 @@
 #define DARCEL_TYPE_CHECKER_HPP
 #include <deque>
 #include <unordered_map>
+#include "darcel/data_types/callable_data_type.hpp"
 #include "darcel/semantics/scope.hpp"
 #include "darcel/semantics/variable.hpp"
 #include "darcel/syntax/syntax_node_visitor.hpp"
 #include "darcel/syntax/syntax_nodes.hpp"
 #include "darcel/syntax/variable_not_found_error.hpp"
+#include "darcel/type_checks/constraints.hpp"
 #include "darcel/type_checks/function_overloads.hpp"
 #include "darcel/type_checks/type_checks.hpp"
+#include "darcel/type_checks/type_map.hpp"
 
 namespace darcel {
 
@@ -25,11 +28,8 @@ namespace darcel {
       */
       type_checker(const scope& s);
 
-      //! Returns the data type an expression evaluates to.
-      std::shared_ptr<data_type> get_type(const expression& e) const;
-
-      //! Returns a variable's data type.
-      std::shared_ptr<data_type> get_type(const variable& v) const;
+      //! Returns the type map used to track data types.
+      const type_map& get_types() const;
 
       //! Returns a statement's definition.
       const std::shared_ptr<function_definition>& get_definition(
@@ -43,16 +43,97 @@ namespace darcel {
       void check(const syntax_node& node);
 
     private:
-      struct call_entry {
-        std::shared_ptr<function_definition> m_definition;
-        std::shared_ptr<function_data_type> m_type;
-      };
       std::deque<std::unique_ptr<scope>> m_scopes;
-      std::unordered_map<const element*, std::shared_ptr<data_type>> m_types;
+      type_map m_types;
       std::unordered_map<const bind_function_statement*,
         std::shared_ptr<function_definition>> m_definitions;
-      std::unordered_map<const expression*, call_entry> m_call_entries;
+      std::unordered_map<const expression*,
+        std::shared_ptr<function_definition>> m_call_definitions;
   };
+
+  //! Performs type inference on an expression.
+  /*!
+    \param e The expression to infer.
+    \param t The map of types.
+    \param s The scope used to get function definitions.
+  */
+  inline type_map infer_types(const expression& e, const type_map& t,
+      const scope& s) {
+    struct constraints_visitor final : syntax_node_visitor {
+      const type_map* m_types;
+      const scope* m_scope;
+      constraints m_constraints;
+      std::unordered_map<std::shared_ptr<variable>,
+        std::vector<std::shared_ptr<data_type>>> m_candidates;
+
+      constraints_visitor(const expression& e, const type_map& t,
+          const scope& s)
+          : m_types(&t),
+            m_scope(&s) {
+        e.apply(*this);
+      }
+
+      void visit(const call_expression& node) override {
+        node.get_callable().apply(*this);
+        auto t = m_types->get_type(node.get_callable());
+        std::vector<std::shared_ptr<function_data_type>> overloads;
+        if(auto f = std::dynamic_pointer_cast<function_data_type>(t)) {
+          overloads.push_back(std::move(f));
+        } else {
+          auto callable_type = std::static_pointer_cast<callable_data_type>(t);
+          m_scope->find(*callable_type->get_function(),
+            [&] (auto& definition) {
+              overloads.push_back(definition.get_type());
+              return false;
+            });
+        }
+        disjunctive_set d;
+        for(auto& overload : overloads) {
+          if(overload->get_parameters().size() ==
+              node.get_parameters().size()) {
+            conjunctive_set c;
+            for(std::size_t i = 0; i != node.get_parameters().size(); ++i) {
+              c.add(*node.get_parameters()[i],
+                overload->get_parameters()[i].m_type);
+              if(auto v = dynamic_cast<const variable_expression*>(
+                  node.get_parameters()[i].get())) {
+                m_candidates[v->get_variable()].push_back(
+                  overload->get_parameters()[i].m_type);
+              }
+            }
+            d.add(std::move(c));
+          }
+        }
+        m_constraints.add(std::move(d));
+        for(auto& argument : node.get_parameters()) {
+          argument->apply(*this);
+        }
+      }
+    };
+    constraints_visitor v(e, t, s);
+    std::size_t index = 0;
+    std::vector<std::shared_ptr<variable>> inferred_variables;
+    for(auto& candidate : v.m_candidates) {
+      inferred_variables.push_back(candidate.first);
+    }
+    while(true) {
+      type_map candidate_map = t;
+      std::size_t round = 1;
+      for(std::size_t i = 0; i < inferred_variables.size(); ++i) {
+        auto o = inferred_variables[i];
+        candidate_map.add(*o,
+          v.m_candidates[o][(i / round) % v.m_candidates[o].size()]);
+        round += v.m_candidates[o].size();
+      }
+      if(v.m_constraints.is_satisfied(candidate_map)) {
+        return candidate_map;
+      }
+      if(round > 10000) {
+        break;
+      }
+    }
+    return {};
+  }
 
   inline type_checker::type_checker() {
     m_scopes.push_back(std::make_unique<scope>());
@@ -62,81 +143,8 @@ namespace darcel {
     m_scopes.push_back(std::make_unique<scope>(&s));
   }
 
-  inline std::shared_ptr<data_type> type_checker::get_type(
-      const expression& e) const {
-    struct type_deduction_visitor final : syntax_node_visitor {
-      const type_checker* m_checker;
-      std::shared_ptr<data_type> m_result;
-
-      std::shared_ptr<data_type> operator ()(const type_checker& checker,
-          const expression& node) {
-        m_checker = &checker;
-        node.apply(*this);
-        return std::move(m_result);
-      }
-
-      void visit(const call_expression& node) override {
-        auto callable_type = m_checker->get_type(node.get_callable());
-        if(auto t = std::dynamic_pointer_cast<function_data_type>(
-            callable_type)) {
-          m_result = t->get_return_type();
-        } else {
-          visit(static_cast<const expression&>(node));
-        }
-      }
-
-      void visit(const enum_expression& node) override {
-        m_result = node.get_enum();
-      }
-
-      void visit(const function_expression& node) override {
-        auto entry = m_checker->m_call_entries.find(&node);
-        if(entry == m_checker->m_call_entries.end()) {
-          auto i = m_checker->m_types.find(node.get_function().get());
-          if(i == m_checker->m_types.end()) {
-            m_result = std::make_shared<callable_data_type>(
-              node.get_function());
-          } else {
-            m_result = i->second;
-          }
-        } else {
-          m_result = entry->second.m_type;
-        }
-      }
-
-      void visit(const literal_expression& node) override {
-        m_result = node.get_literal().get_type();
-      }
-
-      void visit(const syntax_node& node) override {
-        throw syntax_error(syntax_error_code::EXPRESSION_EXPECTED,
-          node.get_location());
-      }
-
-      void visit(const variable_expression& node) override {
-        auto entry = m_checker->m_call_entries.find(&node);
-        if(entry != m_checker->m_call_entries.end()) {
-          m_result = entry->second.m_type;
-        } else {
-          auto i = m_checker->m_types.find(node.get_variable().get());
-          if(i == m_checker->m_types.end()) {
-            throw variable_not_found_error(node.get_location(),
-              node.get_variable()->get_name());
-          }
-          m_result = i->second;
-        }
-      }
-    };
-    return type_deduction_visitor()(*this, e);
-  }
-
-  inline std::shared_ptr<data_type> type_checker::get_type(
-      const variable& v) const {
-    auto i = m_types.find(&v);
-    if(i == m_types.end()) {
-      throw variable_not_found_error(v.get_location(), v.get_name());
-    }
-    return i->second;
+  inline const type_map& type_checker::get_types() const {
+    return m_types;
   }
 
   inline const std::shared_ptr<function_definition>&
@@ -151,12 +159,12 @@ namespace darcel {
 
   inline const std::shared_ptr<function_definition>&
       type_checker::get_definition(const expression& e) const {
-    auto i = m_call_entries.find(&e);
-    if(i == m_call_entries.end()) {
+    auto i = m_call_definitions.find(&e);
+    if(i == m_call_definitions.end()) {
       static const std::shared_ptr<function_definition> NONE;
       return NONE;
     }
-    return i->second.m_definition;
+    return i->second;
   }
 
   inline void type_checker::check(const syntax_node& node) {
@@ -171,20 +179,27 @@ namespace darcel {
 
       void visit(const bind_function_statement& node) override {
         std::vector<function_data_type::parameter> parameters;
+        auto infer = false;
         for(auto& parameter : node.get_parameters()) {
           parameters.emplace_back(parameter.m_variable->get_name(),
-            *parameter.m_type);
-          m_checker->m_types.insert(
-            std::make_pair(parameter.m_variable.get(), *parameter.m_type));
+            parameter.m_type);
+          if(parameter.m_type != nullptr) {
+            m_checker->m_types.add(*parameter.m_variable, parameter.m_type);
+          } else {
+            infer = true;
+          }
         }
         m_checker->m_scopes.back()->add(node.get_function());
+        if(infer) {
+          auto inference = infer_types(node.get_expression(),
+            m_checker->get_types(), *m_checker->m_scopes.back());
+          m_checker->m_types = std::move(inference);
+        }
         node.get_expression().apply(*this);
-        if(m_checker->m_types.find(node.get_function().get()) ==
-            m_checker->m_types.end()) {
+        if(m_checker->m_types.get_type(*node.get_function()) == nullptr) {
           auto callable_type = std::make_shared<callable_data_type>(
             node.get_function());
-          m_checker->m_types.insert(std::make_pair(node.get_function().get(),
-            callable_type));
+          m_checker->m_types.add(*node.get_function(), callable_type);
           m_checker->m_scopes.back()->add(callable_type);
         }
         auto t = std::make_shared<function_data_type>(std::move(parameters),
@@ -197,8 +212,7 @@ namespace darcel {
 
       void visit(const bind_variable_statement& node) override {
         node.get_expression().apply(*this);
-        m_checker->m_types.insert(
-          std::make_pair(node.get_variable().get(), std::move(m_last)));
+        m_checker->m_types.add(*node.get_variable(), std::move(m_last));
       }
 
       void visit(const call_expression& node) override {
@@ -229,22 +243,23 @@ namespace darcel {
                 auto call_overload = find_overload(
                   *callable_type->get_function(), *signature,
                   *m_checker->m_scopes.back());
-                m_checker->m_call_entries.insert(
+                m_checker->m_types.add(*node.get_parameters()[i],
+                  std::move(signature));
+                m_checker->m_call_definitions.insert(
                   std::make_pair(node.get_parameters()[i].get(),
-                  type_checker::call_entry{call_overload, signature}));
+                  std::move(call_overload)));
               }
             }
           }
-          type_checker::call_entry entry{std::move(overload),
-            std::move(instance)};
-          m_checker->m_call_entries.insert(
-            std::make_pair(&node.get_callable(), std::move(entry)));
+          m_checker->m_types.add(node.get_callable(), std::move(instance));
+          m_checker->m_call_definitions.insert(
+            std::make_pair(&node.get_callable(), std::move(overload)));
         }
         visit(static_cast<const expression&>(node));
       }
 
       void visit(const expression& node) override {
-        m_last = m_checker->get_type(node);
+        m_last = m_checker->m_types.get_type(node);
       }
 
       void visit(const function_expression& node) override {

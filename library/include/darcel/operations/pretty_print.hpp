@@ -54,8 +54,8 @@ namespace darcel {
             is_first = false;
           }
           *m_out << parameter.m_variable->get_name() << ": ";
-          if(parameter.m_type.has_value()) {
-            *m_out << (*parameter.m_type)->get_name();
+          if(parameter.m_type != nullptr) {
+            *m_out << parameter.m_type->get_name();
           }
         }
         *m_out << ") = ";

@@ -6,6 +6,7 @@ namespace darcel {
   class constraints;
   class disjunctive_set;
   class type_checker;
+  class type_map;
 }
 
 #endif

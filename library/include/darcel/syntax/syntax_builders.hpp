@@ -74,14 +74,11 @@ namespace darcel {
     }();
     scope body_scope(&s);
     for(auto& parameter : parameters) {
-      if(parameter.m_type.has_value()) {
-        if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
-            *parameter.m_type)) {
-          auto existing_element = body_scope.find<data_type>(
-            generic->get_name());
-          if(existing_element == nullptr) {
-            body_scope.add(generic);
-          }
+      if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
+          parameter.m_type)) {
+        auto existing_element = body_scope.find<data_type>(generic->get_name());
+        if(existing_element == nullptr) {
+          body_scope.add(generic);
         }
       }
       body_scope.add(parameter.m_variable);

@@ -1,7 +1,6 @@
 #ifndef DARCEL_BIND_FUNCTION_STATEMENT_HPP
 #define DARCEL_BIND_FUNCTION_STATEMENT_HPP
 #include <memory>
-#include <optional>
 #include "darcel/data_types/data_type.hpp"
 #include "darcel/semantics/function.hpp"
 #include "darcel/semantics/variable.hpp"
@@ -23,7 +22,7 @@ namespace darcel {
         std::shared_ptr<variable> m_variable;
 
         //! The parameter's data type, if specified.
-        std::optional<std::shared_ptr<data_type>> m_type;
+        std::shared_ptr<data_type> m_type;
 
         //! Constructs a parameter.
         /*!

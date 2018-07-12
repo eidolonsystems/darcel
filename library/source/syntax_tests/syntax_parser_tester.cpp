@@ -181,9 +181,9 @@ TEST_CASE("test_parsing_function_definition", "[syntax_parser]") {
     auto f = dynamic_cast<const bind_function_statement*>(e.get());
     REQUIRE(f != nullptr);
     REQUIRE(f->get_parameters().size() == 1);
-    REQUIRE(f->get_parameters()[0].m_type.has_value());
+    REQUIRE(f->get_parameters()[0].m_type != nullptr);
     auto g = dynamic_pointer_cast<function_data_type>(
-      *f->get_parameters()[0].m_type);
+      f->get_parameters()[0].m_type);
     REQUIRE(g != nullptr);
   }
 }

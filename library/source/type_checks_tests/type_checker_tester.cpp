@@ -9,7 +9,8 @@ TEST_CASE("test_bind_variable_type_checker", "[type_checker]") {
   auto binding = bind_variable(s, "x", make_literal(123));
   type_checker checker(s);
   REQUIRE_NOTHROW(checker.check(*binding));
-  REQUIRE(*checker.get_type(*binding->get_variable()) == integer_data_type());
+  REQUIRE(*checker.get_types().get_type(*binding->get_variable()) ==
+    integer_data_type());
 }
 
 TEST_CASE("test_bind_function_type_checker", "[type_checker]") {
@@ -114,7 +115,7 @@ TEST_CASE("test_function_variable_type_checker", "[type_checker]") {
   type_checker checker(s);
   REQUIRE_NOTHROW(checker.check(*f));
   REQUIRE_NOTHROW(checker.check(*g));
-  REQUIRE(*checker.get_type(*g->get_variable()) ==
+  REQUIRE(*checker.get_types().get_type(*g->get_variable()) ==
     callable_data_type(f->get_function()));
 }
 
@@ -135,7 +136,7 @@ TEST_CASE("test_passing_overloaded_function_type_checker", "[type_checker]") {
     REQUIRE_NOTHROW(checker.check(*f));
     REQUIRE_NOTHROW(checker.check(*g));
     REQUIRE_NOTHROW(checker.check(*c));
-    auto r1 = checker.get_type(*c->get_parameters()[0]);
+    auto r1 = checker.get_types().get_type(*c->get_parameters()[0]);
     REQUIRE(*r1 == *t1);
   }
   SECTION("Generic overloaded function.") {
@@ -154,7 +155,7 @@ TEST_CASE("test_passing_overloaded_function_type_checker", "[type_checker]") {
     REQUIRE_NOTHROW(checker.check(*f));
     REQUIRE_NOTHROW(checker.check(*g));
     REQUIRE_NOTHROW(checker.check(*c));
-    auto r1 = checker.get_type(*c->get_parameters()[0]);
+    auto r1 = checker.get_types().get_type(*c->get_parameters()[0]);
     REQUIRE(*r1 != *t1);
     REQUIRE(*r1 == *make_function_data_type(
       {}, bool_data_type::get_instance()));
@@ -182,10 +183,11 @@ TEST_CASE("test_checking_generic_function_parameters", "[type_checker]") {
   REQUIRE_NOTHROW(checker.check(*node));
   auto& overloaded_argument = static_cast<const call_expression&>(
     node->get_expression()).get_parameters()[0];
-  REQUIRE(*checker.get_type(*overloaded_argument) ==
+  REQUIRE(*checker.get_types().get_type(*overloaded_argument) ==
     *make_function_data_type({{"x", integer_data_type::get_instance()}},
     integer_data_type::get_instance()));
-  REQUIRE(*checker.get_type(*node->get_variable()) == integer_data_type());
+  REQUIRE(*checker.get_types().get_type(*node->get_variable()) ==
+    integer_data_type());
 }
 
 TEST_CASE("test_checking_generic_overloaded_function_parameters",
@@ -213,7 +215,8 @@ TEST_CASE("test_checking_generic_overloaded_function_parameters",
   REQUIRE_NOTHROW(checker.check(*hInt));
   REQUIRE_NOTHROW(checker.check(*hBool));
   REQUIRE_NOTHROW(checker.check(*node));
-  REQUIRE(*checker.get_type(*node->get_variable()) == bool_data_type());
+  REQUIRE(*checker.get_types().get_type(*node->get_variable()) ==
+    bool_data_type());
 }
 
 TEST_CASE("test_checking_generic_return_type", "[type_checker]") {
@@ -232,4 +235,23 @@ TEST_CASE("test_checking_generic_return_type", "[type_checker]") {
   REQUIRE_NOTHROW(checker.check(*f));
   REQUIRE_NOTHROW(checker.check(*g));
   REQUIRE_NOTHROW(checker.check(*node));
+}
+
+TEST_CASE("test_type_inference", "[type_checker]") {
+  scope s;
+  type_map m;
+  auto f = bind_function(s, "f", {{"x", integer_data_type::get_instance()}},
+    [&] (auto& s) {
+      return find_term("x", s);
+    });
+  s.add(std::make_shared<function_definition>(location::global(),
+    f->get_function(),
+    make_function_data_type({{"x", integer_data_type::get_instance()}},
+    std::make_shared<integer_data_type>())));
+  m.add(*f->get_function(),
+    std::make_shared<callable_data_type>(f->get_function()));
+  auto x = std::make_shared<variable>(location::global(), "x");
+  s.add(x);
+  auto e = call(s, "f", find_term("x", s));
+  infer_types(*e, m, s);
 }

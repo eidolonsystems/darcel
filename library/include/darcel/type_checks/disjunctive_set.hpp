@@ -3,6 +3,7 @@
 #include <vector>
 #include "darcel/type_checks/conjunctive_set.hpp"
 #include "darcel/type_checks/type_checks.hpp"
+#include "darcel/type_checks/type_map.hpp"
 
 namespace darcel {
 
@@ -17,10 +18,10 @@ namespace darcel {
       //! Tests if at least one requirement is satisfied using a specified
       //! variable type mapping.
       /*!
-        \param t The type checker used to test for satisfiability.
+        \param t The type map used to test for satisfiability.
         \return true iff at least one requirement is satisfied using <i>t</i>.
       */
-      bool is_satisfied(const type_checker& t) const;
+      bool is_satisfied(const type_map& t) const;
 
       //! Adds a requirement that an expression must evaluate to a particular
       //! data type.
@@ -40,7 +41,7 @@ namespace darcel {
       std::vector<conjunctive_set> m_constraints;
   };
 
-  inline bool disjunctive_set::is_satisfied(const type_checker& t) const {
+  inline bool disjunctive_set::is_satisfied(const type_map& t) const {
     for(auto& constraint : m_constraints) {
       if(constraint.is_satisfied(t)) {
         return true;

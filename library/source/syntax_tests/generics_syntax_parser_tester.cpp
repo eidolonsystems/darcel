@@ -18,8 +18,8 @@ namespace {
   void ensure_generic(const bind_function_statement& f, int index,
       const generic_data_type& t) {
     REQUIRE(static_cast<int>(f.get_parameters().size()) > index);
-    REQUIRE(f.get_parameters()[index].m_type.has_value());
-    REQUIRE(**f.get_parameters()[index].m_type == t);
+    REQUIRE(f.get_parameters()[index].m_type != nullptr);
+    REQUIRE(*f.get_parameters()[index].m_type == t);
   }
 }
 
@@ -55,9 +55,9 @@ TEST_CASE("test_parsing_generic_function_type_one_parameter",
   syntax_parser p(*top_scope);
   feed(p, R"(let f(x: (a: `T) -> Int) = 1)");
   auto f = ensure_bind_function(p, 1);
-  REQUIRE(f->get_parameters()[0].m_type.has_value());
+  REQUIRE(f->get_parameters()[0].m_type != nullptr);
   auto x = std::dynamic_pointer_cast<function_data_type>(
-    *f->get_parameters()[0].m_type);
+    f->get_parameters()[0].m_type);
   REQUIRE(x != nullptr);
   REQUIRE(x->get_parameters().size() == 1);
   REQUIRE(*x->get_parameters()[0].m_type ==
@@ -71,7 +71,7 @@ TEST_CASE("test_parsing_generic_function_type_two_equal_parameters",
   feed(p, R"(let f(x: (a: `T) -> Int, y: `T) = 1)");
   auto f = ensure_bind_function(p, 2);
   auto x = std::dynamic_pointer_cast<function_data_type>(
-    *f->get_parameters()[0].m_type);
+    f->get_parameters()[0].m_type);
   REQUIRE(x != nullptr);
   REQUIRE(x->get_parameters().size() == 1);
   REQUIRE(*x->get_parameters()[0].m_type ==
