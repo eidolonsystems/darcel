@@ -54,6 +54,7 @@ namespace darcel {
           return true;
         }
       }
+      return is_generic(*f->get_return_type());
     }
     return false;
   }

@@ -215,3 +215,21 @@ TEST_CASE("test_checking_generic_overloaded_function_parameters",
   REQUIRE_NOTHROW(checker.check(*node));
   REQUIRE(*checker.get_type(*node->get_variable()) == bool_data_type());
 }
+
+TEST_CASE("test_checking_generic_return_type", "[type_checker]") {
+  scope s;
+  auto f = bind_function(s, "f",
+    {{"f", make_function_data_type({}, make_generic_data_type("`T", 0))}},
+    [&] (auto& s) {
+      return call(s, "f");
+    });
+  auto g = bind_function(s, "g",
+    [&] (auto& s) {
+      return make_literal(123);
+    });
+  auto node = bind_variable(s, "main", call(s, "f", find_term("g", s)));
+  type_checker checker(s);
+  REQUIRE_NOTHROW(checker.check(*f));
+  REQUIRE_NOTHROW(checker.check(*g));
+  REQUIRE_NOTHROW(checker.check(*node));
+}
