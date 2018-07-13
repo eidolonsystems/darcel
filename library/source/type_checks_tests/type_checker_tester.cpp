@@ -237,21 +237,68 @@ TEST_CASE("test_checking_generic_return_type", "[type_checker]") {
   REQUIRE_NOTHROW(checker.check(*node));
 }
 
-TEST_CASE("test_type_inference", "[type_checker]") {
+TEST_CASE("test_parameter_inference", "[type_checker]") {
   scope s;
   type_map m;
   auto f = bind_function(s, "f", {{"x", integer_data_type::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
     });
-  s.add(std::make_shared<function_definition>(location::global(),
+  auto f_definition = std::make_shared<function_definition>(location::global(),
     f->get_function(),
     make_function_data_type({{"x", integer_data_type::get_instance()}},
-    std::make_shared<integer_data_type>())));
+    std::make_shared<integer_data_type>()));
+  s.add(f_definition);
   m.add(*f->get_function(),
     std::make_shared<callable_data_type>(f->get_function()));
+  m.add(f_definition);
+  auto g = bind_function(s, "g", {{"x", bool_data_type::get_instance()}},
+    [&] (auto& s) {
+      return find_term("x", s);
+    });
+  auto g_definition = std::make_shared<function_definition>(location::global(),
+    g->get_function(),
+    make_function_data_type({{"x", bool_data_type::get_instance()}},
+    std::make_shared<bool_data_type>()));
+  s.add(g_definition);
+  m.add(*g->get_function(),
+    std::make_shared<callable_data_type>(g->get_function()));
+  m.add(g_definition);
+  auto chain = bind_function(s, "chain",
+      {{"x", integer_data_type::get_instance()},
+       {"y", integer_data_type::get_instance()}},
+    [&] (auto& s) {
+      return find_term("x", s);
+    });
+  auto chain_definition = std::make_shared<function_definition>(
+    location::global(), chain->get_function(), make_function_data_type(
+    {{"x", std::make_shared<generic_data_type>(location::global(), "`T", 0)},
+     {"y", std::make_shared<generic_data_type>(location::global(), "`U", 1)}},
+    std::make_shared<integer_data_type>()));
+  s.add(chain_definition);
+  m.add(*chain->get_function(),
+    std::make_shared<callable_data_type>(chain->get_function()));
+  m.add(chain_definition);
   auto x = std::make_shared<variable>(location::global(), "x");
   s.add(x);
-  auto e = call(s, "f", find_term("x", s));
-  infer_types(*e, m, s);
+  auto y = std::make_shared<variable>(location::global(), "y");
+  s.add(y);
+  SECTION("Infer single consistent type.") {
+    auto e = call(s, "f", find_term("x", s));
+    auto inferred_types = infer_types(*e, m, s);
+    REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
+  }
+  SECTION("Infer single inconsistent type.") {
+    auto e = call(s, "chain", call(s, "f", find_term("x", s)),
+      call(s, "g", find_term("x", s)));
+    auto inferred_types = infer_types(*e, m, s);
+    REQUIRE(inferred_types.get_type(*x) == nullptr);
+  }
+  SECTION("Infer two consistent types.") {
+    auto e = call(s, "chain", call(s, "f", find_term("x", s)),
+      call(s, "g", find_term("y", s)));
+    auto inferred_types = infer_types(*e, m, s);
+    REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
+    REQUIRE(*inferred_types.get_type(*y) == bool_data_type());
+  }
 }

@@ -114,27 +114,39 @@ namespace darcel {
         }
       }
     };
+    struct candidate_entry {
+      std::shared_ptr<variable> m_variable;
+      std::vector<std::shared_ptr<data_type>> m_candidates;
+      std::size_t m_cycle_length;
+    };
     constraints_visitor v(e, t, s);
+    std::size_t total_combinations = 1;
     std::size_t index = 0;
-    std::vector<std::shared_ptr<variable>> inferred_variables;
+    std::vector<candidate_entry> inferred_variables;
     for(auto& candidate : v.m_candidates) {
-      inferred_variables.push_back(candidate.first);
+      auto cycle = [&] {
+        if(inferred_variables.empty()) {
+          return std::size_t(1);
+        }
+        return inferred_variables.back().m_cycle_length *
+          inferred_variables.back().m_candidates.size();
+      }();
+      inferred_variables.push_back(
+        {candidate.first, std::move(candidate.second), cycle});
+      total_combinations *= cycle;
     }
-    while(true) {
+    std::size_t i = 1;
+    while(i <= total_combinations) {
       type_map candidate_map = t;
-      std::size_t round = 1;
-      for(std::size_t i = 0; i < inferred_variables.size(); ++i) {
-        auto o = inferred_variables[i];
-        candidate_map.add(*o,
-          v.m_candidates[o][(i / round) % v.m_candidates[o].size()]);
-        round += v.m_candidates[o].size();
+      for(std::size_t j = 0; j < inferred_variables.size(); ++j) {
+        auto& entry = inferred_variables[j];
+        auto index = (i / entry.m_cycle_length) % entry.m_candidates.size();
+        candidate_map.add(*entry.m_variable, entry.m_candidates[index]);
       }
       if(v.m_constraints.is_satisfied(candidate_map)) {
         return candidate_map;
       }
-      if(round > 10000) {
-        break;
-      }
+      ++i;
     }
     return {};
   }
@@ -200,8 +212,16 @@ namespace darcel {
           m_checker->m_types = std::move(inference);
           for(std::size_t i = 0; i != parameters.size(); ++i) {
             if(parameters[i].m_type == nullptr) {
-              parameters[i].m_type = m_checker->m_types.get_type(
+              auto inferred_type = m_checker->m_types.get_type(
                 *node.get_parameters()[i].m_variable);
+              if(inferred_type == nullptr) {
+
+                // TODO: Compiler error
+                throw syntax_error(
+                  syntax_error_code::FUNCTION_PARAMETER_ALREADY_DEFINED,
+                  node.get_parameters()[i].m_variable->get_location());
+              }
+              parameters[i].m_type = inferred_type;
             }
           }
         }

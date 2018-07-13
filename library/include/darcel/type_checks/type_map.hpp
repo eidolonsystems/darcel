@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 #include "darcel/data_types/function_data_type.hpp"
+#include "darcel/data_types/generic_data_type.hpp"
 #include "darcel/semantics/semantics.hpp"
 #include "darcel/syntax/syntax_nodes.hpp"
 #include "darcel/type_checks/function_overloads.hpp"
@@ -24,6 +25,10 @@ namespace darcel {
       //! Returns a function's data type.
       std::shared_ptr<data_type> get_type(const function& f) const;
 
+      //! Returns a generic substitution.
+      std::shared_ptr<data_type> get_type(
+        const std::shared_ptr<generic_data_type>& g) const;
+
       //! Returns a variable's data type.
       std::shared_ptr<data_type> get_type(const variable& v) const;
 
@@ -32,6 +37,10 @@ namespace darcel {
 
       //! Adds a function definition.
       void add(std::shared_ptr<function_definition> definition);
+
+      //! Adds a generic substitution.
+      void add(std::shared_ptr<generic_data_type> g,
+        std::shared_ptr<data_type> s);
 
       //! Records a variable's data type.
       void add(const variable& v, std::shared_ptr<data_type> t);
@@ -45,6 +54,8 @@ namespace darcel {
         std::vector<std::shared_ptr<function_definition>>> m_definitions;
       std::unordered_map<const expression*, std::shared_ptr<data_type>>
         m_expressions;
+      data_type_map<std::shared_ptr<generic_data_type>,
+        std::shared_ptr<data_type>> m_substitutions;
 
       std::deque<std::unique_ptr<scope>> build_scope(
         std::shared_ptr<function> f) const;
@@ -133,6 +144,15 @@ namespace darcel {
   }
 
   inline std::shared_ptr<data_type> type_map::get_type(
+      const std::shared_ptr<generic_data_type>& g) const {
+    auto i = m_substitutions.find(g);
+    if(i == m_substitutions.end()) {
+      return nullptr;
+    }
+    return i->second;
+  }
+
+  inline std::shared_ptr<data_type> type_map::get_type(
       const variable& v) const {
     auto i = m_types.find(&v);
     if(i == m_types.end()) {
@@ -148,6 +168,11 @@ namespace darcel {
   inline void type_map::add(std::shared_ptr<function_definition> definition) {
     m_definitions[definition->get_function().get()].push_back(
       std::move(definition));
+  }
+
+  inline void type_map::add(std::shared_ptr<generic_data_type> g,
+      std::shared_ptr<data_type> s) {
+    m_substitutions.insert(std::make_pair(std::move(g), std::move(s)));
   }
 
   inline void type_map::add(const variable& v, std::shared_ptr<data_type> t) {
