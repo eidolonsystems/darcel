@@ -134,7 +134,14 @@ namespace darcel {
     auto f = [&] {
       auto existing_element = get_current_scope().find_within(name);
       if(existing_element == nullptr) {
-        auto f = std::make_shared<function>(name_location, name);
+        auto parent = get_current_scope().find<function>(name);
+        auto f = [&] {
+          if(parent == nullptr) {
+            return std::make_shared<function>(name_location, name);
+          } else {
+            return std::make_shared<function>(name_location, std::move(parent));
+          }
+        }();
         get_current_scope().add(f);
         return f;
       }

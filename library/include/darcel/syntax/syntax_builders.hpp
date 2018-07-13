@@ -61,7 +61,14 @@ namespace darcel {
     auto f = [&] {
       auto existing_element = s.find_within(name);
       if(existing_element == nullptr) {
-        auto f = std::make_shared<function>(l, name);
+        auto parent = s.find<function>(name);
+        auto f = [&] {
+          if(parent == nullptr) {
+            return std::make_shared<function>(l, name);
+          } else {
+            return std::make_shared<function>(l, std::move(parent));
+          }
+        }();
         s.add(f);
         return f;
       }
