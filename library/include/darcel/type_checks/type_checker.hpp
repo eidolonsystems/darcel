@@ -194,6 +194,12 @@ namespace darcel {
           auto inference = infer_types(node.get_expression(),
             m_checker->get_types(), *m_checker->m_scopes.back());
           m_checker->m_types = std::move(inference);
+          for(std::size_t i = 0; i != parameters.size(); ++i) {
+            if(parameters[i].m_type == nullptr) {
+              parameters[i].m_type = m_checker->m_types.get_type(
+                *node.get_parameters()[i].m_variable);
+            }
+          }
         }
         node.get_expression().apply(*this);
         if(m_checker->m_types.get_type(*node.get_function()) == nullptr) {
