@@ -33,6 +33,11 @@ namespace darcel {
 
       //! Finds an element accessible from within this scope (ie. contained
       //! within this scope or a parent scope).
+      template<typename F>
+      std::shared_ptr<element> find(F&& predicate) const;
+
+      //! Finds an element accessible from within this scope (ie. contained
+      //! within this scope or a parent scope).
       std::shared_ptr<element> find(const std::string& name) const;
 
       //! Finds an element of a particular type within this scope.
@@ -88,6 +93,27 @@ namespace darcel {
 
   inline bool scope::contains(const std::string& name) const {
     return m_elements.count(name) == 1;
+  }
+
+  template<typename F>
+  std::shared_ptr<element> scope::find(F&& predicate) const {
+    for(auto& element : m_elements) {
+      if(predicate(element.second)) {
+        return element.second;
+      }
+    }
+    for(auto& f : m_function_definitions) {
+      for(auto& definition : f.second) {
+        if(predicate(definition)) {
+          return definition;
+        }
+      }
+    }
+    if(m_parent == nullptr) {
+      static const std::shared_ptr<element> NONE;
+      return NONE;
+    }
+    return m_parent->find(std::move(predicate));
   }
 
   inline std::shared_ptr<element> scope::find(const std::string& name) const {

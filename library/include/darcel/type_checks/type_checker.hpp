@@ -157,6 +157,14 @@ namespace darcel {
 
   inline type_checker::type_checker(const scope& s) {
     m_scopes.push_back(std::make_unique<scope>(&s));
+    get_scope().find(
+      [&] (auto& e) {
+        if(auto definition =
+            std::dynamic_pointer_cast<function_definition>(e)) {
+          m_types.add(std::move(definition));
+        }
+        return false;
+      });
   }
 
   inline const type_map& type_checker::get_types() const {
