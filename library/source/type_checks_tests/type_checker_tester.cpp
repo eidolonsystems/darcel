@@ -302,3 +302,32 @@ TEST_CASE("test_parameter_inference", "[type_checker]") {
     REQUIRE(*inferred_types.get_type(*y) == bool_data_type());
   }
 }
+
+TEST_CASE("test_generic_parameter_inference", "[type_checker]") {
+  scope s;
+  type_map m;
+  auto f = bind_function(s, "f",
+    {{"f", make_function_data_type(
+      {{"x", std::make_shared<generic_data_type>(location::global(), "`T", 0)}},
+      std::make_shared<generic_data_type>(location::global(), "`T", 0))}},
+    [&] (auto& s) {
+      return make_literal(true);
+    });
+  auto f_definition = std::make_shared<function_definition>(location::global(),
+    f->get_function(),
+    make_function_data_type({{"f", f->get_parameters()[0].m_type}},
+    std::make_shared<bool_data_type>()));
+  s.add(f_definition);
+  m.add(*f->get_function(),
+    std::make_shared<callable_data_type>(f->get_function()));
+  m.add(f_definition);
+  auto x = std::make_shared<variable>(location::global(), "x");
+  s.add(x);
+  auto expected_type = make_function_data_type(
+    {{"x", integer_data_type::get_instance()}},
+    integer_data_type::get_instance());
+  m.add(*x, expected_type);
+  auto e = call(s, "f", find_term("x", s));
+  auto inferred_types = infer_types(*e, m, s);
+  REQUIRE(*inferred_types.get_type(*x) == *expected_type);
+}

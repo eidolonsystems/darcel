@@ -21,9 +21,10 @@ namespace darcel {
       //! from variables to types.
       /*!
         \param t The type map used to test for satisfiability.
+        \param s The scope used to find overloaded definitions.
         \return true iff all requirements are satisfied using <i>t</i>.
       */
-      bool is_satisfied(const type_map& t) const;
+      bool is_satisfied(const type_map& t, const scope& s) const;
 
       //! Adds a requirement that an expression must evaluate to a particular
       //! data type.
@@ -41,19 +42,16 @@ namespace darcel {
       std::vector<term> m_terms;
   };
 
-  inline bool conjunctive_set::is_satisfied(const type_map& t) const {
-    std::vector<std::shared_ptr<data_type>> substitutions;
-    substitutions.resize(m_terms.size());
+  inline bool conjunctive_set::is_satisfied(const type_map& t,
+      const scope& s) const {
+    data_type_map<std::shared_ptr<generic_data_type>,
+      std::shared_ptr<data_type>> substitutions;
     for(auto& term : m_terms) {
       try {
         auto term_type = t.get_type(*term.m_expression);
         auto expected_type = [&] {
-          if(auto generic = dynamic_cast<const generic_data_type*>(
-              term.m_type.get())) {
-            if(substitutions[generic->get_index()] == nullptr) {
-              substitutions[generic->get_index()] = term_type;
-            }
-            return substitutions[generic->get_index()];
+          if(is_generic(*term.m_type)) {
+            return substitute_generic(term.m_type, term_type, s, substitutions);
           } else {
             return term.m_type;
           }

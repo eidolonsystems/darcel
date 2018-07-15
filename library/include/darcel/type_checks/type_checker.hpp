@@ -143,7 +143,7 @@ namespace darcel {
         auto index = (i / entry.m_cycle_length) % entry.m_candidates.size();
         candidate_map.add(*entry.m_variable, entry.m_candidates[index]);
       }
-      if(v.m_constraints.is_satisfied(candidate_map)) {
+      if(v.m_constraints.is_satisfied(candidate_map, s)) {
         return candidate_map;
       }
       ++i;
@@ -217,10 +217,9 @@ namespace darcel {
         if(infer) {
           auto inference = infer_types(node.get_expression(),
             m_checker->get_types(), m_checker->get_scope());
-          m_checker->m_types = std::move(inference);
           for(std::size_t i = 0; i != parameters.size(); ++i) {
             if(parameters[i].m_type == nullptr) {
-              auto inferred_type = m_checker->m_types.get_type(
+              auto inferred_type = inference.get_type(
                 *node.get_parameters()[i].m_variable);
               if(inferred_type == nullptr) {
 
@@ -232,6 +231,7 @@ namespace darcel {
               parameters[i].m_type = inferred_type;
             }
           }
+          m_checker->m_types = std::move(inference);
         }
         node.get_expression().apply(*this);
         if(m_checker->m_types.get_type(*node.get_function()) == nullptr) {

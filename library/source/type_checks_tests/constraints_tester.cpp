@@ -7,7 +7,7 @@ using namespace darcel;
 TEST_CASE("test_empty_constraints", "[constraints]") {
   constraints s;
   type_map t;
-  REQUIRE(s.is_satisfied(t));
+  REQUIRE(s.is_satisfied(t, scope()));
 }
 
 TEST_CASE("test_single_constraint", "[constraints]") {
@@ -19,12 +19,12 @@ TEST_CASE("test_single_constraint", "[constraints]") {
   SECTION("Test matching types.") {
     constraints c;
     c.add(*e1, integer_data_type::get_instance());
-    REQUIRE(c.is_satisfied(t));
+    REQUIRE(c.is_satisfied(t, s));
   }
   SECTION("Test mismatched types.") {
     constraints c;
     c.add(*e1, bool_data_type::get_instance());
-    REQUIRE(!c.is_satisfied(t));
+    REQUIRE(!c.is_satisfied(t, s));
   }
 }
 
@@ -41,24 +41,24 @@ TEST_CASE("test_two_constraints", "[constraints]") {
     constraints c;
     c.add(*e1, text_data_type::get_instance());
     c.add(*e2, text_data_type::get_instance());
-    REQUIRE(!c.is_satisfied(t));
+    REQUIRE(!c.is_satisfied(t, s));
   }
   SECTION("Test satisfying c1 but not c2.") {
     constraints c;
     c.add(*e1, integer_data_type::get_instance());
     c.add(*e2, text_data_type::get_instance());
-    REQUIRE(!c.is_satisfied(t));
+    REQUIRE(!c.is_satisfied(t, s));
   }
   SECTION("Test satisfying c2 but not c1.") {
     constraints c;
     c.add(*e1, text_data_type::get_instance());
     c.add(*e2, bool_data_type::get_instance());
-    REQUIRE(!c.is_satisfied(t));
+    REQUIRE(!c.is_satisfied(t, s));
   }
   SECTION("Test satisfying both c1, c2.") {
     constraints c;
     c.add(*e1, integer_data_type::get_instance());
     c.add(*e2, bool_data_type::get_instance());
-    REQUIRE(c.is_satisfied(t));
+    REQUIRE(c.is_satisfied(t, s));
   }
 }
