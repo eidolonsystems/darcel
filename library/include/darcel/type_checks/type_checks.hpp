@@ -3,6 +3,7 @@
 
 namespace darcel {
   class conjunctive_set;
+  struct constraint_result;
   class constraints;
   class disjunctive_set;
   class type_checker;

@@ -7,7 +7,9 @@ using namespace darcel;
 TEST_CASE("test_empty_disjunctive_set", "[disjunctive_set]") {
   disjunctive_set s;
   type_map t;
-  REQUIRE(!s.is_satisfied(t, scope()));
+  auto result = s.is_satisfied(t, scope());
+  REQUIRE(!result.m_is_satisfied);
+  REQUIRE(result.m_conversions.empty());
 }
 
 TEST_CASE("test_single_disjunctive_set", "[disjunctive_set]") {
@@ -19,12 +21,16 @@ TEST_CASE("test_single_disjunctive_set", "[disjunctive_set]") {
   SECTION("Test matching types.") {
     disjunctive_set c;
     c.add(*e1, integer_data_type::get_instance());
-    REQUIRE(c.is_satisfied(t, s));
+    auto result = c.is_satisfied(t, s);
+    REQUIRE(result.m_is_satisfied);
+    REQUIRE(result.m_conversions.empty());
   }
   SECTION("Test mismatched types.") {
     disjunctive_set c;
     c.add(*e1, bool_data_type::get_instance());
-    REQUIRE(!c.is_satisfied(t, s));
+    auto result = c.is_satisfied(t, s);
+    REQUIRE(!result.m_is_satisfied);
+    REQUIRE(result.m_conversions.empty());
   }
 }
 
@@ -41,24 +47,32 @@ TEST_CASE("test_two_constraints_disjunctive_set", "[disjunctive_set]") {
     disjunctive_set c;
     c.add(*e1, text_data_type::get_instance());
     c.add(*e2, text_data_type::get_instance());
-    REQUIRE(!c.is_satisfied(t, s));
+    auto result = c.is_satisfied(t, s);
+    REQUIRE(!result.m_is_satisfied);
+    REQUIRE(result.m_conversions.empty());
   }
   SECTION("Test satisfying c1 but not c2.") {
     disjunctive_set c;
     c.add(*e1, integer_data_type::get_instance());
     c.add(*e2, text_data_type::get_instance());
-    REQUIRE(c.is_satisfied(t, s));
+    auto result = c.is_satisfied(t, s);
+    REQUIRE(result.m_is_satisfied);
+    REQUIRE(result.m_conversions.empty());
   }
   SECTION("Test satisfying c2 but not c1.") {
     disjunctive_set c;
     c.add(*e1, text_data_type::get_instance());
     c.add(*e2, bool_data_type::get_instance());
-    REQUIRE(c.is_satisfied(t, s));
+    auto result = c.is_satisfied(t, s);
+    REQUIRE(result.m_is_satisfied);
+    REQUIRE(result.m_conversions.empty());
   }
   SECTION("Test satisfying both c1, c2.") {
     disjunctive_set c;
     c.add(*e1, integer_data_type::get_instance());
     c.add(*e2, bool_data_type::get_instance());
-    REQUIRE(c.is_satisfied(t, s));
+    auto result = c.is_satisfied(t, s);
+    REQUIRE(result.m_is_satisfied);
+    REQUIRE(result.m_conversions.empty());
   }
 }

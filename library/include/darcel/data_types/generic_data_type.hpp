@@ -71,7 +71,11 @@ namespace darcel {
       std::shared_ptr<generic_data_type>, std::shared_ptr<data_type>>&
       substitutions) {
     if(auto g = std::dynamic_pointer_cast<generic_data_type>(type)) {
-      return substitutions.at(g);
+      auto substitution = substitutions.find(g);
+      if(substitution == substitutions.end()) {
+        return g;
+      }
+      return substitution->second;
     } else if(auto f = std::dynamic_pointer_cast<function_data_type>(type)) {
       std::vector<function_data_type::parameter> parameters;
       for(auto& parameter : f->get_parameters()) {

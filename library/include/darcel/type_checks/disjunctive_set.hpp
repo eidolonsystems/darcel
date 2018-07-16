@@ -20,9 +20,10 @@ namespace darcel {
       /*!
         \param t The type map used to test for satisfiability.
         \param s The scope used to find overloaded definitions.
-        \return true iff at least one requirement is satisfied using <i>t</i>.
+        \return A constraint result indicating whether at least one requirement
+                is satisfied using <i>t</i>.
       */
-      bool is_satisfied(const type_map& t, const scope& s) const;
+      constraint_result is_satisfied(const type_map& t, const scope& s) const;
 
       //! Adds a requirement that an expression must evaluate to a particular
       //! data type.
@@ -42,14 +43,14 @@ namespace darcel {
       std::vector<conjunctive_set> m_constraints;
   };
 
-  inline bool disjunctive_set::is_satisfied(const type_map& t,
+  inline constraint_result disjunctive_set::is_satisfied(const type_map& t,
       const scope& s) const {
     for(auto& constraint : m_constraints) {
-      if(constraint.is_satisfied(t, s)) {
-        return true;
+      if(auto result = constraint.is_satisfied(t, s); result.m_is_satisfied) {
+        return result;
       }
     }
-    return false;
+    return {};
   }
 
   inline void disjunctive_set::add(const expression& e,

@@ -101,8 +101,10 @@ namespace darcel {
                 overload->get_parameters()[i].m_type);
               if(auto v = dynamic_cast<const variable_expression*>(
                   node.get_parameters()[i].get())) {
-                m_candidates[v->get_variable()].push_back(
-                  overload->get_parameters()[i].m_type);
+                if(m_types->get_type(*v->get_variable()) == nullptr) {
+                  m_candidates[v->get_variable()].push_back(
+                    overload->get_parameters()[i].m_type);
+                }
               }
             }
             d.add(std::move(c));
@@ -143,8 +145,19 @@ namespace darcel {
         auto index = (i / entry.m_cycle_length) % entry.m_candidates.size();
         candidate_map.add(*entry.m_variable, entry.m_candidates[index]);
       }
-      if(v.m_constraints.is_satisfied(candidate_map, s)) {
-        return candidate_map;
+      auto result = v.m_constraints.is_satisfied(candidate_map, s);
+      if(result.m_is_satisfied) {
+        auto has_conflicts = false;
+        for(auto& v : result.m_conversions) {
+          if(t.get_type(*v.first) != nullptr) {
+            has_conflicts = true;
+            break;
+          }
+          candidate_map.add(*v.first, v.second);
+        }
+        if(!has_conflicts) {
+          return candidate_map;
+        }
       }
       ++i;
     }

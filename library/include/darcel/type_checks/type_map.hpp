@@ -148,7 +148,7 @@ namespace darcel {
   }
 
   inline void type_map::add(const function& f, std::shared_ptr<data_type> t) {
-    m_types.insert(std::make_pair(&f, std::move(t)));
+    m_types[&f] = std::move(t);
   }
 
   inline void type_map::add(std::shared_ptr<function_definition> definition) {
@@ -157,11 +157,11 @@ namespace darcel {
   }
 
   inline void type_map::add(const variable& v, std::shared_ptr<data_type> t) {
-    m_types.insert(std::make_pair(&v, std::move(t)));
+    m_types[&v] = std::move(t);
   }
 
   inline void type_map::add(const expression& e, std::shared_ptr<data_type> t) {
-    m_expressions.insert(std::make_pair(&e, std::move(t)));
+    m_expressions[&e] = std::move(t);
   }
 
   inline std::deque<std::unique_ptr<scope>> type_map::build_scope(
