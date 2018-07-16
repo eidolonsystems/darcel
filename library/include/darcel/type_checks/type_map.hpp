@@ -71,7 +71,12 @@ namespace darcel {
         } else if(auto f = std::dynamic_pointer_cast<callable_data_type>(t)) {
           std::vector<function_data_type::parameter> parameters;
           for(auto& parameter : node.get_parameters()) {
-            parameters.emplace_back("", m_types->get_type(*parameter));
+            auto parameter_type = m_types->get_type(*parameter);
+            if(parameter_type == nullptr) {
+              m_result = nullptr;
+              return;
+            }
+            parameters.emplace_back("", std::move(parameter_type));
           }
           auto s = m_types->build_scope(f->get_function());
           auto overload = find_overload(*f->get_function(), parameters,

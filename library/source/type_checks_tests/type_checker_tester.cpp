@@ -1,8 +1,10 @@
 #include <catch.hpp>
 #include "darcel/syntax/syntax_builders.hpp"
+#include "darcel/syntax_tests/syntax_tests.hpp"
 #include "darcel/type_checks/type_checker.hpp"
 
 using namespace darcel;
+using namespace darcel::tests;
 
 TEST_CASE("test_bind_variable_type_checker", "[type_checker]") {
   scope s;
@@ -330,4 +332,42 @@ TEST_CASE("test_generic_parameter_inference", "[type_checker]") {
   auto e = call(s, "f", find_term("x", s));
   auto inferred_types = infer_types(*e, m, s);
   REQUIRE(*inferred_types.get_type(*x) == *expected_type);
+}
+
+TEST_CASE("test_nested_generic_parameter_inference", "[type_checker]") {
+  scope s;
+  type_map m;
+  auto f = bind_function(s, "f",
+    {{"a", std::make_shared<generic_data_type>(location::global(), "`T", 0)},
+     {"b", std::make_shared<generic_data_type>(location::global(), "`T", 0)}},
+    [&] (auto& s) {
+      return find_term("a", s);
+    });
+  auto f_definition = std::make_shared<function_definition>(location::global(),
+    f->get_function(), make_function_data_type(
+    {{"a", f->get_parameters()[0].m_type},
+     {"b", f->get_parameters()[1].m_type}}, f->get_parameters()[0].m_type));
+  s.add(f_definition);
+  m.add(*f->get_function(),
+    std::make_shared<callable_data_type>(f->get_function()));
+  m.add(f_definition);
+  auto g = bind_function(s, "g", {{"c", integer_data_type::get_instance()}},
+    [&] (auto& s) {
+      return make_literal(123);
+    });
+  auto g_definition = std::make_shared<function_definition>(location::global(),
+    g->get_function(), make_function_data_type(
+    {{"a", g->get_parameters()[0].m_type}}, g->get_parameters()[0].m_type));
+  s.add(g_definition);
+  m.add(*g->get_function(),
+    std::make_shared<callable_data_type>(g->get_function()));
+  m.add(g_definition);
+  auto x = std::make_shared<variable>(location::global(), "x");
+  s.add(x);
+  auto y = std::make_shared<variable>(location::global(), "y");
+  s.add(y);
+  auto e = call(s, "f", call(s, "g", find_term("x", s)), find_term("y", s));
+  auto inferred_types = infer_types(*e, m, s);
+  REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
+  REQUIRE(*inferred_types.get_type(*y) == integer_data_type());
 }

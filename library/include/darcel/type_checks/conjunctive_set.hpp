@@ -49,6 +49,9 @@ namespace darcel {
     for(auto& term : m_terms) {
       try {
         auto term_type = t.get_type(*term.m_expression);
+        if(term_type == nullptr) {
+          return false;
+        }
         auto expected_type = [&] {
           if(is_generic(*term.m_type)) {
             return substitute_generic(term.m_type, term_type, s, substitutions);
