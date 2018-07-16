@@ -371,3 +371,31 @@ TEST_CASE("test_nested_generic_parameter_inference", "[type_checker]") {
   REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
   REQUIRE(*inferred_types.get_type(*y) == integer_data_type());
 }
+
+TEST_CASE("test_infer_chained_generic", "[type_checker]") {
+  scope s;
+  type_map m;
+  auto f = bind_function(s, "f",
+    {{"a", std::make_shared<generic_data_type>(location::global(), "`T", 0)},
+     {"b", std::make_shared<generic_data_type>(location::global(), "`T", 0)}},
+    [&] (auto& s) {
+      return find_term("a", s);
+    });
+  auto f_definition = std::make_shared<function_definition>(location::global(),
+    f->get_function(), make_function_data_type(
+    {{"a", f->get_parameters()[0].m_type},
+     {"b", f->get_parameters()[1].m_type}}, f->get_parameters()[0].m_type));
+  s.add(f_definition);
+  m.add(*f->get_function(),
+    std::make_shared<callable_data_type>(f->get_function()));
+  m.add(f_definition);
+  auto x = std::make_shared<variable>(location::global(), "x");
+  s.add(x);
+  auto y = std::make_shared<variable>(location::global(), "y");
+  s.add(y);
+  auto e = call(s, "f", find_term("x", s),
+    call(s, "f", find_term("y", s), make_literal(1)));
+  auto inferred_types = infer_types(*e, m, s);
+  REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
+  REQUIRE(*inferred_types.get_type(*y) == integer_data_type());
+}

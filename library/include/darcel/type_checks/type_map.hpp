@@ -84,7 +84,8 @@ namespace darcel {
           if(overload == nullptr) {
             m_result = nullptr;
           } else {
-            m_result = overload->get_type()->get_return_type();
+            auto instance = instantiate(*overload, parameters, *s.back());
+            m_result = instance->get_return_type();
           }
         } else {
           visit(static_cast<const expression&>(node));
