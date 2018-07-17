@@ -87,7 +87,11 @@ namespace darcel {
             }
             if(is_generic(*f->get_return_type())) {
               std::vector<std::shared_ptr<data_type>> generic_parameters;
-              
+              for(auto& parameter : f->get_parameters()) {
+                if(is_generic(*parameter.m_type)) {
+                  generic_parameters.push_back(
+                }
+              }
             } else {
               m_result.push_back(f->get_return_type());
             }
