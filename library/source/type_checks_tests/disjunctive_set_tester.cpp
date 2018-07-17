@@ -4,6 +4,7 @@
 
 using namespace darcel;
 
+/*
 TEST_CASE("test_empty_disjunctive_set", "[disjunctive_set]") {
   disjunctive_set s;
   type_map t;
@@ -76,3 +77,4 @@ TEST_CASE("test_two_constraints_disjunctive_set", "[disjunctive_set]") {
     REQUIRE(result.m_conversions.empty());
   }
 }
+*/

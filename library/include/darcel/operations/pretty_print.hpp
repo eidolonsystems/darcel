@@ -71,13 +71,13 @@ namespace darcel {
         node.get_callable().apply(*this);
         *m_out << '(';
         auto is_first = true;
-        for(auto& parameter : node.get_parameters()) {
+        for(auto& argument : node.get_arguments()) {
           if(!is_first) {
             *m_out << ", ";
           } else {
             is_first = false;
           }
-          parameter->apply(*this);
+          argument->apply(*this);
         }
         *m_out << ')';
       }

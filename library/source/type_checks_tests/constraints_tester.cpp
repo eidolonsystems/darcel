@@ -4,6 +4,7 @@
 
 using namespace darcel;
 
+/*
 TEST_CASE("test_empty_constraints", "[constraints]") {
   constraints s;
   type_map t;
@@ -76,3 +77,4 @@ TEST_CASE("test_two_constraints", "[constraints]") {
     REQUIRE(result.m_conversions.empty());
   }
 }
+*/

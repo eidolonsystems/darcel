@@ -16,12 +16,24 @@ namespace darcel {
       */
       function(location l, std::string name);
 
+      //! Constructs a root function.
+      /*!
+        \param name The name of the function.
+      */
+      function(std::string name);
+
       //! Constructs a child function.
       /*!
         \param l The location where the function was first declared.
         \param parent The parent function.
       */
       function(location l, std::shared_ptr<function> parent);
+
+      //! Constructs a child function.
+      /*!
+        \param parent The parent function.
+      */
+      function(std::shared_ptr<function> parent);
 
       //! Returns the parent function, or null if this function is the root.
       const std::shared_ptr<function>& get_parent() const;
@@ -40,10 +52,16 @@ namespace darcel {
       : m_location(std::move(l)),
         m_name(std::move(name)) {}
 
+  inline function::function(std::string name)
+      : function(location::global(), std::move(name)) {}
+
   inline function::function(location l, std::shared_ptr<function> parent)
       : m_location(std::move(l)),
         m_name(parent->get_name()),
         m_parent(std::move(parent)) {}
+
+  inline function::function(std::shared_ptr<function> parent)
+      : function(location::global(), std::move(parent)) {}
 
   inline const std::shared_ptr<function>& function::get_parent() const {
     return m_parent;

@@ -53,8 +53,8 @@ namespace darcel {
         node.get_callable().apply(*this);
         auto callable = static_pointer_cast<expression>(std::move(m_clone));
         std::vector<std::unique_ptr<expression>> arguments;
-        for(auto& p : node.get_parameters()) {
-          p->apply(*this);
+        for(auto& argument : node.get_arguments()) {
+          argument->apply(*this);
           arguments.push_back(static_pointer_cast<expression>(
             std::move(m_clone)));
         }

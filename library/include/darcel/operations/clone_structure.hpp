@@ -40,7 +40,7 @@ namespace darcel {
       void visit(const call_expression& node) override {
         m_clone = std::make_unique<call_expression>(node.get_location(),
           clone_structure(node.get_callable()),
-          clone_structure(node.get_parameters()));
+          clone_structure(node.get_arguments()));
       }
 
       void visit(const enum_expression& node) override {

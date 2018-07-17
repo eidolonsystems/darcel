@@ -138,7 +138,7 @@ TEST_CASE("test_passing_overloaded_function_type_checker", "[type_checker]") {
     REQUIRE_NOTHROW(checker.check(*f));
     REQUIRE_NOTHROW(checker.check(*g));
     REQUIRE_NOTHROW(checker.check(*c));
-    auto r1 = checker.get_types().get_type(*c->get_parameters()[0]);
+    auto r1 = checker.get_types().get_type(*c->get_arguments()[0]);
     REQUIRE(*r1 == *t1);
   }
   SECTION("Generic overloaded function.") {
@@ -157,7 +157,7 @@ TEST_CASE("test_passing_overloaded_function_type_checker", "[type_checker]") {
     REQUIRE_NOTHROW(checker.check(*f));
     REQUIRE_NOTHROW(checker.check(*g));
     REQUIRE_NOTHROW(checker.check(*c));
-    auto r1 = checker.get_types().get_type(*c->get_parameters()[0]);
+    auto r1 = checker.get_types().get_type(*c->get_arguments()[0]);
     REQUIRE(*r1 != *t1);
     REQUIRE(*r1 == *make_function_data_type(
       {}, bool_data_type::get_instance()));
@@ -184,7 +184,7 @@ TEST_CASE("test_checking_generic_function_parameters", "[type_checker]") {
   REQUIRE_NOTHROW(checker.check(*g));
   REQUIRE_NOTHROW(checker.check(*node));
   auto& overloaded_argument = static_cast<const call_expression&>(
-    node->get_expression()).get_parameters()[0];
+    node->get_expression()).get_arguments()[0];
   REQUIRE(*checker.get_types().get_type(*overloaded_argument) ==
     *make_function_data_type({{"x", integer_data_type::get_instance()}},
     integer_data_type::get_instance()));
@@ -305,7 +305,7 @@ TEST_CASE("test_parameter_inference", "[type_checker]") {
   }
 }
 
-TEST_CASE("test_generic_parameter_inference", "[type_checker]") {
+TEST_CASE("test_generic_function_parameter_inference", "[type_checker]") {
   scope s;
   type_map m;
   auto f = bind_function(s, "f",
@@ -372,7 +372,7 @@ TEST_CASE("test_nested_generic_parameter_inference", "[type_checker]") {
   REQUIRE(*inferred_types.get_type(*y) == integer_data_type());
 }
 
-TEST_CASE("test_infer_chained_generic", "[type_checker]") {
+TEST_CASE("test_generic_parameter_inference", "[type_checker]") {
   scope s;
   type_map m;
   auto f = bind_function(s, "f",
@@ -393,9 +393,16 @@ TEST_CASE("test_infer_chained_generic", "[type_checker]") {
   s.add(x);
   auto y = std::make_shared<variable>(location::global(), "y");
   s.add(y);
-  auto e = call(s, "f", find_term("x", s),
-    call(s, "f", find_term("y", s), make_literal(1)));
-  auto inferred_types = infer_types(*e, m, s);
-  REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
-  REQUIRE(*inferred_types.get_type(*y) == integer_data_type());
+  SECTION("Test inferring a single variable.") {
+    auto e = call(s, "f", find_term("x", s), make_literal(1));
+    auto inferred_types = infer_types(*e, m, s);
+    REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
+  }
+  SECTION("Test inferring a chain of expressions.") {
+    auto e = call(s, "f", find_term("x", s),
+      call(s, "f", find_term("y", s), make_literal(1)));
+    auto inferred_types = infer_types(*e, m, s);
+    REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
+    REQUIRE(*inferred_types.get_type(*y) == integer_data_type());
+  }
 }

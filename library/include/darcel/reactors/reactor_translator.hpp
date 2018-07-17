@@ -231,13 +231,13 @@ namespace darcel {
 
   inline void reactor_translator::visit(const call_expression& node) {
     auto builder = evaluate(node.get_callable());
-    std::vector<std::shared_ptr<reactor_builder>> parameters;
-    for(auto& parameter : node.get_parameters()) {
-      parameters.push_back(evaluate(*parameter));
+    std::vector<std::shared_ptr<reactor_builder>> arguments;
+    for(auto& argument : node.get_arguments()) {
+      arguments.push_back(evaluate(*argument));
     }
     m_evaluation = std::make_unique<function_reactor_builder>(
-      [=, parameters = std::move(parameters)] (auto& p, auto& t) {
-        return builder->build(parameters, t);
+      [=, arguments = std::move(arguments)] (auto& p, auto& t) {
+        return builder->build(arguments, t);
       });
   }
 

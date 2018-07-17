@@ -93,25 +93,40 @@ namespace darcel {
         }
         disjunctive_set d;
         for(auto& overload : overloads) {
-          if(overload->get_parameters().size() ==
-              node.get_parameters().size()) {
-            conjunctive_set c;
-            for(std::size_t i = 0; i != node.get_parameters().size(); ++i) {
-              c.add(*node.get_parameters()[i],
-                overload->get_parameters()[i].m_type);
-              if(auto v = dynamic_cast<const variable_expression*>(
-                  node.get_parameters()[i].get())) {
-                if(m_types->get_type(*v->get_variable()) == nullptr) {
-                  m_candidates[v->get_variable()].push_back(
-                    overload->get_parameters()[i].m_type);
-                }
+          if(overload->get_parameters().size() != node.get_arguments().size()) {
+            continue;
+          }
+          conjunctive_set c;
+          data_type_map<std::shared_ptr<generic_data_type>,
+            std::shared_ptr<data_type>> substitutions;
+          for(std::size_t i = 0; i != node.get_arguments().size(); ++i) {
+            auto& parameter_type = overload->get_parameters()[i].m_type;
+            if(!is_generic(*parameter_type)) {
+              continue;
+            }
+            auto& argument = *node.get_arguments()[i];
+            auto argument_type = m_types->get_type(argument);
+            if(argument_type == nullptr) {
+              continue;
+            }
+            substitute_generic(parameter_type, argument_type, *m_scope,
+              substitutions);
+          }
+          for(std::size_t i = 0; i != node.get_arguments().size(); ++i) {
+            auto& argument = *node.get_arguments()[i];
+            auto& parameter_type = substitute(
+              overload->get_parameters()[i].m_type, substitutions);
+            c.add(argument, parameter_type);
+            if(auto v = dynamic_cast<const variable_expression*>(&argument)) {
+              if(m_types->get_type(*v->get_variable()) == nullptr) {
+                m_candidates[v->get_variable()].push_back(parameter_type);
               }
             }
-            d.add(std::move(c));
           }
+          d.add(std::move(c));
         }
         m_constraints.add(std::move(d));
-        for(auto& argument : node.get_parameters()) {
+        for(auto& argument : node.get_arguments()) {
           argument->apply(*this);
         }
       }
@@ -145,19 +160,8 @@ namespace darcel {
         auto index = (i / entry.m_cycle_length) % entry.m_candidates.size();
         candidate_map.add(*entry.m_variable, entry.m_candidates[index]);
       }
-      auto result = v.m_constraints.is_satisfied(candidate_map, s);
-      if(result.m_is_satisfied) {
-        auto has_conflicts = false;
-        for(auto& v : result.m_conversions) {
-          if(t.get_type(*v.first) != nullptr) {
-            has_conflicts = true;
-            break;
-          }
-          candidate_map.add(*v.first, v.second);
-        }
-        if(!has_conflicts) {
-          return candidate_map;
-        }
+      if(v.m_constraints.is_satisfied(candidate_map, s)) {
+        return candidate_map;
       }
       ++i;
     }
@@ -274,8 +278,8 @@ namespace darcel {
         if(auto callable_type =
             std::dynamic_pointer_cast<callable_data_type>(t)) {
           std::vector<function_data_type::parameter> parameters;
-          for(auto& parameter : node.get_parameters()) {
-            parameter->apply(*this);
+          for(auto& argument : node.get_arguments()) {
+            argument->apply(*this);
             parameters.emplace_back("", std::move(m_last));
           }
           auto overload = find_overload(*callable_type->get_function(),
@@ -296,10 +300,10 @@ namespace darcel {
                 auto call_overload = find_overload(
                   *callable_type->get_function(), *signature,
                   m_checker->get_scope());
-                m_checker->m_types.add(*node.get_parameters()[i],
+                m_checker->m_types.add(*node.get_arguments()[i],
                   std::move(signature));
                 m_checker->m_call_definitions.insert(
-                  std::make_pair(node.get_parameters()[i].get(),
+                  std::make_pair(node.get_arguments()[i].get(),
                   std::move(call_overload)));
               }
             }

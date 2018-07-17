@@ -17,5 +17,5 @@ TEST_CASE("test_call_expression", "[call_expression]") {
   auto fexpr = dynamic_cast<const function_expression*>(&call.get_callable());
   REQUIRE(fexpr != nullptr);
   REQUIRE(fexpr->get_function() == f);
-  REQUIRE(call.get_parameters().size() == 1);
+  REQUIRE(call.get_arguments().size() == 1);
 }

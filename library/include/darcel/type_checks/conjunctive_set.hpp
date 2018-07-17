@@ -23,10 +23,10 @@ namespace darcel {
       /*!
         \param t The type map used to test for satisfiability.
         \param s The scope used to find overloaded definitions.
-        \return A constraint result indicating whether all requirements are
-                satisfied using <i>t</i>.
+        \return <code>true</code> if all requirements are satisfied using
+                <i>t</i>.
       */
-      constraint_result is_satisfied(const type_map& t, const scope& s) const;
+      bool is_satisfied(const type_map& t, const scope& s) const;
 
       //! Adds a requirement that an expression must evaluate to a particular
       //! data type.
@@ -44,43 +44,19 @@ namespace darcel {
       std::vector<term> m_terms;
   };
 
-  inline constraint_result conjunctive_set::is_satisfied(const type_map& t,
+  inline bool conjunctive_set::is_satisfied(const type_map& t,
       const scope& s) const {
-    data_type_map<std::shared_ptr<generic_data_type>,
-      std::shared_ptr<data_type>> substitutions;
-    constraint_result result;
     for(auto& term : m_terms) {
       try {
         auto term_type = t.get_type(*term.m_expression);
-        if(term_type == nullptr) {
-          return result;
-        }
-        if(is_generic(*term_type)) {
-          if(auto v = dynamic_cast<const variable_expression*>(
-              term.m_expression)) {
-            term_type = substitute(term_type, substitutions);
-            result.m_conversions.insert(
-              std::make_pair(v->get_variable(), term_type));
-          } else {
-            return result;
-          }
-        }
-        auto expected_type = [&] {
-          if(is_generic(*term.m_type)) {
-            return substitute_generic(term.m_type, term_type, s, substitutions);
-          } else {
-            return term.m_type;
-          }
-        }();
-        if(term_type == nullptr || *term_type != *expected_type) {
-          return result;
+        if(term_type == nullptr || *term_type != *term.m_type) {
+          return false;
         }
       } catch(const syntax_error&) {
-        return result;
+        return false;
       }
     }
-    result.m_is_satisfied = true;
-    return result;
+    return true;
   }
 
   inline void conjunctive_set::add(const expression& e,
