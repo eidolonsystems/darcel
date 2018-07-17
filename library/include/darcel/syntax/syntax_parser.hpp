@@ -176,11 +176,13 @@ namespace darcel {
     cursor = c;
   }
 
-  inline syntax_parser::syntax_parser() {
+  inline syntax_parser::syntax_parser()
+      : m_generic_index(0) {
     m_scopes.push_back(std::make_unique<scope>());
   }
 
-  inline syntax_parser::syntax_parser(const scope& s) {
+  inline syntax_parser::syntax_parser(const scope& s)
+      : m_generic_index(0) {
     m_scopes.push_back(std::make_unique<scope>(&s));
   }
 

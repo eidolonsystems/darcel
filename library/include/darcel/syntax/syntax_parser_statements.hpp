@@ -93,7 +93,6 @@ namespace darcel {
     ++c;
     std::vector<bind_function_statement::parameter> parameters;
     push_scope();
-    m_generic_index = 0;
     if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
       while(true) {
         auto name_location = c.get_location();

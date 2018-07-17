@@ -20,7 +20,7 @@ namespace darcel {
       /*!
         \param name The name of the function.
       */
-      function(std::string name);
+      explicit function(std::string name);
 
       //! Constructs a child function.
       /*!
@@ -33,7 +33,7 @@ namespace darcel {
       /*!
         \param parent The parent function.
       */
-      function(std::shared_ptr<function> parent);
+      explicit function(std::shared_ptr<function> parent);
 
       //! Returns the parent function, or null if this function is the root.
       const std::shared_ptr<function>& get_parent() const;

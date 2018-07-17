@@ -55,6 +55,71 @@ namespace darcel {
       void pop_scope();
   };
 
+  //! Returns a list of all data types an expression can potentially evaluate
+  //! to.
+  /*!
+    \param e The expression to analyze.
+    \param t The map of types.
+    \param s The scope used to get function definitions.
+  */
+  inline std::vector<std::shared_ptr<data_type>> determine_expression_types(
+      const expression& e, const type_map& t, const scope& s) {
+    struct expression_visitor final : syntax_node_visitor {
+      const type_map* m_types;
+      const scope* m_scope;
+      std::vector<std::shared_ptr<data_type>> m_result;
+
+      std::vector<std::shared_ptr<data_type>> operator ()(
+          const expression& e, const type_map& t, const scope& s) {
+        m_types = &t;
+        m_scope = &s;
+        e.apply(*this);
+        return std::move(m_result);
+      }
+
+      void visit(const call_expression& node) override {
+        auto overloads = determine_expression_types(node.get_callable(),
+          *m_types, *m_scope);
+        for(auto& overload : overloads) {
+          if(auto f = std::dynamic_pointer_cast<function_data_type>(overload)) {
+            if(f->get_parameters().size() != node.get_arguments().size()) {
+              continue;
+            }
+            if(is_generic(*f->get_return_type())) {
+              std::vector<std::shared_ptr<data_type>> generic_parameters;
+              
+            } else {
+              m_result.push_back(f->get_return_type());
+            }
+          }
+        }
+      }
+
+      void visit(const function_expression& node) override {
+        m_scope->find(*node.get_function(),
+          [&] (auto& definition) {
+            auto i = std::find_if(m_result.begin(), m_result.end(),
+              [&] (auto& r) {
+                return *definition.get_type() == *r;
+              });
+            if(i == m_result.end()) {
+              m_result.push_back(definition.get_type());
+            }
+            return false;
+          });
+        m_result.push_back(m_types->get_type(*node.get_function()));
+      }
+
+      void visit(const expression& node) override {
+        auto t = m_types->get_type(node);
+        if(t != nullptr) {
+          m_result.push_back(std::move(t));
+        }
+      }
+    };
+    return expression_visitor()(e, t, s);
+  }
+
   //! Performs type inference on an expression.
   /*!
     \param e The expression to infer.

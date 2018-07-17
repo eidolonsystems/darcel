@@ -22,7 +22,7 @@ namespace darcel {
       /*!
         \param parent The parent scope.
       */
-      scope(const scope* parent);
+      explicit scope(const scope* parent);
 
       //! Returns the parent scope (potentially null).
       const scope* get_parent() const;

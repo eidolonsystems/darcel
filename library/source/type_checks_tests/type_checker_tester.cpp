@@ -6,6 +6,31 @@
 using namespace darcel;
 using namespace darcel::tests;
 
+namespace {
+  auto register_function(scope& s, type_map& t, std::string name,
+      std::vector<function_data_type::parameter> parameters,
+      const expression_builder& body) {
+    auto f = bind_function(s, std::move(name), parameters,
+      [&] (auto& s) {
+        for(auto& parameter : parameters) {
+          t.add(*s.find<variable>(parameter.m_name), parameter.m_type);
+        }
+        return body(s);
+      });
+    auto definition = std::make_shared<function_definition>(location::global(),
+      f->get_function(), std::make_shared<function_data_type>(
+      std::move(parameters), t.get_type(f->get_expression())));
+    s.add(definition);
+    auto callable = t.get_type(*f->get_function());
+    if(callable == nullptr) {
+      t.add(*f->get_function(),
+        std::make_shared<callable_data_type>(f->get_function()));
+    }
+    t.add(definition);
+    return f;
+  }
+}
+
 TEST_CASE("test_bind_variable_type_checker", "[type_checker]") {
   scope s;
   auto binding = bind_variable(s, "x", make_literal(123));
@@ -239,48 +264,54 @@ TEST_CASE("test_checking_generic_return_type", "[type_checker]") {
   REQUIRE_NOTHROW(checker.check(*node));
 }
 
+TEST_CASE("test_expression_candidates", "[type_checker]") {
+  scope s;
+  type_map m;
+  auto f1 = register_function(s, m, "f",
+    {{"x", integer_data_type::get_instance()}},
+    [&] (auto& s) {
+      return make_literal(123);
+    });
+  auto f2 = register_function(s, m, "f",
+    {{"x", bool_data_type::get_instance()}},
+    [&] (auto& s) {
+      return make_literal(true);
+    });
+  SECTION("Single literal candidate.") {
+    auto candidates = determine_expression_types(*make_literal(123), m, s);
+    REQUIRE(candidates.size() == 1);
+    REQUIRE(*candidates.front() == integer_data_type());
+  }
+  SECTION("Overloaded function candidates.") {
+    auto candidates = determine_expression_types(
+      function_expression(location::global(), f1->get_function()), m, s);
+    REQUIRE(candidates.size() == 2);
+  }
+  SECTION("Call expression.") {
+    auto candidates = determine_expression_types(
+      *call(s, "f", make_literal(123)), m, s);
+    REQUIRE(candidates.size() == 2);
+  }
+}
+
 TEST_CASE("test_parameter_inference", "[type_checker]") {
   scope s;
   type_map m;
-  auto f = bind_function(s, "f", {{"x", integer_data_type::get_instance()}},
+  auto f = register_function(s, m, "f",
+    {{"x", integer_data_type::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
     });
-  auto f_definition = std::make_shared<function_definition>(location::global(),
-    f->get_function(),
-    make_function_data_type({{"x", integer_data_type::get_instance()}},
-    std::make_shared<integer_data_type>()));
-  s.add(f_definition);
-  m.add(*f->get_function(),
-    std::make_shared<callable_data_type>(f->get_function()));
-  m.add(f_definition);
-  auto g = bind_function(s, "g", {{"x", bool_data_type::get_instance()}},
+  auto g = register_function(s, m, "g", {{"x", bool_data_type::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
     });
-  auto g_definition = std::make_shared<function_definition>(location::global(),
-    g->get_function(),
-    make_function_data_type({{"x", bool_data_type::get_instance()}},
-    std::make_shared<bool_data_type>()));
-  s.add(g_definition);
-  m.add(*g->get_function(),
-    std::make_shared<callable_data_type>(g->get_function()));
-  m.add(g_definition);
-  auto chain = bind_function(s, "chain",
+  auto chain = register_function(s, m, "chain",
       {{"x", integer_data_type::get_instance()},
        {"y", integer_data_type::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
     });
-  auto chain_definition = std::make_shared<function_definition>(
-    location::global(), chain->get_function(), make_function_data_type(
-    {{"x", std::make_shared<generic_data_type>(location::global(), "`T", 0)},
-     {"y", std::make_shared<generic_data_type>(location::global(), "`U", 1)}},
-    std::make_shared<integer_data_type>()));
-  s.add(chain_definition);
-  m.add(*chain->get_function(),
-    std::make_shared<callable_data_type>(chain->get_function()));
-  m.add(chain_definition);
   auto x = std::make_shared<variable>(location::global(), "x");
   s.add(x);
   auto y = std::make_shared<variable>(location::global(), "y");
@@ -308,21 +339,13 @@ TEST_CASE("test_parameter_inference", "[type_checker]") {
 TEST_CASE("test_generic_function_parameter_inference", "[type_checker]") {
   scope s;
   type_map m;
-  auto f = bind_function(s, "f",
-    {{"f", make_function_data_type(
+  auto f = register_function(s, m, "f",
+      {{"f", make_function_data_type(
       {{"x", std::make_shared<generic_data_type>(location::global(), "`T", 0)}},
       std::make_shared<generic_data_type>(location::global(), "`T", 0))}},
     [&] (auto& s) {
       return make_literal(true);
     });
-  auto f_definition = std::make_shared<function_definition>(location::global(),
-    f->get_function(),
-    make_function_data_type({{"f", f->get_parameters()[0].m_type}},
-    std::make_shared<bool_data_type>()));
-  s.add(f_definition);
-  m.add(*f->get_function(),
-    std::make_shared<callable_data_type>(f->get_function()));
-  m.add(f_definition);
   auto x = std::make_shared<variable>(location::global(), "x");
   s.add(x);
   auto expected_type = make_function_data_type(
@@ -337,31 +360,17 @@ TEST_CASE("test_generic_function_parameter_inference", "[type_checker]") {
 TEST_CASE("test_nested_generic_parameter_inference", "[type_checker]") {
   scope s;
   type_map m;
-  auto f = bind_function(s, "f",
+  auto f = register_function(s, m, "f",
     {{"a", std::make_shared<generic_data_type>(location::global(), "`T", 0)},
      {"b", std::make_shared<generic_data_type>(location::global(), "`T", 0)}},
     [&] (auto& s) {
       return find_term("a", s);
     });
-  auto f_definition = std::make_shared<function_definition>(location::global(),
-    f->get_function(), make_function_data_type(
-    {{"a", f->get_parameters()[0].m_type},
-     {"b", f->get_parameters()[1].m_type}}, f->get_parameters()[0].m_type));
-  s.add(f_definition);
-  m.add(*f->get_function(),
-    std::make_shared<callable_data_type>(f->get_function()));
-  m.add(f_definition);
-  auto g = bind_function(s, "g", {{"c", integer_data_type::get_instance()}},
+  auto g = register_function(s, m, "g",
+    {{"c", integer_data_type::get_instance()}},
     [&] (auto& s) {
       return make_literal(123);
     });
-  auto g_definition = std::make_shared<function_definition>(location::global(),
-    g->get_function(), make_function_data_type(
-    {{"a", g->get_parameters()[0].m_type}}, g->get_parameters()[0].m_type));
-  s.add(g_definition);
-  m.add(*g->get_function(),
-    std::make_shared<callable_data_type>(g->get_function()));
-  m.add(g_definition);
   auto x = std::make_shared<variable>(location::global(), "x");
   s.add(x);
   auto y = std::make_shared<variable>(location::global(), "y");
@@ -375,20 +384,12 @@ TEST_CASE("test_nested_generic_parameter_inference", "[type_checker]") {
 TEST_CASE("test_generic_parameter_inference", "[type_checker]") {
   scope s;
   type_map m;
-  auto f = bind_function(s, "f",
+  auto f = register_function(s, m, "f",
     {{"a", std::make_shared<generic_data_type>(location::global(), "`T", 0)},
      {"b", std::make_shared<generic_data_type>(location::global(), "`T", 0)}},
     [&] (auto& s) {
       return find_term("a", s);
     });
-  auto f_definition = std::make_shared<function_definition>(location::global(),
-    f->get_function(), make_function_data_type(
-    {{"a", f->get_parameters()[0].m_type},
-     {"b", f->get_parameters()[1].m_type}}, f->get_parameters()[0].m_type));
-  s.add(f_definition);
-  m.add(*f->get_function(),
-    std::make_shared<callable_data_type>(f->get_function()));
-  m.add(f_definition);
   auto x = std::make_shared<variable>(location::global(), "x");
   s.add(x);
   auto y = std::make_shared<variable>(location::global(), "y");
