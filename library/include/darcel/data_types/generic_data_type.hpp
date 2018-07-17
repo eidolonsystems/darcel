@@ -15,12 +15,12 @@ namespace darcel {
       /*!
         \param l The location where the generic was declared.
         \param name The name of the generic.
-        \param index The generic's index.
+        \param id The generic's unique id.
       */
-      generic_data_type(location l, std::string name, int index);
+      generic_data_type(location l, std::string name, int id);
 
-      //! Returns the generic's index.
-      int get_index() const;
+      //! Returns the generic's id.
+      int get_id() const;
 
       const location& get_location() const override;
 
@@ -34,7 +34,7 @@ namespace darcel {
     private:
       location m_location;
       std::string m_name;
-      int m_index;
+      int m_id;
   };
 
   //! Tests if a data type is generic.
@@ -117,13 +117,13 @@ namespace darcel {
   }
 
   inline generic_data_type::generic_data_type(location l, std::string name,
-      int index)
+      int id)
       : m_location(std::move(l)),
         m_name(std::move(name)),
-        m_index(index) {}
+        m_id(id) {}
 
-  inline int generic_data_type::get_index() const {
-    return m_index;
+  inline int generic_data_type::get_id() const {
+    return m_id;
   }
 
   inline const location& generic_data_type::get_location() const {
@@ -140,7 +140,7 @@ namespace darcel {
 
   inline bool generic_data_type::is_equal(const data_type& rhs) const {
     auto& other = static_cast<const generic_data_type&>(rhs);
-    return m_index == other.get_index();
+    return m_id == other.get_id();
   }
 
   inline void data_type_visitor::visit(const generic_data_type& node) {
