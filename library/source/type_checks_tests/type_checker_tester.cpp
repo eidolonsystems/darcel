@@ -370,24 +370,20 @@ TEST_CASE("test_nested_generic_parameter_inference", "[type_checker]") {
   scope s;
   type_map m;
   auto f = register_function(s, m, "f",
-    {{"a", std::make_shared<generic_data_type>(location::global(), "`T", 0)},
-     {"b", std::make_shared<generic_data_type>(location::global(), "`T", 0)}},
+    {{"a", std::make_shared<generic_data_type>(location::global(), "`T", 0)}},
     [&] (auto& s) {
       return find_term("a", s);
     });
   auto g = register_function(s, m, "g",
-    {{"c", integer_data_type::get_instance()}},
+    {{"b", integer_data_type::get_instance()}},
     [&] (auto& s) {
       return make_literal(123);
     });
   auto x = std::make_shared<variable>(location::global(), "x");
   s.add(x);
-  auto y = std::make_shared<variable>(location::global(), "y");
-  s.add(y);
-  auto e = call(s, "f", call(s, "g", find_term("x", s)), find_term("y", s));
+  auto e = call(s, "f", call(s, "g", find_term("x", s)));
   auto inferred_types = infer_types(*e, m, s);
   REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
-  REQUIRE(*inferred_types.get_type(*y) == integer_data_type());
 }
 
 TEST_CASE("test_generic_parameter_inference", "[type_checker]") {

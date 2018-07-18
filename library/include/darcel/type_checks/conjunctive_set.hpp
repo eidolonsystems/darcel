@@ -46,10 +46,22 @@ namespace darcel {
 
   inline bool conjunctive_set::is_satisfied(const type_map& t,
       const scope& s) const {
+    data_type_map<std::shared_ptr<generic_data_type>,
+      std::shared_ptr<data_type>> substitutions;
     for(auto& term : m_terms) {
       try {
         auto term_type = t.get_type(*term.m_expression);
-        if(term_type == nullptr || *term_type != *term.m_type) {
+        if(term_type == nullptr) {
+          return false;
+        }
+        auto expected_type = [&] {
+          if(is_generic(*term.m_type)) {
+            return substitute_generic(term.m_type, term_type, s, substitutions);
+          } else {
+            return term.m_type;
+          }
+        }();
+        if(term_type == nullptr || *term_type != *expected_type) {
           return false;
         }
       } catch(const syntax_error&) {
