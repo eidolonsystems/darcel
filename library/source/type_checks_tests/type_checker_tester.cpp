@@ -404,6 +404,11 @@ TEST_CASE("test_generic_parameter_inference", "[type_checker]") {
     auto inferred_types = infer_types(*e, m, s);
     REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
   }
+  SECTION("Swap the location of the single variable.") {
+    auto e = call(s, "f", make_literal(1), find_term("x", s));
+    auto inferred_types = infer_types(*e, m, s);
+    REQUIRE(*inferred_types.get_type(*x) == integer_data_type());
+  }
   SECTION("Test inferring a chain of expressions.") {
     auto e = call(s, "f", find_term("x", s),
       call(s, "f", find_term("y", s), make_literal(1)));

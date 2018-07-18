@@ -94,8 +94,8 @@ namespace darcel {
               continue;
             }
             if(is_generic(*f->get_return_type())) {
-/*
               auto generic_terms = extract_generic_terms(f->get_return_type());
+/*
               std::vector<std::shared_ptr<data_type>> generic_parameters;
               for(auto& parameter : f->get_parameters()) {
                 if(is_generic(*parameter.m_type)) {
@@ -172,28 +172,43 @@ namespace darcel {
           }
           conjunctive_set c;
           data_type_map<std::shared_ptr<generic_data_type>,
-            std::shared_ptr<data_type>> substitutions;
+            std::vector<std::shared_ptr<data_type>>> substitutions;
           for(std::size_t i = 0; i != node.get_arguments().size(); ++i) {
             auto& parameter_type = overload->get_parameters()[i].m_type;
             if(!is_generic(*parameter_type)) {
               continue;
             }
             auto& argument = *node.get_arguments()[i];
-            auto argument_type = m_types->get_type(argument);
-            if(argument_type == nullptr) {
-              continue;
+            auto argument_types = determine_expression_types(argument, *m_types,
+              *m_scope);
+            for(auto& argument_type : argument_types) {
+              data_type_map<std::shared_ptr<generic_data_type>,
+                std::shared_ptr<data_type>> argument_substitutions;
+              substitute_generic(parameter_type, argument_type, *m_scope,
+                argument_substitutions);
+              for(auto& argument_substitution : argument_substitutions) {
+                substitutions[argument_substitution.first].push_back(
+                  argument_substitution.second);
+              }
             }
-            substitute_generic(parameter_type, argument_type, *m_scope,
-              substitutions);
           }
           for(std::size_t i = 0; i != node.get_arguments().size(); ++i) {
+            auto& parameter_type = overload->get_parameters()[i].m_type;
             auto& argument = *node.get_arguments()[i];
-            auto& parameter_type = substitute(
-              overload->get_parameters()[i].m_type, substitutions);
             c.add(argument, parameter_type);
             if(auto v = dynamic_cast<const variable_expression*>(&argument)) {
               if(m_types->get_type(*v->get_variable()) == nullptr) {
-                m_candidates[v->get_variable()].push_back(parameter_type);
+                auto& candidates = m_candidates[v->get_variable()];
+                candidates.push_back(parameter_type);
+                auto generic_terms = extract_generic_terms(parameter_type);
+                for(auto& generic_term : generic_terms) {
+                  auto i = substitutions.find(generic_term);
+                  if(i == substitutions.end()) {
+                    continue;
+                  }
+                  candidates.insert(candidates.end(), i->second.begin(),
+                    i->second.end());
+                }
               }
             }
           }
