@@ -317,7 +317,7 @@ TEST_CASE("test_parameter_inference", "[type_checker]") {
     });
   auto chain = register_function(s, m, "chain",
       {{"x", integer_data_type::get_instance()},
-       {"y", integer_data_type::get_instance()}},
+       {"y", bool_data_type::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
     });
