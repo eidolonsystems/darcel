@@ -1,5 +1,8 @@
 #ifndef DARCEL_GENERIC_DATA_TYPE_HPP
 #define DARCEL_GENERIC_DATA_TYPE_HPP
+#include <algorithm>
+#include <functional>
+#include <vector>
 #include "darcel/data_types/data_type.hpp"
 #include "darcel/data_types/data_type_visitor.hpp"
 #include "darcel/data_types/data_types.hpp"
@@ -57,6 +60,35 @@ namespace darcel {
       return is_generic(*f->get_return_type());
     }
     return false;
+  }
+
+  //! Returns a list of generic terms composing a data type.
+  /*!
+    \param type The data type to extract the generic terms from.
+    \return The list of generic terms in <i>type</i>
+  */
+  inline std::vector<std::shared_ptr<generic_data_type>> extract_generic_terms(
+      std::shared_ptr<data_type> t) {
+    std::vector<std::shared_ptr<generic_data_type>> result;
+    if(auto g = std::dynamic_pointer_cast<generic_data_type>(t)) {
+      result.push_back(std::move(g));
+    } else if(auto g = std::dynamic_pointer_cast<function_data_type>(t)) {
+      for(auto& parameter : g->get_parameters()) {
+        auto sub_result = extract_generic_terms(parameter.m_type);
+        std::copy_if(sub_result.begin(), sub_result.end(),
+          std::back_inserter(result),
+          [&] (auto& candidate) {
+            return !contains(result, *candidate);
+          });
+      }
+      auto sub_result = extract_generic_terms(g->get_return_type());
+      std::copy_if(sub_result.begin(), sub_result.end(),
+        std::back_inserter(result),
+        [&] (auto& candidate) {
+          return !contains(result, *candidate);
+        });
+    }
+    return result;
   }
 
   //! Substitutes all generic occurances with their concrete arguments.

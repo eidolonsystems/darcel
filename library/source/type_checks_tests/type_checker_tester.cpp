@@ -285,12 +285,21 @@ TEST_CASE("test_expression_candidates", "[type_checker]") {
   SECTION("Overloaded function candidates.") {
     auto candidates = determine_expression_types(
       function_expression(location::global(), f1->get_function()), m, s);
-    REQUIRE(candidates.size() == 2);
+    REQUIRE(candidates.size() == 3);
+    REQUIRE(contains(candidates, callable_data_type(f1->get_function())));
+    REQUIRE(contains(candidates,
+      *make_function_data_type({{"x", integer_data_type::get_instance()}},
+      integer_data_type::get_instance())));
+    REQUIRE(contains(candidates,
+      *make_function_data_type({{"x", bool_data_type::get_instance()}},
+      bool_data_type::get_instance())));
   }
   SECTION("Call expression.") {
     auto candidates = determine_expression_types(
       *call(s, "f", make_literal(123)), m, s);
     REQUIRE(candidates.size() == 2);
+    REQUIRE(contains(candidates, integer_data_type()));
+    REQUIRE(contains(candidates, bool_data_type()));
   }
 }
 

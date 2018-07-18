@@ -2,7 +2,6 @@
 #include "darcel/data_types/data_type_compatibility.hpp"
 
 using namespace darcel;
-using namespace std;
 
 TEST_CASE("test_equal_compatibility", "[data_type_compatibility]") {
   scope s;

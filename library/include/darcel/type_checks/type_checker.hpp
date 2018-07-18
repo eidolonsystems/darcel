@@ -77,6 +77,14 @@ namespace darcel {
         return std::move(m_result);
       }
 
+      void append(std::shared_ptr<data_type> type) {
+        auto i = std::find_if(m_result.begin(), m_result.end(),
+          equal_to(*type));
+        if(i == m_result.end()) {
+          m_result.push_back(std::move(type));
+        }
+      }
+
       void visit(const call_expression& node) override {
         auto overloads = determine_expression_types(node.get_callable(),
           *m_types, *m_scope);
@@ -86,14 +94,15 @@ namespace darcel {
               continue;
             }
             if(is_generic(*f->get_return_type())) {
+              auto generic_terms = extract_generic_terms(f->get_return_type());
               std::vector<std::shared_ptr<data_type>> generic_parameters;
               for(auto& parameter : f->get_parameters()) {
                 if(is_generic(*parameter.m_type)) {
-                  generic_parameters.push_back(
+//                  generic_parameters.push_back(
                 }
               }
             } else {
-              m_result.push_back(f->get_return_type());
+              append(f->get_return_type());
             }
           }
         }
@@ -102,22 +111,16 @@ namespace darcel {
       void visit(const function_expression& node) override {
         m_scope->find(*node.get_function(),
           [&] (auto& definition) {
-            auto i = std::find_if(m_result.begin(), m_result.end(),
-              [&] (auto& r) {
-                return *definition.get_type() == *r;
-              });
-            if(i == m_result.end()) {
-              m_result.push_back(definition.get_type());
-            }
+            append(definition.get_type());
             return false;
           });
-        m_result.push_back(m_types->get_type(*node.get_function()));
+        append(m_types->get_type(*node.get_function()));
       }
 
       void visit(const expression& node) override {
         auto t = m_types->get_type(node);
         if(t != nullptr) {
-          m_result.push_back(std::move(t));
+          append(std::move(t));
         }
       }
     };
