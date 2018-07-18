@@ -62,6 +62,42 @@ namespace darcel {
     \param t The map of types.
     \param s The scope used to get function definitions.
   */
+  std::vector<std::shared_ptr<data_type>> determine_expression_types(
+    const expression& e, const type_map& t, const scope& s);
+
+  //! Returns a map of all possible generic substitutions in a function call.
+  /*!
+    \param generic The generic function being called.
+    \param arguments The list of arguments being passed to the function.
+  */  
+  inline data_type_map<std::shared_ptr<generic_data_type>,
+      std::vector<std::shared_ptr<data_type>>> resolve_generics(
+      const std::shared_ptr<function_data_type>& generic,
+      const std::vector<std::unique_ptr<expression>>& arguments,
+      const type_map& types, const scope& s) {
+    data_type_map<std::shared_ptr<generic_data_type>,
+      std::vector<std::shared_ptr<data_type>>> substitutions;
+    for(std::size_t i = 0; i != arguments.size(); ++i) {
+      auto& parameter_type = generic->get_parameters()[i].m_type;
+      if(!is_generic(*parameter_type)) {
+        continue;
+      }
+      auto& argument = *arguments[i];
+      auto argument_types = determine_expression_types(argument, types, s);
+      for(auto& argument_type : argument_types) {
+        data_type_map<std::shared_ptr<generic_data_type>,
+          std::shared_ptr<data_type>> argument_substitutions;
+        substitute_generic(parameter_type, argument_type, s,
+          argument_substitutions);
+        for(auto& argument_substitution : argument_substitutions) {
+          substitutions[argument_substitution.first].push_back(
+            argument_substitution.second);
+        }
+      }
+    }
+    return substitutions;
+  }
+
   inline std::vector<std::shared_ptr<data_type>> determine_expression_types(
       const expression& e, const type_map& t, const scope& s) {
     struct expression_visitor final : syntax_node_visitor {
@@ -94,15 +130,17 @@ namespace darcel {
               continue;
             }
             if(is_generic(*f->get_return_type())) {
-              auto generic_terms = extract_generic_terms(f->get_return_type());
-/*
-              std::vector<std::shared_ptr<data_type>> generic_parameters;
-              for(auto& parameter : f->get_parameters()) {
-                if(is_generic(*parameter.m_type)) {
-                  generic_parameters.push_back(
+              auto substitutions = resolve_generics(f, node.get_arguments(),
+                *m_types, *m_scope);
+              if(auto g = std::dynamic_pointer_cast<generic_data_type>(
+                  f->get_return_type())) {
+
+                // TODO : function generics
+                auto& candidates = substitutions[g];
+                for(auto& candidate : candidates) {
+                  append(candidate);
                 }
               }
-*/
             } else {
               append(f->get_return_type());
             }
@@ -171,27 +209,8 @@ namespace darcel {
             continue;
           }
           conjunctive_set c;
-          data_type_map<std::shared_ptr<generic_data_type>,
-            std::vector<std::shared_ptr<data_type>>> substitutions;
-          for(std::size_t i = 0; i != node.get_arguments().size(); ++i) {
-            auto& parameter_type = overload->get_parameters()[i].m_type;
-            if(!is_generic(*parameter_type)) {
-              continue;
-            }
-            auto& argument = *node.get_arguments()[i];
-            auto argument_types = determine_expression_types(argument, *m_types,
-              *m_scope);
-            for(auto& argument_type : argument_types) {
-              data_type_map<std::shared_ptr<generic_data_type>,
-                std::shared_ptr<data_type>> argument_substitutions;
-              substitute_generic(parameter_type, argument_type, *m_scope,
-                argument_substitutions);
-              for(auto& argument_substitution : argument_substitutions) {
-                substitutions[argument_substitution.first].push_back(
-                  argument_substitution.second);
-              }
-            }
-          }
+          auto substitutions = resolve_generics(overload, node.get_arguments(),
+            *m_types, *m_scope);
           for(std::size_t i = 0; i != node.get_arguments().size(); ++i) {
             auto& parameter_type = overload->get_parameters()[i].m_type;
             auto& argument = *node.get_arguments()[i];
@@ -199,7 +218,6 @@ namespace darcel {
             if(auto v = dynamic_cast<const variable_expression*>(&argument)) {
               if(m_types->get_type(*v->get_variable()) == nullptr) {
                 auto& candidates = m_candidates[v->get_variable()];
-                candidates.push_back(parameter_type);
                 auto generic_terms = extract_generic_terms(parameter_type);
                 for(auto& generic_term : generic_terms) {
                   auto i = substitutions.find(generic_term);
@@ -208,6 +226,9 @@ namespace darcel {
                   }
                   candidates.insert(candidates.end(), i->second.begin(),
                     i->second.end());
+                }
+                if(candidates.empty()) {
+                  candidates.push_back(parameter_type);
                 }
               }
             }
