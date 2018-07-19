@@ -3,6 +3,7 @@
 #include <memory>
 #include <utility>
 #include "darcel/data_types/bool_data_type.hpp"
+#include "darcel/data_types/callable_data_type.hpp"
 #include "darcel/data_types/float_data_type.hpp"
 #include "darcel/data_types/generic_data_type.hpp"
 #include "darcel/data_types/integer_data_type.hpp"
@@ -33,6 +34,7 @@ namespace darcel {
       auto f = std::make_shared<function>(location::global(),
         get_function_name(o));
       s.add(f);
+      s.add(std::make_shared<callable_data_type>(f));
       for(auto& t : std::vector<std::shared_ptr<data_type>>{
           integer_data_type::get_instance(), float_data_type::get_instance()}) {
         std::vector<function_data_type::parameter> parameters;

@@ -289,6 +289,17 @@ namespace darcel {
         if(auto definition =
             std::dynamic_pointer_cast<function_definition>(e)) {
           m_types.add(std::move(definition));
+        } else if(auto f = std::dynamic_pointer_cast<function>(e)) {
+          auto callable = std::static_pointer_cast<callable_data_type>(
+            get_scope().find(
+            [&] (auto& t) {
+              auto callable = std::dynamic_pointer_cast<callable_data_type>(t);
+              return callable != nullptr && callable->get_function() == f;
+            }));
+          if(callable == nullptr) {
+            callable = std::make_shared<callable_data_type>(f);
+          }
+          m_types.add(*f, std::move(callable));
         }
         return false;
       });

@@ -61,7 +61,8 @@ namespace darcel {
             return term.m_type;
           }
         }();
-        if(term_type == nullptr || *term_type != *expected_type) {
+        if(term_type == nullptr || expected_type == nullptr ||
+            *term_type != *expected_type) {
           return false;
         }
       } catch(const syntax_error&) {
