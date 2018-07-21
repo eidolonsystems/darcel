@@ -23,20 +23,20 @@ namespace darcel {
     auto f = s.find<function>("add");
     if(f != nullptr) {
       for(auto& overload : s.get_definitions(*f)) {
-        auto signature = std::static_pointer_cast<function_data_type>(
+        auto signature = std::static_pointer_cast<FunctionDataType>(
           overload->get_type());
         if(signature->get_parameters().size() == 2) {
-          if(*signature->get_parameters()[0].m_type == integer_data_type() &&
-              *signature->get_parameters()[1].m_type == integer_data_type()) {
+          if(*signature->get_parameters()[0].m_type == IntegerDataType() &&
+              *signature->get_parameters()[1].m_type == IntegerDataType()) {
             translator.add(overload, make_add_reactor_builder<int, int>());
           } else if(
-              *signature->get_parameters()[0].m_type == float_data_type() &&
-              *signature->get_parameters()[1].m_type == float_data_type()) {
+              *signature->get_parameters()[0].m_type == FloatDataType() &&
+              *signature->get_parameters()[1].m_type == FloatDataType()) {
             translator.add(overload,
               make_add_reactor_builder<double, double>());
           } else if(
-              *signature->get_parameters()[0].m_type == text_data_type() &&
-              *signature->get_parameters()[1].m_type == text_data_type()) {
+              *signature->get_parameters()[0].m_type == TextDataType() &&
+              *signature->get_parameters()[1].m_type == TextDataType()) {
             translator.add(overload,
               make_add_reactor_builder<std::string, std::string>());
           }
@@ -53,16 +53,16 @@ namespace darcel {
   inline void translate_chain(reactor_translator& translator, const scope& s) {
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<function_data_type>& t) const {
-        if(*t->get_parameters()[0].m_type == bool_data_type()) {
+          const std::shared_ptr<FunctionDataType>& t) const {
+        if(*t->get_parameters()[0].m_type == BoolDataType()) {
           return make_chain_reactor_builder<bool>();
-        } else if(*t->get_parameters()[0].m_type == float_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == FloatDataType()) {
           return make_chain_reactor_builder<double>();
-        } else if(*t->get_parameters()[0].m_type == integer_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == IntegerDataType()) {
           return make_chain_reactor_builder<int>();
-        } else if(*t->get_parameters()[0].m_type == text_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == TextDataType()) {
           return make_chain_reactor_builder<std::string>();
-        } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
+        } else if(auto e = std::dynamic_pointer_cast<EnumDataType>(
             t->get_parameters()[0].m_type)) {
           return make_chain_reactor_builder<int>();
         }
@@ -97,15 +97,15 @@ namespace darcel {
     auto f = s.find<function>("divide");
     if(f != nullptr) {
       for(auto& overload : s.get_definitions(*f)) {
-        auto signature = std::static_pointer_cast<function_data_type>(
+        auto signature = std::static_pointer_cast<FunctionDataType>(
           overload->get_type());
         if(signature->get_parameters().size() == 2) {
-          if(*signature->get_parameters()[0].m_type == integer_data_type() &&
-              *signature->get_parameters()[1].m_type == integer_data_type()) {
+          if(*signature->get_parameters()[0].m_type == IntegerDataType() &&
+              *signature->get_parameters()[1].m_type == IntegerDataType()) {
             translator.add(overload, make_divide_reactor_builder<int, int>());
           } else if(
-              *signature->get_parameters()[0].m_type == float_data_type() &&
-              *signature->get_parameters()[1].m_type == float_data_type()) {
+              *signature->get_parameters()[0].m_type == FloatDataType() &&
+              *signature->get_parameters()[1].m_type == FloatDataType()) {
             translator.add(overload,
               make_divide_reactor_builder<double, double>());
           }
@@ -122,16 +122,16 @@ namespace darcel {
   inline void translate_first(reactor_translator& translator, const scope& s) {
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<function_data_type>& t) const {
-        if(*t->get_parameters()[0].m_type == bool_data_type()) {
+          const std::shared_ptr<FunctionDataType>& t) const {
+        if(*t->get_parameters()[0].m_type == BoolDataType()) {
           return make_first_reactor_builder<bool>();
-        } else if(*t->get_parameters()[0].m_type == float_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == FloatDataType()) {
           return make_first_reactor_builder<float>();
-        } else if(*t->get_parameters()[0].m_type == integer_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == IntegerDataType()) {
           return make_first_reactor_builder<int>();
-        } else if(*t->get_parameters()[0].m_type == text_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == TextDataType()) {
           return make_first_reactor_builder<std::string>();
-        } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
+        } else if(auto e = std::dynamic_pointer_cast<EnumDataType>(
             t->get_parameters()[0].m_type)) {
           return make_first_reactor_builder<int>();
         }
@@ -154,16 +154,16 @@ namespace darcel {
   inline void translate_fold(reactor_translator& translator, const scope& s) {
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<function_data_type>& t) const {
-        if(*t->get_parameters()[1].m_type == bool_data_type()) {
+          const std::shared_ptr<FunctionDataType>& t) const {
+        if(*t->get_parameters()[1].m_type == BoolDataType()) {
           return make_fold_reactor_builder<bool>();
-        } else if(*t->get_parameters()[1].m_type == float_data_type()) {
+        } else if(*t->get_parameters()[1].m_type == FloatDataType()) {
           return make_fold_reactor_builder<double>();
-        } else if(*t->get_parameters()[1].m_type == integer_data_type()) {
+        } else if(*t->get_parameters()[1].m_type == IntegerDataType()) {
           return make_fold_reactor_builder<int>();
-        } else if(*t->get_parameters()[1].m_type == text_data_type()) {
+        } else if(*t->get_parameters()[1].m_type == TextDataType()) {
           return make_fold_reactor_builder<std::string>();
-        } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
+        } else if(auto e = std::dynamic_pointer_cast<EnumDataType>(
             t->get_parameters()[0].m_type)) {
           return make_fold_reactor_builder<int>();
         }
@@ -186,16 +186,16 @@ namespace darcel {
   inline void translate_last(reactor_translator& translator, const scope& s) {
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<function_data_type>& t) const {
-        if(*t->get_parameters()[0].m_type == bool_data_type()) {
+          const std::shared_ptr<FunctionDataType>& t) const {
+        if(*t->get_parameters()[0].m_type == BoolDataType()) {
           return make_last_reactor_builder<bool>();
-        } else if(*t->get_parameters()[0].m_type == float_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == FloatDataType()) {
           return make_last_reactor_builder<float>();
-        } else if(*t->get_parameters()[0].m_type == integer_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == IntegerDataType()) {
           return make_last_reactor_builder<int>();
-        } else if(*t->get_parameters()[0].m_type == text_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == TextDataType()) {
           return make_last_reactor_builder<std::string>();
-        } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
+        } else if(auto e = std::dynamic_pointer_cast<EnumDataType>(
             t->get_parameters()[0].m_type)) {
           return make_last_reactor_builder<int>();
         }
@@ -220,15 +220,15 @@ namespace darcel {
     auto f = s.find<function>("multiply");
     if(f != nullptr) {
       for(auto& overload : s.get_definitions(*f)) {
-        auto signature = std::static_pointer_cast<function_data_type>(
+        auto signature = std::static_pointer_cast<FunctionDataType>(
           overload->get_type());
         if(signature->get_parameters().size() == 2) {
-          if(*signature->get_parameters()[0].m_type == integer_data_type() &&
-              *signature->get_parameters()[1].m_type == integer_data_type()) {
+          if(*signature->get_parameters()[0].m_type == IntegerDataType() &&
+              *signature->get_parameters()[1].m_type == IntegerDataType()) {
             translator.add(overload, make_multiply_reactor_builder<int, int>());
           } else if(
-              *signature->get_parameters()[0].m_type == float_data_type() &&
-              *signature->get_parameters()[1].m_type == float_data_type()) {
+              *signature->get_parameters()[0].m_type == FloatDataType() &&
+              *signature->get_parameters()[1].m_type == FloatDataType()) {
             translator.add(overload,
               make_multiply_reactor_builder<double, double>());
           }
@@ -245,16 +245,16 @@ namespace darcel {
   inline void translate_print(reactor_translator& translator, const scope& s) {
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<function_data_type>& t) const {
-        if(*t->get_parameters()[0].m_type == bool_data_type()) {
+          const std::shared_ptr<FunctionDataType>& t) const {
+        if(*t->get_parameters()[0].m_type == BoolDataType()) {
           return make_ostream_reactor_builder<bool>(std::cout);
-        } else if(*t->get_parameters()[0].m_type == float_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == FloatDataType()) {
           return make_ostream_reactor_builder<double>(std::cout);
-        } else if(*t->get_parameters()[0].m_type == integer_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == IntegerDataType()) {
           return make_ostream_reactor_builder<int>(std::cout);
-        } else if(*t->get_parameters()[0].m_type == text_data_type()) {
+        } else if(*t->get_parameters()[0].m_type == TextDataType()) {
           return make_ostream_reactor_builder<std::string>(std::cout);
-        } else if(auto e = std::dynamic_pointer_cast<enum_data_type>(
+        } else if(auto e = std::dynamic_pointer_cast<EnumDataType>(
             t->get_parameters()[0].m_type)) {
           return std::make_unique<function_reactor_builder>(
             [=] (auto& parameters, auto& t) {
@@ -286,15 +286,15 @@ namespace darcel {
     auto f = s.find<function>("subtract");
     if(f != nullptr) {
       for(auto& overload : s.get_definitions(*f)) {
-        auto signature = std::static_pointer_cast<function_data_type>(
+        auto signature = std::static_pointer_cast<FunctionDataType>(
           overload->get_type());
         if(signature->get_parameters().size() == 2) {
-          if(*signature->get_parameters()[0].m_type == integer_data_type() &&
-              *signature->get_parameters()[1].m_type == integer_data_type()) {
+          if(*signature->get_parameters()[0].m_type == IntegerDataType() &&
+              *signature->get_parameters()[1].m_type == IntegerDataType()) {
             translator.add(overload, make_subtract_reactor_builder<int, int>());
           } else if(
-              *signature->get_parameters()[0].m_type == float_data_type() &&
-              *signature->get_parameters()[1].m_type == float_data_type()) {
+              *signature->get_parameters()[0].m_type == FloatDataType() &&
+              *signature->get_parameters()[1].m_type == FloatDataType()) {
             translator.add(overload,
               make_subtract_reactor_builder<double, double>());
           }
@@ -311,7 +311,7 @@ namespace darcel {
   inline void translate_tally(reactor_translator& translator, const scope& s) {
     struct builder {
       std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<function_data_type>& t) const {
+          const std::shared_ptr<FunctionDataType>& t) const {
         return make_tally_reactor_builder();
       }
     };

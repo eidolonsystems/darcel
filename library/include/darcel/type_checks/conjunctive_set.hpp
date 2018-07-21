@@ -34,20 +34,20 @@ namespace darcel {
         \param e The expression to constrain.
         \param t The data type that the expression must evaluate to.
       */
-      void add(const expression& e, std::shared_ptr<data_type> t);
+      void add(const expression& e, std::shared_ptr<DataType> t);
 
     private:
       struct term {
         const expression* m_expression;
-        std::shared_ptr<data_type> m_type;
+        std::shared_ptr<DataType> m_type;
       };
       std::vector<term> m_terms;
   };
 
   inline bool conjunctive_set::is_satisfied(const type_map& t,
       const scope& s) const {
-    data_type_map<std::shared_ptr<generic_data_type>,
-      std::shared_ptr<data_type>> substitutions;
+    DataTypeMap<std::shared_ptr<GenericDataType>,
+      std::shared_ptr<DataType>> substitutions;
     for(auto& term : m_terms) {
       try {
         auto term_type = t.get_type(*term.m_expression);
@@ -73,7 +73,7 @@ namespace darcel {
   }
 
   inline void conjunctive_set::add(const expression& e,
-      std::shared_ptr<data_type> t) {
+      std::shared_ptr<DataType> t) {
     m_terms.push_back({&e, std::move(t)});
   }
 }

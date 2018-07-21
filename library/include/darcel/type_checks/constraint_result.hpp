@@ -15,7 +15,7 @@ namespace darcel {
     bool m_is_satisfied = false;
 
     //! The variable conversions needed to satisfy the constraints.
-    std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<data_type>>
+    std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<DataType>>
       m_conversions;
   };
 }

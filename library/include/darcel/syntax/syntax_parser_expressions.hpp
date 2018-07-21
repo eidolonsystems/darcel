@@ -26,7 +26,7 @@ namespace darcel {
     if(!name.has_value()) {
       return nullptr;
     }
-    auto e = get_current_scope().find<enum_data_type>(*name);
+    auto e = get_current_scope().find<EnumDataType>(*name);
     if(e == nullptr) {
       return nullptr;
     }

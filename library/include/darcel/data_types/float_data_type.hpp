@@ -8,50 +8,49 @@
 namespace darcel {
 
   //! Represents a floating point data type.
-  class float_data_type final : public data_type {
+  class FloatDataType final : public DataType {
     public:
 
       //! Returns an instance of this type.
-      static const std::shared_ptr<float_data_type>& get_instance();
+      static const std::shared_ptr<FloatDataType>& get_instance();
 
       //! Constructs a float data type.
-      float_data_type() = default;
+      FloatDataType() = default;
 
       const location& get_location() const override;
 
       const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override;
+      void apply(DataTypeVisitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override;
+      bool is_equal(const DataType& rhs) const override;
   };
 
-  inline const std::shared_ptr<float_data_type>&
-      float_data_type::get_instance() {
-    static auto instance = std::make_shared<float_data_type>();
+  inline const std::shared_ptr<FloatDataType>& FloatDataType::get_instance() {
+    static auto instance = std::make_shared<FloatDataType>();
     return instance;
   }
 
-  inline const location& float_data_type::get_location() const {
+  inline const location& FloatDataType::get_location() const {
     return location::global();
   }
 
-  inline const std::string& float_data_type::get_name() const {
+  inline const std::string& FloatDataType::get_name() const {
     static std::string name = "Float";
     return name;
   }
 
-  inline void float_data_type::apply(data_type_visitor& visitor) const {
+  inline void FloatDataType::apply(DataTypeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline bool float_data_type::is_equal(const data_type& rhs) const {
+  inline bool FloatDataType::is_equal(const DataType& rhs) const {
     return true;
   }
 
-  inline void data_type_visitor::visit(const float_data_type& node) {
-    visit(static_cast<const data_type&>(node));
+  inline void DataTypeVisitor::visit(const FloatDataType& node) {
+    visit(static_cast<const DataType&>(node));
   }
 }
 

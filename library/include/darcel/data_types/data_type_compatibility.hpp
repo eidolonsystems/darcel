@@ -9,7 +9,7 @@ namespace darcel {
 
   //! Lists the ways that a value of one data type can be converted into
   //! another.
-  enum class data_type_compatibility {
+  enum class DataTypeCompatibility {
 
     //! The types have no compatibility.
     NONE,
@@ -31,52 +31,52 @@ namespace darcel {
     \param s The scope containing the data types.
     \return The type of compatibility from the source to the target.
   */
-  inline data_type_compatibility get_compatibility(const data_type& source,
-      const data_type& target, const scope& s) {
-    struct data_type_compatibility_visitor final : data_type_visitor {
-      const data_type* m_source;
+  inline DataTypeCompatibility get_compatibility(const DataType& source,
+      const DataType& target, const scope& s) {
+    struct data_type_compatibility_visitor final : DataTypeVisitor {
+      const DataType* m_source;
       const scope* m_scope;
-      data_type_compatibility m_compatibility;
+      DataTypeCompatibility m_compatibility;
 
-      data_type_compatibility operator ()(const data_type& source,
-          const data_type& target, const scope& s) {
+      DataTypeCompatibility operator ()(const DataType& source,
+          const DataType& target, const scope& s) {
         m_source = &source;
         m_scope = &s;
         target.apply(*this);
         return m_compatibility;
       }
 
-      void visit(const data_type& type) override {
+      void visit(const DataType& type) override {
         if(*m_source == type) {
-          m_compatibility = data_type_compatibility::EQUAL;
+          m_compatibility = DataTypeCompatibility::EQUAL;
         } else {
-          m_compatibility = data_type_compatibility::NONE;
+          m_compatibility = DataTypeCompatibility::NONE;
         }
       }
 
-      void visit(const function_data_type& type) override {
-        if(auto callable_type = dynamic_cast<const callable_data_type*>(
+      void visit(const FunctionDataType& type) override {
+        if(auto callable_type = dynamic_cast<const CallableDataType*>(
             m_source)) {
           auto& definition = m_scope->find(*callable_type->get_function(),
             [&] (auto& definition) {
               return get_compatibility(*definition.get_type(), type,
-                *m_scope) == data_type_compatibility::EQUAL;
+                *m_scope) == DataTypeCompatibility::EQUAL;
             });
           if(definition != nullptr) {
-            m_compatibility = data_type_compatibility::SUPER_TYPE;
+            m_compatibility = DataTypeCompatibility::SUPER_TYPE;
           } else {
-            visit(static_cast<const data_type&>(type));
+            visit(static_cast<const DataType&>(type));
           }
         } else {
-          visit(static_cast<const data_type&>(type));
+          visit(static_cast<const DataType&>(type));
         }
       }
 
-      void visit(const generic_data_type& type) override {
-        if(dynamic_cast<const generic_data_type*>(m_source) == nullptr) {
-          m_compatibility = data_type_compatibility::GENERIC;
+      void visit(const GenericDataType& type) override {
+        if(dynamic_cast<const GenericDataType*>(m_source) == nullptr) {
+          m_compatibility = DataTypeCompatibility::GENERIC;
         } else {
-          visit(static_cast<const data_type&>(type));
+          visit(static_cast<const DataType&>(type));
         }
       }
     };

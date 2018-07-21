@@ -14,14 +14,14 @@ namespace darcel {
     \param t The type to instantiate with.
   */
   inline std::unique_ptr<bind_function_statement> instantiate(
-      const bind_function_statement& node, const function_data_type& t) {
+      const bind_function_statement& node, const FunctionDataType& t) {
     struct instantiate_visitor final : syntax_node_visitor {
       std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<variable>>
         m_substitutions;
       std::unique_ptr<syntax_node> m_clone;
 
       std::unique_ptr<bind_function_statement> operator ()(
-          const bind_function_statement& node, const function_data_type& t) {
+          const bind_function_statement& node, const FunctionDataType& t) {
         std::vector<bind_function_statement::parameter> parameters;
         for(std::size_t i = 0; i < node.get_parameters().size(); ++i) {
           auto& p = node.get_parameters()[i];

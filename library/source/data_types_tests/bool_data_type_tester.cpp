@@ -5,13 +5,13 @@
 using namespace darcel;
 using namespace std;
 
-TEST_CASE("test_bool_name", "[bool_data_type]") {
-  REQUIRE(bool_data_type().get_name() == "Bool");
+TEST_CASE("test_bool_name", "[BoolDataType]") {
+  REQUIRE(BoolDataType().get_name() == "Bool");
 }
 
-TEST_CASE("test_bool_equality", "[bool_data_type]") {
-  REQUIRE(bool_data_type() == bool_data_type());
-  REQUIRE(*bool_data_type::get_instance() == *bool_data_type::get_instance());
-  REQUIRE(*bool_data_type::get_instance() !=
-    *integer_data_type::get_instance());
+TEST_CASE("test_bool_equality", "[BoolDataType]") {
+  REQUIRE(BoolDataType() == BoolDataType());
+  REQUIRE(*BoolDataType::get_instance() == *BoolDataType::get_instance());
+  REQUIRE(*BoolDataType::get_instance() !=
+    *IntegerDataType::get_instance());
 }

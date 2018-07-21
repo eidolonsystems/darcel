@@ -62,12 +62,12 @@ namespace darcel {
       scope& push_scope();
       void pop_scope();
       token_iterator get_next_terminal(token_iterator cursor) const;
-      std::shared_ptr<function_data_type> parse_function_data_type(
+      std::shared_ptr<FunctionDataType> parse_function_data_type(
         token_iterator& cursor);
-      std::shared_ptr<generic_data_type> parse_generic_data_type(
+      std::shared_ptr<GenericDataType> parse_generic_data_type(
         token_iterator& cursor);
-      std::shared_ptr<data_type> parse_data_type(token_iterator& cursor);
-      std::shared_ptr<data_type> expect_data_type(token_iterator& cursor);
+      std::shared_ptr<DataType> parse_data_type(token_iterator& cursor);
+      std::shared_ptr<DataType> expect_data_type(token_iterator& cursor);
       std::unique_ptr<syntax_node> parse_node(token_iterator& cursor);
       std::unique_ptr<terminal_node> parse_terminal_node(
         token_iterator& cursor);
@@ -266,11 +266,11 @@ namespace darcel {
     return cursor;
   }
 
-  inline std::shared_ptr<function_data_type>
+  inline std::shared_ptr<FunctionDataType>
       syntax_parser::parse_function_data_type(token_iterator& cursor) {
     auto c = cursor;
     expect(c, bracket::type::OPEN_ROUND_BRACKET);
-    std::vector<function_data_type::parameter> parameters;
+    std::vector<FunctionDataType::Parameter> parameters;
     if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
       while(true) {
         auto name_location = c.get_location();
@@ -298,19 +298,19 @@ namespace darcel {
     expect(c, punctuation::mark::ARROW);
     auto return_type = expect_data_type(c);
     cursor = c;
-    return std::make_shared<function_data_type>(std::move(parameters),
+    return std::make_shared<FunctionDataType>(std::move(parameters),
       std::move(return_type));
   }
 
-  inline std::shared_ptr<generic_data_type>
+  inline std::shared_ptr<GenericDataType>
       syntax_parser::parse_generic_data_type(token_iterator& cursor) {
     auto c = cursor;
     expect(c, punctuation::mark::BACKTICK);
     auto name_location = c.get_location();
     auto name = '`' + parse_identifier(c);
-    auto t = get_current_scope().find<generic_data_type>(name);
+    auto t = get_current_scope().find<GenericDataType>(name);
     if(t == nullptr) {
-      auto g = std::make_shared<generic_data_type>(name_location, name,
+      auto g = std::make_shared<GenericDataType>(name_location, name,
         m_generic_index);
       ++m_generic_index;
       get_current_scope().add(g);
@@ -321,7 +321,7 @@ namespace darcel {
     return t;
   }
 
-  inline std::shared_ptr<data_type> syntax_parser::parse_data_type(
+  inline std::shared_ptr<DataType> syntax_parser::parse_data_type(
       token_iterator& cursor) {
     if(cursor.is_empty()) {
       return nullptr;
@@ -335,12 +335,12 @@ namespace darcel {
     auto c = cursor;
     auto name_location = c.get_location();
     auto name = parse_identifier(c);
-    auto t = get_current_scope().find<data_type>(name);
+    auto t = get_current_scope().find<DataType>(name);
     cursor = c;
     return t;
   }
 
-  inline std::shared_ptr<data_type> syntax_parser::expect_data_type(
+  inline std::shared_ptr<DataType> syntax_parser::expect_data_type(
       token_iterator& cursor) {
     auto t = parse_data_type(cursor);
     if(t == nullptr) {

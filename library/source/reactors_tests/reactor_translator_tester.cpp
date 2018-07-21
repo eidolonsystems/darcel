@@ -19,7 +19,7 @@ TEST_CASE("test_translating_literal", "[reactor_translator]") {
 
 TEST_CASE("test_translating_identity_function", "[reactor_translator]") {
   scope s;
-  auto f = bind_function(s, "f", {{"x", integer_data_type::get_instance()}},
+  auto f = bind_function(s, "f", {{"x", IntegerDataType::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
     });
@@ -35,7 +35,7 @@ TEST_CASE("test_translating_identity_function", "[reactor_translator]") {
 
 TEST_CASE("test_translating_function_variable", "[reactor_translator]") {
   scope s;
-  auto f = bind_function(s, "f", {{"x", integer_data_type::get_instance()}},
+  auto f = bind_function(s, "f", {{"x", IntegerDataType::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
     });
@@ -90,13 +90,13 @@ TEST_CASE("test_translating_generic_series", "[reactor_translator]") {
 
 TEST_CASE("test_translating_function_parameter", "[reactor_translator]") {
   auto s = make_builtin_scope();
-  auto f = bind_function(*s, "f", {{"x", integer_data_type::get_instance()}},
+  auto f = bind_function(*s, "f", {{"x", IntegerDataType::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
     });
   auto g = bind_function(*s, "g",
-    {{"f", make_function_data_type({{"x", integer_data_type::get_instance()}},
-      integer_data_type::get_instance())}},
+    {{"f", make_function_data_type({{"x", IntegerDataType::get_instance()}},
+      IntegerDataType::get_instance())}},
     [&] (auto& s) {
       return call(s, "f", make_literal(314));
     });

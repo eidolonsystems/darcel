@@ -8,50 +8,49 @@
 namespace darcel {
 
   //! Represents a text segment.
-  class text_data_type final : public data_type {
+  class TextDataType final : public DataType {
     public:
 
       //! Returns an instance of this type.
-      static const std::shared_ptr<text_data_type>& get_instance();
+      static const std::shared_ptr<TextDataType>& get_instance();
 
       //! Constructs a text data type.
-      text_data_type() = default;
+      TextDataType() = default;
 
       const location& get_location() const override;
 
       const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override;
+      void apply(DataTypeVisitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override;
+      bool is_equal(const DataType& rhs) const override;
   };
 
-  inline const std::shared_ptr<text_data_type>&
-      text_data_type::get_instance() {
-    static auto instance = std::make_shared<text_data_type>();
+  inline const std::shared_ptr<TextDataType>& TextDataType::get_instance() {
+    static auto instance = std::make_shared<TextDataType>();
     return instance;
   }
 
-  inline const location& text_data_type::get_location() const {
+  inline const location& TextDataType::get_location() const {
     return location::global();
   }
 
-  inline const std::string& text_data_type::get_name() const {
+  inline const std::string& TextDataType::get_name() const {
     static std::string name = "Text";
     return name;
   }
 
-  inline void text_data_type::apply(data_type_visitor& visitor) const {
+  inline void TextDataType::apply(DataTypeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline bool text_data_type::is_equal(const data_type& rhs) const {
+  inline bool TextDataType::is_equal(const DataType& rhs) const {
     return true;
   }
 
-  inline void data_type_visitor::visit(const text_data_type& node) {
-    visit(static_cast<const data_type&>(node));
+  inline void DataTypeVisitor::visit(const TextDataType& node) {
+    visit(static_cast<const DataType&>(node));
   }
 }
 

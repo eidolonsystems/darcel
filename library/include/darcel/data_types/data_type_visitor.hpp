@@ -5,35 +5,35 @@
 namespace darcel {
 
   //! Implements the visitor pattern for data types.
-  class data_type_visitor {
+  class DataTypeVisitor {
     public:
-      virtual ~data_type_visitor() = default;
+      virtual ~DataTypeVisitor() = default;
 
-      virtual void visit(const bool_data_type& type);
+      virtual void visit(const BoolDataType& type);
 
-      virtual void visit(const callable_data_type& type);
+      virtual void visit(const CallableDataType& type);
 
-      virtual void visit(const data_type& type);
+      virtual void visit(const DataType& type);
 
-      virtual void visit(const enum_data_type& type);
+      virtual void visit(const EnumDataType& type);
 
-      virtual void visit(const float_data_type& type);
+      virtual void visit(const FloatDataType& type);
 
-      virtual void visit(const function_data_type& type);
+      virtual void visit(const FunctionDataType& type);
 
-      virtual void visit(const generic_data_type& type);
+      virtual void visit(const GenericDataType& type);
 
-      virtual void visit(const integer_data_type& type);
+      virtual void visit(const IntegerDataType& type);
 
-      virtual void visit(const text_data_type& type);
+      virtual void visit(const TextDataType& type);
 
     protected:
 
       //! Constructs a data type visitor.
-      data_type_visitor() = default;
+      DataTypeVisitor() = default;
   };
 
-  inline void data_type_visitor::visit(const data_type& type) {}
+  inline void DataTypeVisitor::visit(const DataType& type) {}
 }
 
 #endif

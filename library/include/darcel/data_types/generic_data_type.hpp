@@ -11,7 +11,7 @@
 namespace darcel {
 
   //! Represents a generic data type.
-  class generic_data_type final : public data_type {
+  class GenericDataType final : public DataType {
     public:
 
       //! Constructs a generic data type.
@@ -20,7 +20,7 @@ namespace darcel {
         \param name The name of the generic.
         \param id The generic's unique id.
       */
-      generic_data_type(location l, std::string name, int id);
+      GenericDataType(location l, std::string name, int id);
 
       //! Returns the generic's id.
       int get_id() const;
@@ -29,10 +29,10 @@ namespace darcel {
 
       const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override;
+      void apply(DataTypeVisitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override;
+      bool is_equal(const DataType& rhs) const override;
 
     private:
       location m_location;
@@ -48,10 +48,10 @@ namespace darcel {
     \param t The data type to test.
     \return true iff the data type is generic.
   */
-  inline bool is_generic(const data_type& t) {
-    if(dynamic_cast<const generic_data_type*>(&t) != nullptr) {
+  inline bool is_generic(const DataType& t) {
+    if(dynamic_cast<const GenericDataType*>(&t) != nullptr) {
       return true;
-    } else if(auto f = dynamic_cast<const function_data_type*>(&t)) {
+    } else if(auto f = dynamic_cast<const FunctionDataType*>(&t)) {
       for(auto& p : f->get_parameters()) {
         if(is_generic(*p.m_type)) {
           return true;
@@ -67,12 +67,12 @@ namespace darcel {
     \param type The data type to extract the generic terms from.
     \return The list of generic terms in <i>type</i>
   */
-  inline std::vector<std::shared_ptr<generic_data_type>> extract_generic_terms(
-      std::shared_ptr<data_type> t) {
-    std::vector<std::shared_ptr<generic_data_type>> result;
-    if(auto g = std::dynamic_pointer_cast<generic_data_type>(t)) {
+  inline std::vector<std::shared_ptr<GenericDataType>> extract_generic_terms(
+      std::shared_ptr<DataType> t) {
+    std::vector<std::shared_ptr<GenericDataType>> result;
+    if(auto g = std::dynamic_pointer_cast<GenericDataType>(t)) {
       result.push_back(std::move(g));
-    } else if(auto g = std::dynamic_pointer_cast<function_data_type>(t)) {
+    } else if(auto g = std::dynamic_pointer_cast<FunctionDataType>(t)) {
       for(auto& parameter : g->get_parameters()) {
         auto sub_result = extract_generic_terms(parameter.m_type);
         std::copy_if(sub_result.begin(), sub_result.end(),
@@ -98,25 +98,25 @@ namespace darcel {
     \return A data type whose generic occurances are replaced with concrete
             arguments based on the substitutions provided.
   */
-  inline std::shared_ptr<data_type> substitute(
-      const std::shared_ptr<data_type>& type, const data_type_map<
-      std::shared_ptr<generic_data_type>, std::shared_ptr<data_type>>&
+  inline std::shared_ptr<DataType> substitute(
+      const std::shared_ptr<DataType>& type, const DataTypeMap<
+      std::shared_ptr<GenericDataType>, std::shared_ptr<DataType>>&
       substitutions) {
-    if(auto g = std::dynamic_pointer_cast<generic_data_type>(type)) {
+    if(auto g = std::dynamic_pointer_cast<GenericDataType>(type)) {
       auto substitution = substitutions.find(g);
       if(substitution == substitutions.end()) {
         return g;
       }
       return substitution->second;
-    } else if(auto f = std::dynamic_pointer_cast<function_data_type>(type)) {
-      std::vector<function_data_type::parameter> parameters;
+    } else if(auto f = std::dynamic_pointer_cast<FunctionDataType>(type)) {
+      std::vector<FunctionDataType::Parameter> parameters;
       for(auto& parameter : f->get_parameters()) {
         parameters.emplace_back(parameter.m_name,
           substitute(parameter.m_type, substitutions));
       }
       auto return_substitution = substitute(f->get_return_type(),
         substitutions);
-      auto substitution = std::make_shared<function_data_type>(
+      auto substitution = std::make_shared<FunctionDataType>(
         std::move(parameters), std::move(return_substitution));
       if(*substitution == *f) {
         return f;
@@ -132,9 +132,9 @@ namespace darcel {
     \param name The name of the generic data type.
     \param index The generic's index.
   */
-  inline std::shared_ptr<generic_data_type> make_generic_data_type(
+  inline std::shared_ptr<GenericDataType> make_generic_data_type(
       location l, std::string name, int index) {
-    return std::make_shared<generic_data_type>(std::move(l), std::move(name),
+    return std::make_shared<GenericDataType>(std::move(l), std::move(name),
       index);
   }
 
@@ -143,40 +143,40 @@ namespace darcel {
     \param name The name of the generic data type.
     \param index The generic's index.
   */
-  inline std::shared_ptr<generic_data_type> make_generic_data_type(
+  inline std::shared_ptr<GenericDataType> make_generic_data_type(
       std::string name, int index) {
     return make_generic_data_type(location::global(), std::move(name), index);
   }
 
-  inline generic_data_type::generic_data_type(location l, std::string name,
+  inline GenericDataType::GenericDataType(location l, std::string name,
       int id)
       : m_location(std::move(l)),
         m_name(std::move(name)),
         m_id(id) {}
 
-  inline int generic_data_type::get_id() const {
+  inline int GenericDataType::get_id() const {
     return m_id;
   }
 
-  inline const location& generic_data_type::get_location() const {
+  inline const location& GenericDataType::get_location() const {
     return m_location;
   }
 
-  inline const std::string& generic_data_type::get_name() const {
+  inline const std::string& GenericDataType::get_name() const {
     return m_name;
   }
 
-  inline void generic_data_type::apply(data_type_visitor& visitor) const {
+  inline void GenericDataType::apply(DataTypeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline bool generic_data_type::is_equal(const data_type& rhs) const {
-    auto& other = static_cast<const generic_data_type&>(rhs);
+  inline bool GenericDataType::is_equal(const DataType& rhs) const {
+    auto& other = static_cast<const GenericDataType&>(rhs);
     return m_id == other.get_id();
   }
 
-  inline void data_type_visitor::visit(const generic_data_type& node) {
-    visit(static_cast<const data_type&>(node));
+  inline void DataTypeVisitor::visit(const GenericDataType& node) {
+    visit(static_cast<const DataType&>(node));
   }
 }
 

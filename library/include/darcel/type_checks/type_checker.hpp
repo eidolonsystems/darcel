@@ -62,7 +62,7 @@ namespace darcel {
     \param t The map of types.
     \param s The scope used to get function definitions.
   */
-  std::vector<std::shared_ptr<data_type>> determine_expression_types(
+  std::vector<std::shared_ptr<DataType>> determine_expression_types(
     const expression& e, const type_map& t, const scope& s);
 
   //! Returns a map of all possible generic substitutions in a function call.
@@ -70,13 +70,13 @@ namespace darcel {
     \param generic The generic function being called.
     \param arguments The list of arguments being passed to the function.
   */  
-  inline data_type_map<std::shared_ptr<generic_data_type>,
-      std::vector<std::shared_ptr<data_type>>> resolve_generics(
-      const std::shared_ptr<function_data_type>& generic,
+  inline DataTypeMap<std::shared_ptr<GenericDataType>,
+      std::vector<std::shared_ptr<DataType>>> resolve_generics(
+      const std::shared_ptr<FunctionDataType>& generic,
       const std::vector<std::unique_ptr<expression>>& arguments,
       const type_map& types, const scope& s) {
-    data_type_map<std::shared_ptr<generic_data_type>,
-      std::vector<std::shared_ptr<data_type>>> substitutions;
+    DataTypeMap<std::shared_ptr<GenericDataType>,
+      std::vector<std::shared_ptr<DataType>>> substitutions;
     for(std::size_t i = 0; i != arguments.size(); ++i) {
       auto& parameter_type = generic->get_parameters()[i].m_type;
       if(!is_generic(*parameter_type)) {
@@ -85,8 +85,8 @@ namespace darcel {
       auto& argument = *arguments[i];
       auto argument_types = determine_expression_types(argument, types, s);
       for(auto& argument_type : argument_types) {
-        data_type_map<std::shared_ptr<generic_data_type>,
-          std::shared_ptr<data_type>> argument_substitutions;
+        DataTypeMap<std::shared_ptr<GenericDataType>,
+          std::shared_ptr<DataType>> argument_substitutions;
         substitute_generic(parameter_type, argument_type, s,
           argument_substitutions);
         for(auto& argument_substitution : argument_substitutions) {
@@ -98,14 +98,14 @@ namespace darcel {
     return substitutions;
   }
 
-  inline std::vector<std::shared_ptr<data_type>> determine_expression_types(
+  inline std::vector<std::shared_ptr<DataType>> determine_expression_types(
       const expression& e, const type_map& t, const scope& s) {
     struct expression_visitor final : syntax_node_visitor {
       const type_map* m_types;
       const scope* m_scope;
-      std::vector<std::shared_ptr<data_type>> m_result;
+      std::vector<std::shared_ptr<DataType>> m_result;
 
-      std::vector<std::shared_ptr<data_type>> operator ()(
+      std::vector<std::shared_ptr<DataType>> operator ()(
           const expression& e, const type_map& t, const scope& s) {
         m_types = &t;
         m_scope = &s;
@@ -113,7 +113,7 @@ namespace darcel {
         return std::move(m_result);
       }
 
-      void append(std::shared_ptr<data_type> type) {
+      void append(std::shared_ptr<DataType> type) {
         auto i = std::find_if(m_result.begin(), m_result.end(),
           equal_to(*type));
         if(i == m_result.end()) {
@@ -125,14 +125,14 @@ namespace darcel {
         auto overloads = determine_expression_types(node.get_callable(),
           *m_types, *m_scope);
         for(auto& overload : overloads) {
-          if(auto f = std::dynamic_pointer_cast<function_data_type>(overload)) {
+          if(auto f = std::dynamic_pointer_cast<FunctionDataType>(overload)) {
             if(f->get_parameters().size() != node.get_arguments().size()) {
               continue;
             }
             if(is_generic(*f->get_return_type())) {
               auto substitutions = resolve_generics(f, node.get_arguments(),
                 *m_types, *m_scope);
-              if(auto g = std::dynamic_pointer_cast<generic_data_type>(
+              if(auto g = std::dynamic_pointer_cast<GenericDataType>(
                   f->get_return_type())) {
 
                 // TODO : function generics
@@ -180,7 +180,7 @@ namespace darcel {
       const scope* m_scope;
       constraints m_constraints;
       std::unordered_map<std::shared_ptr<variable>,
-        std::vector<std::shared_ptr<data_type>>> m_candidates;
+        std::vector<std::shared_ptr<DataType>>> m_candidates;
 
       constraints_visitor(const expression& e, const type_map& t,
           const scope& s)
@@ -192,11 +192,11 @@ namespace darcel {
       void visit(const call_expression& node) override {
         node.get_callable().apply(*this);
         auto t = m_types->get_type(node.get_callable());
-        std::vector<std::shared_ptr<function_data_type>> overloads;
-        if(auto f = std::dynamic_pointer_cast<function_data_type>(t)) {
+        std::vector<std::shared_ptr<FunctionDataType>> overloads;
+        if(auto f = std::dynamic_pointer_cast<FunctionDataType>(t)) {
           overloads.push_back(std::move(f));
         } else {
-          auto callable_type = std::static_pointer_cast<callable_data_type>(t);
+          auto callable_type = std::static_pointer_cast<CallableDataType>(t);
           m_scope->find(*callable_type->get_function(),
             [&] (auto& definition) {
               overloads.push_back(definition.get_type());
@@ -243,7 +243,7 @@ namespace darcel {
     };
     struct candidate_entry {
       std::shared_ptr<variable> m_variable;
-      std::vector<std::shared_ptr<data_type>> m_candidates;
+      std::vector<std::shared_ptr<DataType>> m_candidates;
       std::size_t m_cycle_length;
     };
     constraints_visitor v(e, t, s);
@@ -290,14 +290,14 @@ namespace darcel {
             std::dynamic_pointer_cast<function_definition>(e)) {
           m_types.add(std::move(definition));
         } else if(auto f = std::dynamic_pointer_cast<function>(e)) {
-          auto callable = std::static_pointer_cast<callable_data_type>(
+          auto callable = std::static_pointer_cast<CallableDataType>(
             get_scope().find(
             [&] (auto& t) {
-              auto callable = std::dynamic_pointer_cast<callable_data_type>(t);
+              auto callable = std::dynamic_pointer_cast<CallableDataType>(t);
               return callable != nullptr && callable->get_function() == f;
             }));
           if(callable == nullptr) {
-            callable = std::make_shared<callable_data_type>(f);
+            callable = std::make_shared<CallableDataType>(f);
           }
           m_types.add(*f, std::move(callable));
         }
@@ -332,7 +332,7 @@ namespace darcel {
   inline void type_checker::check(const syntax_node& node) {
     struct type_check_visitor final : syntax_node_visitor {
       type_checker* m_checker;
-      std::shared_ptr<data_type> m_last;
+      std::shared_ptr<DataType> m_last;
 
       void operator ()(type_checker& checker, const syntax_node& node) {
         m_checker = &checker;
@@ -340,7 +340,7 @@ namespace darcel {
       }
 
       void visit(const bind_function_statement& node) override {
-        std::vector<function_data_type::parameter> parameters;
+        std::vector<FunctionDataType::Parameter> parameters;
         auto infer = false;
         for(auto& parameter : node.get_parameters()) {
           parameters.emplace_back(parameter.m_variable->get_name(),
@@ -373,12 +373,12 @@ namespace darcel {
         }
         node.get_expression().apply(*this);
         if(m_checker->m_types.get_type(*node.get_function()) == nullptr) {
-          auto callable_type = std::make_shared<callable_data_type>(
+          auto callable_type = std::make_shared<CallableDataType>(
             node.get_function());
           m_checker->m_types.add(*node.get_function(), callable_type);
           m_checker->get_scope().add(callable_type);
         }
-        auto t = std::make_shared<function_data_type>(std::move(parameters),
+        auto t = std::make_shared<FunctionDataType>(std::move(parameters),
           std::move(m_last));
         auto definition = std::make_shared<function_definition>(
           node.get_location(), node.get_function(), std::move(t));
@@ -397,8 +397,8 @@ namespace darcel {
         node.get_callable().apply(*this);
         auto t = std::move(m_last);
         if(auto callable_type =
-            std::dynamic_pointer_cast<callable_data_type>(t)) {
-          std::vector<function_data_type::parameter> parameters;
+            std::dynamic_pointer_cast<CallableDataType>(t)) {
+          std::vector<FunctionDataType::Parameter> parameters;
           for(auto& argument : node.get_arguments()) {
             argument->apply(*this);
             parameters.emplace_back("", std::move(m_last));
@@ -415,9 +415,9 @@ namespace darcel {
             auto& p = parameters[i].m_type;
             auto& o = instance->get_parameters()[i].m_type;
             if(auto callable_type =
-                std::dynamic_pointer_cast<callable_data_type>(p)) {
+                std::dynamic_pointer_cast<CallableDataType>(p)) {
               if(auto signature =
-                  std::dynamic_pointer_cast<function_data_type>(o)) {
+                  std::dynamic_pointer_cast<FunctionDataType>(o)) {
                 auto call_overload = find_overload(
                   *callable_type->get_function(), *signature,
                   m_checker->get_scope());
@@ -441,7 +441,7 @@ namespace darcel {
       }
 
       void visit(const function_expression& node) override {
-        m_last = std::make_shared<callable_data_type>(node.get_function());
+        m_last = std::make_shared<CallableDataType>(node.get_function());
       }
     };
     type_check_visitor()(*this, node);

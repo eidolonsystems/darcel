@@ -28,7 +28,7 @@ namespace darcel {
     }
     ++c;
     expect(c, bracket::type::OPEN_ROUND_BRACKET);
-    std::vector<enum_data_type::symbol> symbols;
+    std::vector<EnumDataType::Symbol> symbols;
     std::unordered_map<std::string, location> locations;
     auto next_value = 0;
     while(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
@@ -50,7 +50,7 @@ namespace darcel {
               expression_token);
           }
           if(*value_expression->get_literal().get_type() !=
-              *integer_data_type::get_instance()) {
+              *IntegerDataType::get_instance()) {
             throw syntax_error(syntax_error_code::INTEGER_EXPRESSION_EXPECTED,
               expression_token);
           }

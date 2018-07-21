@@ -27,17 +27,17 @@ namespace darcel {
         \param value The string representation of the value.
         \param type The literal value's data type.
       */
-      literal(std::string value, std::shared_ptr<data_type> type);
+      literal(std::string value, std::shared_ptr<DataType> type);
 
       //! Returns the string representation of the value.
       const std::string& get_value() const;
 
       //! Returns the literal value's data type.
-      const std::shared_ptr<data_type>& get_type() const;
+      const std::shared_ptr<DataType>& get_type() const;
 
     private:
       std::string m_value;
-      std::shared_ptr<data_type> m_type;
+      std::shared_ptr<DataType> m_type;
   };
 
   //! Returns the escape character corresponding to a value.
@@ -103,7 +103,7 @@ namespace darcel {
     }
     ++c;
     cursor = c;
-    return literal(value, text_data_type::get_instance());
+    return literal(value, TextDataType::get_instance());
   }
 
   //! Parses a literal.
@@ -128,10 +128,10 @@ namespace darcel {
       return std::nullopt;
     }
     if(prefix_match(cursor, "true")) {
-      return literal("true", bool_data_type::get_instance());
+      return literal("true", BoolDataType::get_instance());
     }
     if(prefix_match(cursor, "false")) {
-      return literal("false", bool_data_type::get_instance());
+      return literal("false", BoolDataType::get_instance());
     }
     if(auto l = parse_text_literal(cursor)) {
       return l;
@@ -148,7 +148,7 @@ namespace darcel {
         }
         auto value = std::string(&*cursor, c - cursor);
         cursor = c;
-        return literal(std::move(value), integer_data_type::get_instance());
+        return literal(std::move(value), IntegerDataType::get_instance());
       } else {
         ++c;
         parse_decimal(c);
@@ -160,7 +160,7 @@ namespace darcel {
         }
         auto value = std::string(&*cursor, c - cursor);
         cursor = c;
-        return literal(std::move(value), float_data_type::get_instance());
+        return literal(std::move(value), FloatDataType::get_instance());
       }
     }
     return std::nullopt;
@@ -189,7 +189,7 @@ namespace darcel {
     return !(lhs == rhs);
   }
 
-  inline literal::literal(std::string value, std::shared_ptr<data_type> type)
+  inline literal::literal(std::string value, std::shared_ptr<DataType> type)
       : m_value(std::move(value)),
         m_type(std::move(type)) {}
 
@@ -197,7 +197,7 @@ namespace darcel {
     return m_value;
   }
 
-  inline const std::shared_ptr<data_type>& literal::get_type() const {
+  inline const std::shared_ptr<DataType>& literal::get_type() const {
     return m_type;
   }
 }

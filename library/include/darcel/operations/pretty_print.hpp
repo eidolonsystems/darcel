@@ -93,7 +93,7 @@ namespace darcel {
       }
 
       void visit(const literal_expression& node) override {
-        if(*node.get_literal().get_type() == *text_data_type::get_instance()) {
+        if(*node.get_literal().get_type() == *TextDataType::get_instance()) {
           *m_out << '"' << node.get_literal().get_value() << '"';
         } else {
           *m_out << node.get_literal().get_value();

@@ -30,7 +30,7 @@ namespace darcel {
         \param f The data type to instantiate.
       */
       using generic_builder = std::function<std::unique_ptr<reactor_builder>(
-        const std::shared_ptr<function_data_type>& f)>;
+        const std::shared_ptr<FunctionDataType>& f)>;
 
       //! Constructs a reactor translator.
       /*!
@@ -93,7 +93,7 @@ namespace darcel {
         std::shared_ptr<bind_function_statement> m_node;
         std::shared_ptr<function_definition> m_definition;
         reactor_translator* m_translator;
-        std::shared_ptr<data_type_map<std::shared_ptr<function_data_type>,
+        std::shared_ptr<DataTypeMap<std::shared_ptr<FunctionDataType>,
           std::unique_ptr<bind_function_statement>>> m_instantiations;
 
         generic_definition_builder(const bind_function_statement& node,
@@ -101,7 +101,7 @@ namespace darcel {
           reactor_translator& translator);
 
         std::unique_ptr<reactor_builder> operator ()(
-          const std::shared_ptr<function_data_type>& t) const;
+          const std::shared_ptr<FunctionDataType>& t) const;
       };
       type_checker m_checker;
       std::shared_ptr<variable> m_main;
@@ -124,12 +124,12 @@ namespace darcel {
         m_definition(std::move(definition)),
         m_translator(&translator),
         m_instantiations(std::make_shared<
-          data_type_map<std::shared_ptr<function_data_type>,
+          DataTypeMap<std::shared_ptr<FunctionDataType>,
           std::unique_ptr<bind_function_statement>>>()) {}
 
   inline std::unique_ptr<reactor_builder>
       reactor_translator::generic_definition_builder::operator ()(
-      const std::shared_ptr<function_data_type>& t) const {
+      const std::shared_ptr<FunctionDataType>& t) const {
     auto i = m_instantiations->find(t);
     if(i == m_instantiations->end()) {
       auto instantiation = darcel::instantiate(*m_node, *t);
@@ -252,7 +252,7 @@ namespace darcel {
       return;
     }
     if(is_generic(*definition->get_type())) {
-      auto t = std::static_pointer_cast<function_data_type>(
+      auto t = std::static_pointer_cast<FunctionDataType>(
         m_checker.get_types().get_type(node));
       auto& builder = m_generic_builders.at(definition);
       m_evaluation = builder(t);
@@ -262,14 +262,14 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const literal_expression& node) {
-    struct literal_visitor : data_type_visitor {
+    struct literal_visitor : DataTypeVisitor {
       literal m_literal;
       std::unique_ptr<reactor_builder> m_builder;
 
       literal_visitor(literal l)
           : m_literal(std::move(l)) {}
 
-      void visit(const bool_data_type& type) {
+      void visit(const BoolDataType& type) {
         if(m_literal.get_value() == "true") {
           m_builder = make_constant_reactor_builder(true);
         } else {
@@ -277,17 +277,17 @@ namespace darcel {
         }
       }
 
-      void visit(const float_data_type& type) {
+      void visit(const FloatDataType& type) {
         m_builder = make_constant_reactor_builder(
           std::stof(m_literal.get_value()));
       }
 
-      void visit(const integer_data_type& type) {
+      void visit(const IntegerDataType& type) {
         m_builder = make_constant_reactor_builder(
           std::stoi(m_literal.get_value()));
       }
 
-      void visit(const text_data_type& type) {
+      void visit(const TextDataType& type) {
         m_builder = make_constant_reactor_builder(m_literal.get_value());
       }
     };
@@ -297,7 +297,7 @@ namespace darcel {
   }
 
   inline void reactor_translator::visit(const variable_expression& node) {
-    if(auto callable_type = std::dynamic_pointer_cast<callable_data_type>(
+    if(auto callable_type = std::dynamic_pointer_cast<CallableDataType>(
         m_checker.get_types().get_type(*node.get_variable()))) {
       auto definition = m_checker.get_definition(node);
       m_evaluation = m_functions[definition];

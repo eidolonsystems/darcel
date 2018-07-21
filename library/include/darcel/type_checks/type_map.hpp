@@ -20,44 +20,44 @@ namespace darcel {
       type_map() = default;
 
       //! Returns the data type an expression evaluates to.
-      std::shared_ptr<data_type> get_type(const expression& e) const;
+      std::shared_ptr<DataType> get_type(const expression& e) const;
 
       //! Returns a function's data type.
-      std::shared_ptr<data_type> get_type(const function& f) const;
+      std::shared_ptr<DataType> get_type(const function& f) const;
 
       //! Returns a variable's data type.
-      std::shared_ptr<data_type> get_type(const variable& v) const;
+      std::shared_ptr<DataType> get_type(const variable& v) const;
 
       //! Records a function's data type.
-      void add(const function& f, std::shared_ptr<data_type> t);
+      void add(const function& f, std::shared_ptr<DataType> t);
 
       //! Adds a function definition.
       void add(std::shared_ptr<function_definition> definition);
 
       //! Records a variable's data type.
-      void add(const variable& v, std::shared_ptr<data_type> t);
+      void add(const variable& v, std::shared_ptr<DataType> t);
 
       //! Records an expression's data type.
-      void add(const expression& e, std::shared_ptr<data_type> t);
+      void add(const expression& e, std::shared_ptr<DataType> t);
 
     private:
-      std::unordered_map<const element*, std::shared_ptr<data_type>> m_types;
+      std::unordered_map<const element*, std::shared_ptr<DataType>> m_types;
       std::unordered_map<const function*,
         std::vector<std::shared_ptr<function_definition>>> m_definitions;
-      std::unordered_map<const expression*, std::shared_ptr<data_type>>
+      std::unordered_map<const expression*, std::shared_ptr<DataType>>
         m_expressions;
 
       std::deque<std::unique_ptr<scope>> build_scope(
         std::shared_ptr<function> f) const;
   };
 
-  inline std::shared_ptr<data_type> type_map::get_type(
+  inline std::shared_ptr<DataType> type_map::get_type(
       const expression& e) const {
     struct type_deduction_visitor final : syntax_node_visitor {
       const type_map* m_types;
-      std::shared_ptr<data_type> m_result;
+      std::shared_ptr<DataType> m_result;
 
-      std::shared_ptr<data_type> operator ()(const type_map& types,
+      std::shared_ptr<DataType> operator ()(const type_map& types,
           const expression& node) {
         m_types = &types;
         node.apply(*this);
@@ -66,10 +66,10 @@ namespace darcel {
 
       void visit(const call_expression& node) override {
         auto t = m_types->get_type(node.get_callable());
-        if(auto f = std::dynamic_pointer_cast<function_data_type>(t)) {
+        if(auto f = std::dynamic_pointer_cast<FunctionDataType>(t)) {
           m_result = f->get_return_type();
-        } else if(auto f = std::dynamic_pointer_cast<callable_data_type>(t)) {
-          std::vector<function_data_type::parameter> parameters;
+        } else if(auto f = std::dynamic_pointer_cast<CallableDataType>(t)) {
+          std::vector<FunctionDataType::Parameter> parameters;
           for(auto& argument : node.get_arguments()) {
             auto argument_type = m_types->get_type(*argument);
             if(argument_type == nullptr) {
@@ -99,7 +99,7 @@ namespace darcel {
       void visit(const function_expression& node) override {
         auto i = m_types->m_types.find(node.get_function().get());
         if(i == m_types->m_types.end()) {
-          m_result = std::make_shared<callable_data_type>(node.get_function());
+          m_result = std::make_shared<CallableDataType>(node.get_function());
         } else {
           m_result = i->second;
         }
@@ -130,7 +130,7 @@ namespace darcel {
     return type_deduction_visitor()(*this, e);
   }
 
-  inline std::shared_ptr<data_type> type_map::get_type(
+  inline std::shared_ptr<DataType> type_map::get_type(
       const function& f) const {
     auto i = m_types.find(&f);
     if(i == m_types.end()) {
@@ -139,7 +139,7 @@ namespace darcel {
     return i->second;
   }
 
-  inline std::shared_ptr<data_type> type_map::get_type(
+  inline std::shared_ptr<DataType> type_map::get_type(
       const variable& v) const {
     auto i = m_types.find(&v);
     if(i == m_types.end()) {
@@ -148,7 +148,7 @@ namespace darcel {
     return i->second;
   }
 
-  inline void type_map::add(const function& f, std::shared_ptr<data_type> t) {
+  inline void type_map::add(const function& f, std::shared_ptr<DataType> t) {
     m_types[&f] = std::move(t);
   }
 
@@ -157,11 +157,11 @@ namespace darcel {
       std::move(definition));
   }
 
-  inline void type_map::add(const variable& v, std::shared_ptr<data_type> t) {
+  inline void type_map::add(const variable& v, std::shared_ptr<DataType> t) {
     m_types[&v] = std::move(t);
   }
 
-  inline void type_map::add(const expression& e, std::shared_ptr<data_type> t) {
+  inline void type_map::add(const expression& e, std::shared_ptr<DataType> t) {
     m_expressions[&e] = std::move(t);
   }
 

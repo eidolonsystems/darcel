@@ -68,7 +68,7 @@ TEST_CASE("test_parsing_literal_expression", "[syntax_parser]") {
   auto literal = dynamic_cast<literal_expression*>(expression.get());
   REQUIRE(literal != nullptr);
   REQUIRE(literal->get_literal().get_value() == "123");
-  REQUIRE(*literal->get_literal().get_type() == integer_data_type());
+  REQUIRE(*literal->get_literal().get_type() == IntegerDataType());
 }
 
 TEST_CASE("test_parsing_bind_variable_statement", "[syntax_parser]") {
@@ -82,7 +82,7 @@ TEST_CASE("test_parsing_bind_variable_statement", "[syntax_parser]") {
   auto initializer = dynamic_cast<const literal_expression*>(
     &bind->get_expression());
   REQUIRE(initializer->get_literal().get_value() == "321");
-  REQUIRE(*initializer->get_literal().get_type() == integer_data_type());
+  REQUIRE(*initializer->get_literal().get_type() == IntegerDataType());
 }
 
 TEST_CASE("test_parsing_variable_expression", "[syntax_parser]") {
@@ -182,7 +182,7 @@ TEST_CASE("test_parsing_function_definition", "[syntax_parser]") {
     REQUIRE(f != nullptr);
     REQUIRE(f->get_parameters().size() == 1);
     REQUIRE(f->get_parameters()[0].m_type != nullptr);
-    auto g = dynamic_pointer_cast<function_data_type>(
+    auto g = dynamic_pointer_cast<FunctionDataType>(
       f->get_parameters()[0].m_type);
     REQUIRE(g != nullptr);
   }

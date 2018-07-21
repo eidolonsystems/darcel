@@ -5,14 +5,14 @@
 using namespace darcel;
 using namespace std;
 
-TEST_CASE("test_text_name", "[text_data_type]") {
-  REQUIRE(text_data_type().get_name() == "Text");
+TEST_CASE("test_text_name", "[TextDataType]") {
+  REQUIRE(TextDataType().get_name() == "Text");
 }
 
-TEST_CASE("test_text_equality", "[text_data_type]") {
-  REQUIRE(text_data_type() == text_data_type());
-  REQUIRE(*text_data_type::get_instance() ==
-    *text_data_type::get_instance());
-  REQUIRE(*text_data_type::get_instance() !=
-    *bool_data_type::get_instance());
+TEST_CASE("test_text_equality", "[TextDataType]") {
+  REQUIRE(TextDataType() == TextDataType());
+  REQUIRE(*TextDataType::get_instance() ==
+    *TextDataType::get_instance());
+  REQUIRE(*TextDataType::get_instance() !=
+    *BoolDataType::get_instance());
 }

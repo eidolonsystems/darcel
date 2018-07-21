@@ -10,20 +10,20 @@
 namespace darcel {
 
   //! The data type used to represent functions.
-  class function_data_type final : public data_type {
+  class FunctionDataType final : public DataType {
     public:
 
       //! Stores a single parameter.
-      struct parameter {
+      struct Parameter {
 
         //! The name of the parameter.
         std::string m_name;
 
         //! The parameter's type.
-        std::shared_ptr<data_type> m_type;
+        std::shared_ptr<DataType> m_type;
 
         //! Constructs a parameter.
-        parameter(std::string name, std::shared_ptr<data_type> type);
+        Parameter(std::string name, std::shared_ptr<DataType> type);
       };
 
       //! Constructs a function data type.
@@ -31,27 +31,27 @@ namespace darcel {
         \param parameters The function's parameters.
         \param return_type The return type.
       */
-      function_data_type(std::vector<parameter> parameters,
-        std::shared_ptr<data_type> return_type);
+      FunctionDataType(std::vector<Parameter> parameters,
+        std::shared_ptr<DataType> return_type);
 
       //! Returns the list of parameters.
-      const std::vector<parameter>& get_parameters() const;
+      const std::vector<Parameter>& get_parameters() const;
 
       //! Returns the return type.
-      const std::shared_ptr<data_type>& get_return_type() const;
+      const std::shared_ptr<DataType>& get_return_type() const;
 
       const location& get_location() const override;
 
       const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override;
+      void apply(DataTypeVisitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override;
+      bool is_equal(const DataType& rhs) const override;
 
     private:
-      std::vector<parameter> m_parameters;
-      std::shared_ptr<data_type> m_return_type;
+      std::vector<Parameter> m_parameters;
+      std::shared_ptr<DataType> m_return_type;
       std::string m_name;
   };
 
@@ -60,17 +60,17 @@ namespace darcel {
     \param parameters The function's parameters.
     \param return_type The return type.
   */
-  inline std::shared_ptr<function_data_type> make_function_data_type(
-      std::initializer_list<function_data_type::parameter> parameters,
-      std::shared_ptr<data_type> return_type) {
-    return std::make_shared<function_data_type>(
-      std::vector<function_data_type::parameter>(std::move(parameters)),
+  inline std::shared_ptr<FunctionDataType> make_function_data_type(
+      std::initializer_list<FunctionDataType::Parameter> parameters,
+      std::shared_ptr<DataType> return_type) {
+    return std::make_shared<FunctionDataType>(
+      std::vector<FunctionDataType::Parameter>(std::move(parameters)),
       std::move(return_type));
   }
 
   //! Tests if two function data types have the same signature.
-  inline bool equal_signature(const function_data_type& lhs,
-      const function_data_type& rhs) {
+  inline bool equal_signature(const FunctionDataType& lhs,
+      const FunctionDataType& rhs) {
     if(lhs.get_parameters().size() != rhs.get_parameters().size()) {
       return false;
     }
@@ -84,13 +84,13 @@ namespace darcel {
     return true;
   }
 
-  inline function_data_type::parameter::parameter(std::string name,
-      std::shared_ptr<data_type> type)
+  inline FunctionDataType::Parameter::Parameter(std::string name,
+      std::shared_ptr<DataType> type)
       : m_name(std::move(name)),
         m_type(std::move(type)) {}
 
-  inline function_data_type::function_data_type(
-      std::vector<parameter> parameters, std::shared_ptr<data_type> return_type)
+  inline FunctionDataType::FunctionDataType(
+      std::vector<Parameter> parameters, std::shared_ptr<DataType> return_type)
       : m_parameters(std::move(parameters)),
         m_return_type(std::move(return_type)) {
     m_name = "(";
@@ -109,30 +109,30 @@ namespace darcel {
     m_name += ") -> " + m_return_type->get_name();
   }
 
-  inline const std::vector<function_data_type::parameter>&
-      function_data_type::get_parameters() const {
+  inline const std::vector<FunctionDataType::Parameter>&
+      FunctionDataType::get_parameters() const {
     return m_parameters;
   }
 
-  inline const std::shared_ptr<data_type>&
-      function_data_type::get_return_type() const {
+  inline const std::shared_ptr<DataType>&
+      FunctionDataType::get_return_type() const {
     return m_return_type;
   }
 
-  inline const location& function_data_type::get_location() const {
+  inline const location& FunctionDataType::get_location() const {
     return location::global();
   }
 
-  inline const std::string& function_data_type::get_name() const {
+  inline const std::string& FunctionDataType::get_name() const {
     return m_name;
   }
 
-  inline void function_data_type::apply(data_type_visitor& visitor) const {
+  inline void FunctionDataType::apply(DataTypeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline bool function_data_type::is_equal(const data_type& rhs) const {
-    auto& f = static_cast<const function_data_type&>(rhs);
+  inline bool FunctionDataType::is_equal(const DataType& rhs) const {
+    auto& f = static_cast<const FunctionDataType&>(rhs);
     if(*m_return_type != *f.get_return_type() ||
         m_parameters.size() != f.get_parameters().size()) {
       return false;
@@ -145,8 +145,8 @@ namespace darcel {
     return true;
   }
 
-  inline void data_type_visitor::visit(const function_data_type& node) {
-    visit(static_cast<const data_type&>(node));
+  inline void DataTypeVisitor::visit(const FunctionDataType& node) {
+    visit(static_cast<const DataType&>(node));
   }
 }
 

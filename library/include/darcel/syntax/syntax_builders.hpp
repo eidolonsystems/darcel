@@ -39,8 +39,8 @@ namespace darcel {
     \param symbols The symbols belonging to the enum.
   */
   inline std::unique_ptr<bind_enum_statement> bind_enum(location l, scope& s,
-      std::string name, std::vector<enum_data_type::symbol> symbols) {
-    auto type = std::make_shared<enum_data_type>(std::move(l), std::move(name),
+      std::string name, std::vector<EnumDataType::Symbol> symbols) {
+    auto type = std::make_shared<EnumDataType>(std::move(l), std::move(name),
       std::move(symbols));
     s.add(type);
     return std::make_unique<bind_enum_statement>(std::move(type));
@@ -81,9 +81,9 @@ namespace darcel {
     }();
     scope body_scope(&s);
     for(auto& parameter : parameters) {
-      if(auto generic = std::dynamic_pointer_cast<generic_data_type>(
+      if(auto generic = std::dynamic_pointer_cast<GenericDataType>(
           parameter.m_type)) {
-        auto existing_element = body_scope.find<data_type>(generic->get_name());
+        auto existing_element = body_scope.find<DataType>(generic->get_name());
         if(existing_element == nullptr) {
           body_scope.add(generic);
         }
@@ -119,7 +119,7 @@ namespace darcel {
     \param body The function called to build the body of the function.
   */
   inline std::unique_ptr<bind_function_statement> bind_function(scope& s,
-      std::string name, std::vector<function_data_type::parameter> parameters,
+      std::string name, std::vector<FunctionDataType::Parameter> parameters,
       const expression_builder& body) {
     std::vector<bind_function_statement::parameter> p;
     for(auto& parameter : parameters) {
@@ -265,7 +265,7 @@ namespace darcel {
       return "false";
     }();
     return std::make_unique<literal_expression>(std::move(l),
-      literal(v, bool_data_type::get_instance()));
+      literal(v, BoolDataType::get_instance()));
   }
 
   //! Makes a literal integer expression.
@@ -284,7 +284,7 @@ namespace darcel {
   inline std::unique_ptr<literal_expression> make_literal(location l,
       int value) {
     return std::make_unique<literal_expression>(std::move(l),
-      literal(std::to_string(value), integer_data_type::get_instance()));
+      literal(std::to_string(value), IntegerDataType::get_instance()));
   }
 
   //! Makes a literal integer expression.
@@ -303,7 +303,7 @@ namespace darcel {
   inline std::unique_ptr<literal_expression> make_text(location l,
       std::string value) {
     return std::make_unique<literal_expression>(std::move(l),
-      literal(std::move(value), text_data_type::get_instance()));
+      literal(std::move(value), TextDataType::get_instance()));
   }
 
   //! Makes a literal text expression.

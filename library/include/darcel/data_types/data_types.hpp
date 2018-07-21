@@ -3,16 +3,16 @@
 #include "darcel/darcel/darcel.hpp"
 
 namespace darcel {
-  class bool_data_type;
-  class callable_data_type;
-  class data_type;
-  class data_type_visitor;
-  class enum_data_type;
-  class float_data_type;
-  class function_data_type;
-  class generic_data_type;
-  class integer_data_type;
-  class text_data_type;
+  class BoolDataType;
+  class CallableDataType;
+  class DataType;
+  class DataTypeVisitor;
+  class EnumDataType;
+  class FloatDataType;
+  class FunctionDataType;
+  class GenericDataType;
+  class IntegerDataType;
+  class TextDataType;
 }
 
 #endif

@@ -21,44 +21,44 @@ namespace darcel {
     \return The data type used to perform the substitution or nullptr of no
             substitution can be performed.
   */
-  inline std::shared_ptr<data_type> substitute_generic(
-      const std::shared_ptr<data_type>& generic,
-      const std::shared_ptr<data_type>& concrete, const scope& s,
-      data_type_map<std::shared_ptr<generic_data_type>,
-        std::shared_ptr<data_type>>& substitutions) {
+  inline std::shared_ptr<DataType> substitute_generic(
+      const std::shared_ptr<DataType>& generic,
+      const std::shared_ptr<DataType>& concrete, const scope& s,
+      DataTypeMap<std::shared_ptr<GenericDataType>,
+        std::shared_ptr<DataType>>& substitutions) {
     if(!is_generic(*generic)) {
       if(get_compatibility(*concrete, *generic, s) ==
-          data_type_compatibility::EQUAL) {
+          DataTypeCompatibility::EQUAL) {
         return concrete;
       }
       return nullptr;
-    } else if(auto g = std::dynamic_pointer_cast<generic_data_type>(generic)) {
+    } else if(auto g = std::dynamic_pointer_cast<GenericDataType>(generic)) {
       auto substitution = substitutions.find(g);
       if(substitution == substitutions.end()) {
         substitutions.insert(std::make_pair(g, concrete));
         return concrete;
       }
       if(get_compatibility(*concrete, *substitution->second, s) ==
-          data_type_compatibility::EQUAL ||
+          DataTypeCompatibility::EQUAL ||
           get_compatibility(*concrete, *generic, s) ==
-          data_type_compatibility::EQUAL) {
+          DataTypeCompatibility::EQUAL) {
         return substitution->second;
       } else if(is_generic(*substitution->second) && !is_generic(*concrete)) {
         substitutions[g] = concrete;
         return concrete;
       }
       return nullptr;
-    } else if(auto f = std::dynamic_pointer_cast<function_data_type>(generic)) {
-      if(auto g = std::dynamic_pointer_cast<function_data_type>(concrete)) {
+    } else if(auto f = std::dynamic_pointer_cast<FunctionDataType>(generic)) {
+      if(auto g = std::dynamic_pointer_cast<FunctionDataType>(concrete)) {
         if(f->get_parameters().size() != g->get_parameters().size()) {
           return nullptr;
         }
-        std::vector<std::tuple<int, std::vector<std::shared_ptr<data_type>>>>
+        std::vector<std::tuple<int, std::vector<std::shared_ptr<DataType>>>>
           candidates;
         int total_combinations = 1;
         auto add_combinations = [&] (auto& type) {
-          if(auto c = std::dynamic_pointer_cast<callable_data_type>(type)) {
-            std::vector<std::shared_ptr<data_type>> overloads;
+          if(auto c = std::dynamic_pointer_cast<CallableDataType>(type)) {
+            std::vector<std::shared_ptr<DataType>> overloads;
             s.find(*c->get_function(),
               [&] (auto& definition) {
                 overloads.push_back(definition.get_type());
@@ -68,7 +68,7 @@ namespace darcel {
             candidates.emplace_back(total_combinations, std::move(overloads));
             total_combinations *= combinations;
           } else {
-            std::vector<std::shared_ptr<data_type>> candidate;
+            std::vector<std::shared_ptr<DataType>> candidate;
             candidate.push_back(type);
             candidates.emplace_back(total_combinations, candidate);
           }
@@ -104,7 +104,7 @@ namespace darcel {
         }
         return nullptr;
       } else if(auto g =
-          std::dynamic_pointer_cast<callable_data_type>(concrete)) {
+          std::dynamic_pointer_cast<CallableDataType>(concrete)) {
         auto definition = s.find(*g->get_function(),
           [&] (auto& definition) {
             auto candidate_substitutions = substitutions;
@@ -136,45 +136,45 @@ namespace darcel {
             nullptr if no such match exists.
   */
   inline std::shared_ptr<function_definition> find_overload(const function& f,
-      const std::vector<function_data_type::parameter>& parameters,
+      const std::vector<FunctionDataType::Parameter>& parameters,
       const scope& s) {
     auto& definitions = s.get_definitions(f);
     for(auto& definition : definitions) {
-      auto type = std::static_pointer_cast<function_data_type>(
+      auto type = std::static_pointer_cast<FunctionDataType>(
         definition->get_type());
-      data_type_map<std::shared_ptr<generic_data_type>,
-        std::shared_ptr<data_type>> substitutions;
+      DataTypeMap<std::shared_ptr<GenericDataType>,
+        std::shared_ptr<DataType>> substitutions;
       auto compatibility = [&] {
         if(is_generic(*type)) {
-          auto t = std::make_shared<function_data_type>(parameters,
+          auto t = std::make_shared<FunctionDataType>(parameters,
             type->get_return_type());
           auto substitution = substitute_generic(type, t, s, substitutions);
           if(substitution != nullptr) {
-            return data_type_compatibility::GENERIC;
+            return DataTypeCompatibility::GENERIC;
           }
-          return data_type_compatibility::NONE;
+          return DataTypeCompatibility::NONE;
         } else {
           if(type->get_parameters().size() != parameters.size()) {
-            return data_type_compatibility::NONE;
+            return DataTypeCompatibility::NONE;
           }
-          auto compatibility = data_type_compatibility::EQUAL;
+          auto compatibility = DataTypeCompatibility::EQUAL;
           for(std::size_t i = 0; i < parameters.size(); ++i) {
             auto parameter = parameters[i].m_type;
             auto overload_parameter = type->get_parameters()[i].m_type;
             auto parameter_compatibility = get_compatibility(*parameter,
               *overload_parameter, s);
-            if(parameter_compatibility == data_type_compatibility::NONE) {
-              return data_type_compatibility::NONE;
+            if(parameter_compatibility == DataTypeCompatibility::NONE) {
+              return DataTypeCompatibility::NONE;
             } else if(parameter_compatibility ==
-                data_type_compatibility::GENERIC) {
-              compatibility = data_type_compatibility::GENERIC;
+                DataTypeCompatibility::GENERIC) {
+              compatibility = DataTypeCompatibility::GENERIC;
             }
           }
           return compatibility;
         }
       }();
-      if(compatibility == data_type_compatibility::EQUAL ||
-          compatibility == data_type_compatibility::GENERIC) {
+      if(compatibility == DataTypeCompatibility::EQUAL ||
+          compatibility == DataTypeCompatibility::GENERIC) {
         return definition;
       }
     }
@@ -192,7 +192,7 @@ namespace darcel {
     \return The function definition matching the specific function overload.
   */
   inline std::shared_ptr<function_definition> find_overload(const function& f,
-      const function_data_type& signature, const scope& s) {
+      const FunctionDataType& signature, const scope& s) {
     auto overload = find_overload(f, signature.get_parameters(), s);
     if(overload == nullptr) {
       return nullptr;
@@ -200,8 +200,8 @@ namespace darcel {
     auto return_type = overload->get_type()->get_return_type();
     auto return_compatibility = get_compatibility(*signature.get_return_type(),
       *return_type, s);
-    if(return_compatibility == data_type_compatibility::EQUAL ||
-        return_compatibility == data_type_compatibility::GENERIC) {
+    if(return_compatibility == DataTypeCompatibility::EQUAL ||
+        return_compatibility == DataTypeCompatibility::GENERIC) {
       return overload;
     }
     return nullptr;
@@ -215,15 +215,15 @@ namespace darcel {
     \return The function type representing the instantiation of f with
             parameters p.
   */
-  inline std::shared_ptr<function_data_type> instantiate(
+  inline std::shared_ptr<FunctionDataType> instantiate(
       const function_definition& f,
-      const std::vector<function_data_type::parameter>& p, const scope& s) {
+      const std::vector<FunctionDataType::Parameter>& p, const scope& s) {
     if(is_generic(*f.get_type())) {
-      data_type_map<std::shared_ptr<generic_data_type>,
-        std::shared_ptr<data_type>> substitutions;
-      auto t = std::make_shared<function_data_type>(p,
+      DataTypeMap<std::shared_ptr<GenericDataType>,
+        std::shared_ptr<DataType>> substitutions;
+      auto t = std::make_shared<FunctionDataType>(p,
         f.get_type()->get_return_type());
-      return std::static_pointer_cast<function_data_type>(
+      return std::static_pointer_cast<FunctionDataType>(
         substitute_generic(f.get_type(), t, s, substitutions));
     } else {
       return f.get_type();

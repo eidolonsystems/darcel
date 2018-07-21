@@ -8,50 +8,50 @@
 namespace darcel {
 
   //! Represents an integer data type.
-  class integer_data_type final : public data_type {
+  class IntegerDataType final : public DataType {
     public:
 
       //! Returns an instance of this type.
-      static const std::shared_ptr<integer_data_type>& get_instance();
+      static const std::shared_ptr<IntegerDataType>& get_instance();
 
       //! Constructs a integer data type.
-      integer_data_type() = default;
+      IntegerDataType() = default;
 
       const location& get_location() const override;
 
       const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override;
+      void apply(DataTypeVisitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override;
+      bool is_equal(const DataType& rhs) const override;
   };
 
-  inline const std::shared_ptr<integer_data_type>&
-      integer_data_type::get_instance() {
-    static auto instance = std::make_shared<integer_data_type>();
+  inline const std::shared_ptr<IntegerDataType>&
+      IntegerDataType::get_instance() {
+    static auto instance = std::make_shared<IntegerDataType>();
     return instance;
   }
 
-  inline const location& integer_data_type::get_location() const {
+  inline const location& IntegerDataType::get_location() const {
     return location::global();
   }
 
-  inline const std::string& integer_data_type::get_name() const {
+  inline const std::string& IntegerDataType::get_name() const {
     static std::string name = "Int";
     return name;
   }
 
-  inline void integer_data_type::apply(data_type_visitor& visitor) const {
+  inline void IntegerDataType::apply(DataTypeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline bool integer_data_type::is_equal(const data_type& rhs) const {
+  inline bool IntegerDataType::is_equal(const DataType& rhs) const {
     return true;
   }
 
-  inline void data_type_visitor::visit(const integer_data_type& node) {
-    visit(static_cast<const data_type&>(node));
+  inline void DataTypeVisitor::visit(const IntegerDataType& node) {
+    visit(static_cast<const DataType&>(node));
   }
 }
 

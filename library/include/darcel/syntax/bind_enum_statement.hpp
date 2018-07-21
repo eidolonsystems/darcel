@@ -15,23 +15,23 @@ namespace darcel {
       /*!
         \param e The enum to bind.
       */
-      bind_enum_statement(std::shared_ptr<enum_data_type> e);
+      bind_enum_statement(std::shared_ptr<EnumDataType> e);
 
       //! Returns the enum.
-      const std::shared_ptr<enum_data_type>& get_enum() const;
+      const std::shared_ptr<EnumDataType>& get_enum() const;
 
       void apply(syntax_node_visitor& visitor) const override;
 
     private:
-      std::shared_ptr<enum_data_type> m_enum;
+      std::shared_ptr<EnumDataType> m_enum;
   };
 
   inline bind_enum_statement::bind_enum_statement(
-      std::shared_ptr<enum_data_type> e)
+      std::shared_ptr<EnumDataType> e)
       : statement(e->get_location()),
         m_enum(std::move(e)) {}
 
-  inline const std::shared_ptr<enum_data_type>&
+  inline const std::shared_ptr<EnumDataType>&
       bind_enum_statement::get_enum() const {
     return m_enum;
   }

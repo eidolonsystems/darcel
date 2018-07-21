@@ -5,14 +5,14 @@
 using namespace darcel;
 using namespace std;
 
-TEST_CASE("test_integer_name", "[integer_data_type]") {
-  REQUIRE(integer_data_type().get_name() == "Int");
+TEST_CASE("test_integer_name", "[IntegerDataType]") {
+  REQUIRE(IntegerDataType().get_name() == "Int");
 }
 
-TEST_CASE("test_integer_equality", "[integer_data_type]") {
-  REQUIRE(integer_data_type() == integer_data_type());
-  REQUIRE(*integer_data_type::get_instance() ==
-    *integer_data_type::get_instance());
-  REQUIRE(*integer_data_type::get_instance() !=
-    *bool_data_type::get_instance());
+TEST_CASE("test_integer_equality", "[IntegerDataType]") {
+  REQUIRE(IntegerDataType() == IntegerDataType());
+  REQUIRE(*IntegerDataType::get_instance() ==
+    *IntegerDataType::get_instance());
+  REQUIRE(*IntegerDataType::get_instance() !=
+    *BoolDataType::get_instance());
 }

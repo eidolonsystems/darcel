@@ -12,7 +12,7 @@ TEST_CASE("test_bind_function_statement", "[bind_function_statement]") {
   auto f = std::make_shared<function>(location::global(), "f");
   auto p1 = std::make_shared<variable>(location::global(), "a");
   auto p = std::vector<bind_function_statement::parameter>{
-    {p1, integer_data_type::get_instance()}};
+    {p1, IntegerDataType::get_instance()}};
   auto e = std::make_unique<literal_expression>(location::global(),
     *parse_literal("123"));
   bind_function_statement s(location::global(), f, p, std::move(e));
@@ -20,5 +20,5 @@ TEST_CASE("test_bind_function_statement", "[bind_function_statement]") {
   REQUIRE(s.get_parameters().size() == 1);
   REQUIRE(s.get_parameters()[0].m_variable == p1);
   REQUIRE(s.get_parameters()[0].m_type != nullptr);
-  REQUIRE(*s.get_parameters()[0].m_type == integer_data_type());
+  REQUIRE(*s.get_parameters()[0].m_type == IntegerDataType());
 }

@@ -31,7 +31,7 @@ TEST_CASE("test_token_stream", "[token]") {
     REQUIRE(ss.str() == "hello");
   }
   SECTION("Literal") {
-    token t(literal("123", integer_data_type::get_instance()), 0, 0);
+    token t(literal("123", IntegerDataType::get_instance()), 0, 0);
     stringstream ss;
     ss << t;
     REQUIRE(ss.str() == "123");

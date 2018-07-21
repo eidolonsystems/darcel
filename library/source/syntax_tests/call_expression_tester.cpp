@@ -11,7 +11,7 @@ TEST_CASE("test_call_expression", "[call_expression]") {
   auto callable = std::make_unique<function_expression>(location::global(), f);
   vector<std::unique_ptr<expression>> parameters;
   parameters.push_back(std::make_unique<literal_expression>(location::global(),
-    literal("123", integer_data_type::get_instance())));
+    literal("123", IntegerDataType::get_instance())));
   call_expression call(location::global(), std::move(callable),
     std::move(parameters));
   auto fexpr = dynamic_cast<const function_expression*>(&call.get_callable());

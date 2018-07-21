@@ -3,31 +3,31 @@
 
 using namespace darcel;
 
-TEST_CASE("test_equal_compatibility", "[data_type_compatibility]") {
+TEST_CASE("test_equal_compatibility", "[DataTypeCompatibility]") {
   scope s;
-  REQUIRE(get_compatibility(float_data_type(), float_data_type(), s) ==
-    data_type_compatibility::EQUAL);
-  REQUIRE(get_compatibility(integer_data_type(), float_data_type(), s) ==
-    data_type_compatibility::NONE);
+  REQUIRE(get_compatibility(FloatDataType(), FloatDataType(), s) ==
+    DataTypeCompatibility::EQUAL);
+  REQUIRE(get_compatibility(IntegerDataType(), FloatDataType(), s) ==
+    DataTypeCompatibility::NONE);
 }
 
-TEST_CASE("test_overload_compatibility", "[data_type_compatibility]") {
+TEST_CASE("test_overload_compatibility", "[DataTypeCompatibility]") {
   scope s;
   auto f = std::make_shared<function>(location::global(), "f");
   s.add(f);
-  auto t1 = make_function_data_type({}, integer_data_type::get_instance());
+  auto t1 = make_function_data_type({}, IntegerDataType::get_instance());
   auto d1 = std::make_shared<function_definition>(location::global(), f, t1);
   s.add(d1);
-  auto t2 = make_function_data_type({{"x", bool_data_type::get_instance()}},
-    integer_data_type::get_instance());
+  auto t2 = make_function_data_type({{"x", BoolDataType::get_instance()}},
+    IntegerDataType::get_instance());
   auto d2 = std::make_shared<function_definition>(location::global(), f, t2);
-  auto t3 = make_function_data_type({{"x", float_data_type::get_instance()}},
-    integer_data_type::get_instance());
+  auto t3 = make_function_data_type({{"x", FloatDataType::get_instance()}},
+    IntegerDataType::get_instance());
   s.add(d2);
-  auto c1 = std::make_shared<callable_data_type>(f);
+  auto c1 = std::make_shared<CallableDataType>(f);
   REQUIRE(get_compatibility(*c1, *t1, s) ==
-    data_type_compatibility::SUPER_TYPE);
+    DataTypeCompatibility::SUPER_TYPE);
   REQUIRE(get_compatibility(*c1, *t2, s) ==
-    data_type_compatibility::SUPER_TYPE);
-  REQUIRE(get_compatibility(*c1, *t3, s) == data_type_compatibility::NONE);
+    DataTypeCompatibility::SUPER_TYPE);
+  REQUIRE(get_compatibility(*c1, *t3, s) == DataTypeCompatibility::NONE);
 }

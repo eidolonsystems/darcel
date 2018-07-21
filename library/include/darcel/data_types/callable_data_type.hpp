@@ -8,14 +8,14 @@
 namespace darcel {
 
   //! A data type used to represent all of a function declaration's overloads.
-  class callable_data_type final : public data_type {
+  class CallableDataType final : public DataType {
     public:
 
       //! Constructs a callable data type.
       /*!
         \param f The function this data type represents.
       */
-      callable_data_type(std::shared_ptr<function> f);
+      CallableDataType(std::shared_ptr<function> f);
 
       //! Returns the function represented.
       const std::shared_ptr<function> get_function() const;
@@ -24,44 +24,44 @@ namespace darcel {
 
       const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override;
+      void apply(DataTypeVisitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override;
+      bool is_equal(const DataType& rhs) const override;
 
     private:
       std::string m_name;
       std::shared_ptr<function> m_function;
   };
 
-  inline callable_data_type::callable_data_type(std::shared_ptr<function> f)
+  inline CallableDataType::CallableDataType(std::shared_ptr<function> f)
       : m_name("@" + f->get_name()),
         m_function(std::move(f)) {}
 
   inline const std::shared_ptr<function>
-      callable_data_type::get_function() const {
+      CallableDataType::get_function() const {
     return m_function;
   }
 
-  inline const location& callable_data_type::get_location() const {
+  inline const location& CallableDataType::get_location() const {
     return m_function->get_location();
   }
 
-  inline const std::string& callable_data_type::get_name() const {
+  inline const std::string& CallableDataType::get_name() const {
     return m_name;
   }
 
-  inline void callable_data_type::apply(data_type_visitor& visitor) const {
+  inline void CallableDataType::apply(DataTypeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline bool callable_data_type::is_equal(const data_type& rhs) const {
-    auto& other = static_cast<const callable_data_type&>(rhs);
+  inline bool CallableDataType::is_equal(const DataType& rhs) const {
+    auto& other = static_cast<const CallableDataType&>(rhs);
     return m_function == other.get_function();
   }
 
-  inline void data_type_visitor::visit(const callable_data_type& node) {
-    visit(static_cast<const data_type&>(node));
+  inline void DataTypeVisitor::visit(const CallableDataType& node) {
+    visit(static_cast<const DataType&>(node));
   }
 }
 

@@ -9,11 +9,11 @@
 namespace darcel {
 
   //! Represents a list of symbolic constants.
-  class enum_data_type final : public data_type {
+  class EnumDataType final : public DataType {
     public:
 
       //! The symbols belonging to the enum.
-      struct symbol {
+      struct Symbol {
 
         //! The name of the symbol.
         std::string m_name;
@@ -28,24 +28,24 @@ namespace darcel {
         \param name The name of the data type.
         \param symbols The enum's symbols.
       */
-      enum_data_type(location l, std::string name, std::vector<symbol> symbols);
+      EnumDataType(location l, std::string name, std::vector<Symbol> symbols);
 
       //! Returns the symbols belonging to this enum.
-      const std::vector<symbol>& get_symbols() const;
+      const std::vector<Symbol>& get_symbols() const;
 
       const location& get_location() const override;
 
       const std::string& get_name() const override;
 
-      void apply(data_type_visitor& visitor) const override;
+      void apply(DataTypeVisitor& visitor) const override;
 
     protected:
-      bool is_equal(const data_type& rhs) const override;
+      bool is_equal(const DataType& rhs) const override;
 
     private:
       location m_location;
       std::string m_name;
-      std::vector<symbol> m_symbols;
+      std::vector<Symbol> m_symbols;
   };
 
   //! Returns the index of a symbol belonging to an enum.
@@ -54,7 +54,7 @@ namespace darcel {
     \param symbol The symbol belonging to the enum.
     \return The index of the symbol within <i>e</i>.
   */
-  inline int get_index(const enum_data_type& e, const std::string& symbol) {
+  inline int get_index(const EnumDataType& e, const std::string& symbol) {
     for(auto i = 0; i != static_cast<int>(e.get_symbols().size()); ++i) {
       if(e.get_symbols()[i].m_name == symbol) {
         return i;
@@ -63,35 +63,35 @@ namespace darcel {
     return -1;
   }
 
-  inline enum_data_type::enum_data_type(location l, std::string name,
-      std::vector<symbol> symbols)
+  inline EnumDataType::EnumDataType(location l, std::string name,
+      std::vector<Symbol> symbols)
       : m_location(std::move(l)),
         m_name(std::move(name)),
         m_symbols(std::move(symbols)) {}
 
-  inline const std::vector<enum_data_type::symbol>&
-      enum_data_type::get_symbols() const {
+  inline const std::vector<EnumDataType::Symbol>&
+      EnumDataType::get_symbols() const {
     return m_symbols;
   }
 
-  inline const location& enum_data_type::get_location() const {
+  inline const location& EnumDataType::get_location() const {
     return m_location;
   }
 
-  inline const std::string& enum_data_type::get_name() const {
+  inline const std::string& EnumDataType::get_name() const {
     return m_name;
   }
 
-  inline void enum_data_type::apply(data_type_visitor& visitor) const {
+  inline void EnumDataType::apply(DataTypeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline bool enum_data_type::is_equal(const data_type& rhs) const {
+  inline bool EnumDataType::is_equal(const DataType& rhs) const {
     return this == &rhs;
   }
 
-  inline void data_type_visitor::visit(const enum_data_type& node) {
-    visit(static_cast<const data_type&>(node));
+  inline void DataTypeVisitor::visit(const EnumDataType& node) {
+    visit(static_cast<const DataType&>(node));
   }
 }
 
