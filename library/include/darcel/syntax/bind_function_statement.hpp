@@ -45,7 +45,7 @@ namespace darcel {
         \param p The function parameters.
         \param e The expression to bind to the function.
       */
-      bind_function_statement(location l, std::shared_ptr<function> f,
+      bind_function_statement(Location l, std::shared_ptr<function> f,
         std::vector<parameter> p, std::unique_ptr<expression> e);
 
       //! Returns the function (potentially overloaded) that the binding belongs
@@ -75,7 +75,7 @@ namespace darcel {
       : m_variable(std::move(v)),
         m_type(std::move(t)) {}
 
-  inline bind_function_statement::bind_function_statement(location l,
+  inline bind_function_statement::bind_function_statement(Location l,
       std::shared_ptr<function> f, std::vector<parameter> p,
       std::unique_ptr<expression> e)
       : statement(std::move(l)),

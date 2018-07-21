@@ -8,8 +8,8 @@ using namespace std;
 TEST_CASE("test_scope_lookup", "[scope]") {
   scope s1;
   {
-    REQUIRE(s1.add(std::make_shared<variable>(location::global(), "abc")));
-    REQUIRE(!s1.add(std::make_shared<variable>(location::global(), "abc")));
+    REQUIRE(s1.add(std::make_shared<variable>(Location::global(), "abc")));
+    REQUIRE(!s1.add(std::make_shared<variable>(Location::global(), "abc")));
     REQUIRE(s1.contains("abc"));
     auto abc = s1.find<variable>("abc");
     REQUIRE(abc != nullptr);

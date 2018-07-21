@@ -30,7 +30,7 @@ namespace darcel {
         \param l The location of the first character being parsed.
       */
       token_iterator(const token* first, std::size_t size_remaining,
-        const location& l);
+        const Location& l);
 
       //! Returns <code>true</code> iff the size remaining is 0.
       bool is_empty() const;
@@ -39,7 +39,7 @@ namespace darcel {
       std::size_t get_size_remaining() const;
 
       //! Returns the current location.
-      location get_location() const;
+      Location get_location() const;
 
       //! Adjusts the pointer.
       /*!
@@ -124,10 +124,10 @@ namespace darcel {
 
   inline token_iterator::token_iterator(const token* first,
       std::size_t size_remaining)
-      : token_iterator(first, size_remaining, location({}, 0, 0)) {}
+      : token_iterator(first, size_remaining, Location({}, 0, 0)) {}
 
   inline token_iterator::token_iterator(const token* first,
-      std::size_t size_remaining, const location& l)
+      std::size_t size_remaining, const Location& l)
       : m_position(first),
         m_size_remaining(size_remaining),
         m_path(l.get_path()) {}
@@ -140,8 +140,8 @@ namespace darcel {
     return m_size_remaining;
   }
 
-  inline location token_iterator::get_location() const {
-    location l(m_path, m_position->get_line_number(),
+  inline Location token_iterator::get_location() const {
+    Location l(m_path, m_position->get_line_number(),
       m_position->get_column_number());
     return l;
   }

@@ -17,7 +17,7 @@ namespace darcel {
       //! Constructs a text data type.
       TextDataType() = default;
 
-      const location& get_location() const override;
+      const Location& get_location() const override;
 
       const std::string& get_name() const override;
 
@@ -32,8 +32,8 @@ namespace darcel {
     return instance;
   }
 
-  inline const location& TextDataType::get_location() const {
-    return location::global();
+  inline const Location& TextDataType::get_location() const {
+    return Location::global();
   }
 
   inline const std::string& TextDataType::get_name() const {

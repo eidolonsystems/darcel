@@ -15,7 +15,7 @@ namespace darcel {
         \param l The location of the identifier.
         \param name The name of the variable not found.
       */
-      variable_not_found_error(location l, std::string name);
+      variable_not_found_error(Location l, std::string name);
 
       //! Returns the name of the variable that wasn't found.
       const std::string& get_name() const;
@@ -24,7 +24,7 @@ namespace darcel {
       std::string m_name;
   };
 
-  inline variable_not_found_error::variable_not_found_error(location l,
+  inline variable_not_found_error::variable_not_found_error(Location l,
       std::string name)
       : syntax_error(syntax_error_code::VARIABLE_NOT_FOUND, std::move(l)),
         m_name(std::move(name)) {}

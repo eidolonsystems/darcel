@@ -85,7 +85,7 @@ namespace darcel {
            will be adjusted to one past the last character that was parsed.
     \return The operation that was parsed.
   */
-  inline std::optional<operation> parse_operation(lexical_iterator& cursor) {
+  inline std::optional<operation> parse_operation(LexicalIterator& cursor) {
     if(prefix_match(cursor, "and")) {
       return operation::symbol::AND;
     }
@@ -155,7 +155,7 @@ namespace darcel {
   */
   inline auto parse_operation(const std::string_view& source) {
     return darcel::parse_operation(
-      lexical_iterator(source.data(), source.size() + 1));
+      LexicalIterator(source.data(), source.size() + 1));
   }
 
   inline std::ostream& operator <<(std::ostream& out, const operation& value) {

@@ -18,7 +18,7 @@ namespace darcel {
       virtual ~element() = default;
 
       //! Returns the location where the element was declared.
-      virtual const location& get_location() const = 0;
+      virtual const Location& get_location() const = 0;
 
       //! Returns the name of the element.
       virtual const std::string& get_name() const = 0;

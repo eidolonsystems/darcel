@@ -16,22 +16,22 @@ namespace darcel {
   inline std::unique_ptr<bind_enum_statement>
       syntax_parser::parse_bind_enum_statement(token_iterator& cursor) {
     auto c = cursor;
-    if(!match(*c, keyword::word::LET)) {
+    if(!match(*c, Keyword::Word::LET)) {
       return nullptr;
     }
     ++c;
     auto name_location = c.get_location();
     auto& name = parse_identifier(c);
     expect(c, operation::symbol::ASSIGN);
-    if(!match(*c, keyword::word::ENUM)) {
+    if(!match(*c, Keyword::Word::ENUM)) {
       return nullptr;
     }
     ++c;
-    expect(c, bracket::type::OPEN_ROUND_BRACKET);
+    expect(c, Bracket::Type::ROUND_OPEN);
     std::vector<EnumDataType::Symbol> symbols;
-    std::unordered_map<std::string, location> locations;
+    std::unordered_map<std::string, Location> locations;
     auto next_value = 0;
-    while(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+    while(!match(*c, Bracket::Type::ROUND_CLOSE)) {
       auto symbol_location = c.get_location();
       auto name = parse_identifier(c);
       auto existing_symbol = locations.find(name);
@@ -66,7 +66,7 @@ namespace darcel {
       next_value = value + 1;
       symbols.push_back({name, value});
       locations.insert(std::make_pair(name, symbol_location));
-      if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+      if(match(*c, Bracket::Type::ROUND_CLOSE)) {
         break;
       }
       expect(c, punctuation::mark::COMMA);
@@ -81,19 +81,19 @@ namespace darcel {
   inline std::unique_ptr<bind_function_statement>
       syntax_parser::parse_bind_function_statement(token_iterator& cursor) {
     auto c = cursor;
-    if(!match(*c, keyword::word::LET)) {
+    if(!match(*c, Keyword::Word::LET)) {
       return nullptr;
     }
     ++c;
     auto name_location = c.get_location();
     auto& name = parse_identifier(c);
-    if(!match(*c, bracket::type::OPEN_ROUND_BRACKET)) {
+    if(!match(*c, Bracket::Type::ROUND_OPEN)) {
       return nullptr;
     }
     ++c;
     std::vector<bind_function_statement::parameter> parameters;
     push_scope();
-    if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+    if(!match(*c, Bracket::Type::ROUND_CLOSE)) {
       while(true) {
         auto name_location = c.get_location();
         auto& parameter_name = parse_identifier(c);
@@ -115,7 +115,7 @@ namespace darcel {
         } else {
           parameters.emplace_back(std::move(v));
         }
-        if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+        if(match(*c, Bracket::Type::ROUND_CLOSE)) {
           break;
         }
         expect(c, punctuation::mark::COMMA);
@@ -161,7 +161,7 @@ namespace darcel {
   inline std::unique_ptr<bind_variable_statement>
       syntax_parser::parse_bind_variable_statement(token_iterator& cursor) {
     auto c = cursor;
-    if(!match(*c, keyword::word::LET)) {
+    if(!match(*c, Keyword::Word::LET)) {
       return nullptr;
     }
     ++c;

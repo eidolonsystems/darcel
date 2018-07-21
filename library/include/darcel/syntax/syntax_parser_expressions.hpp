@@ -69,7 +69,7 @@ namespace darcel {
     return std::visit(
       [&] (auto&& value) -> std::unique_ptr<literal_expression> {
         using T = std::decay_t<decltype(value)>;
-        if constexpr(std::is_same_v<T, literal>) {
+        if constexpr(std::is_same_v<T, Literal>) {
           auto expression = std::make_unique<literal_expression>(
             cursor.get_location(), value);
           ++cursor;
@@ -115,7 +115,7 @@ namespace darcel {
       token_iterator& cursor) {
     struct op_token {
       op m_op;
-      location m_location;
+      Location m_location;
     };
     std::deque<std::unique_ptr<expression>> expressions;
     std::stack<op_token> operators;
@@ -154,7 +154,7 @@ namespace darcel {
     auto mode = parse_mode::TERM;
     while(true) {
       if(mode == parse_mode::TERM) {
-        if(match(*c, bracket::type::OPEN_ROUND_BRACKET)) {
+        if(match(*c, Bracket::Type::ROUND_OPEN)) {
           operators.push({op::OPEN_BRACKET, c.get_location()});
           ++c;
         } else if(auto node = parse_expression_term(c)) {
@@ -164,11 +164,11 @@ namespace darcel {
           break;
         }
       } else {
-        if(match(*c, bracket::type::OPEN_ROUND_BRACKET)) {
+        if(match(*c, Bracket::Type::ROUND_OPEN)) {
           auto call_location = c.get_location();
           ++c;
           std::vector<std::unique_ptr<expression>> arguments;
-          if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+          if(!match(*c, Bracket::Type::ROUND_CLOSE)) {
             while(true) {
               auto argument = parse_expression(c);
               if(argument == nullptr) {
@@ -176,7 +176,7 @@ namespace darcel {
                   c.get_location());
               }
               arguments.push_back(std::move(argument));
-              if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+              if(match(*c, Bracket::Type::ROUND_CLOSE)) {
                 break;
               }
               expect(c, punctuation::mark::COMMA);
@@ -203,7 +203,7 @@ namespace darcel {
           operators.push({o, c.get_location()});
           ++c;
           mode = parse_mode::TERM;
-        } else if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+        } else if(match(*c, Bracket::Type::ROUND_CLOSE)) {
           auto found_open_bracket = false;
           while(!operators.empty()) {
             auto o = operators.top();
@@ -231,9 +231,9 @@ namespace darcel {
         auto bracket =
           [&] {
             if(o.m_op == op::OPEN_BRACKET) {
-              return bracket::type::OPEN_ROUND_BRACKET;
+              return Bracket::Type::ROUND_OPEN;
             }
-            return bracket::type::CLOSE_ROUND_BRACKET;
+            return Bracket::Type::ROUND_CLOSE;
           }();
         throw unmatched_bracket_syntax_error(o.m_location, bracket);
       }

@@ -9,30 +9,30 @@
 namespace darcel {
 
   //! Stores a bracket.
-  class bracket {
+  class Bracket {
     public:
 
       //! The list of brackets.
-      enum class type {
+      enum class Type {
 
         //! '('
-        OPEN_ROUND_BRACKET,
+        ROUND_OPEN,
 
         //! ')'
-        CLOSE_ROUND_BRACKET,
+        ROUND_CLOSE,
       };
 
       //! Constructs a bracket.
       /*!
         \param type The type of bracket.
       */
-      bracket(type t);
+      Bracket(Type t);
 
       //! Returns the type of bracket represented.
-      type get_type() const;
+      Type get_type() const;
 
     private:
-      type m_type;
+      Type m_type;
   };
 
   //! Returns <code>true</code> iff a character represents a bracket.
@@ -48,8 +48,8 @@ namespace darcel {
     \param b The bracket to test.
     \return <code>true</code> iff the bracket is an opening bracket.
   */
-  inline bool is_open(bracket b) {
-    return b.get_type() == bracket::type::OPEN_ROUND_BRACKET;
+  inline bool is_open(Bracket b) {
+    return b.get_type() == Bracket::Type::ROUND_OPEN;
   }
 
   //! Returns <code>true</code> iff the bracket is a closing bracket.
@@ -57,8 +57,8 @@ namespace darcel {
     \param b The bracket to test.
     \return <code>true</code> iff the bracket is a closing bracket.
   */
-  inline bool is_close(bracket b) {
-    return b.get_type() == bracket::type::CLOSE_ROUND_BRACKET;
+  inline bool is_close(Bracket b) {
+    return b.get_type() == Bracket::Type::ROUND_CLOSE;
   }
 
   //! Given a bracket, returns the opposite bracket.
@@ -66,12 +66,12 @@ namespace darcel {
     \param b The bracket.
     \return The opposite bracket.
   */
-  inline bracket get_opposite(bracket b) {
+  inline Bracket get_opposite(Bracket b) {
     switch(b.get_type()) {
-      case bracket::type::OPEN_ROUND_BRACKET:
-        return bracket::type::CLOSE_ROUND_BRACKET;
-      case bracket::type::CLOSE_ROUND_BRACKET:
-        return bracket::type::OPEN_ROUND_BRACKET;
+      case Bracket::Type::ROUND_OPEN:
+        return Bracket::Type::ROUND_CLOSE;
+      case Bracket::Type::ROUND_CLOSE:
+        return Bracket::Type::ROUND_OPEN;
     }
     throw std::runtime_error("Invalid bracket.");
   }
@@ -82,14 +82,14 @@ namespace darcel {
            will be adjusted to one past the last character that was parsed.
     \return The bracket that was parsed.
   */
-  inline std::optional<bracket> parse_bracket(lexical_iterator& cursor) {
+  inline std::optional<Bracket> parse_bracket(LexicalIterator& cursor) {
     if(!cursor.is_empty()) {
       if(*cursor == '(') {
         ++cursor;
-        return bracket::type::OPEN_ROUND_BRACKET;
+        return Bracket::Type::ROUND_OPEN;
       } else if(*cursor == ')') {
         ++cursor;
-        return bracket::type::CLOSE_ROUND_BRACKET;
+        return Bracket::Type::ROUND_CLOSE;
       }
     }
     return std::nullopt;
@@ -102,32 +102,32 @@ namespace darcel {
   */
   inline auto parse_bracket(const std::string_view& source) {
     return darcel::parse_bracket(
-      lexical_iterator(source.data(), source.size() + 1));
+      LexicalIterator(source.data(), source.size() + 1));
   }
 
-  inline std::ostream& operator <<(std::ostream& out, const bracket& value) {
+  inline std::ostream& operator <<(std::ostream& out, const Bracket& value) {
     switch(value.get_type()) {
-      case bracket::type::OPEN_ROUND_BRACKET:
+      case Bracket::Type::ROUND_OPEN:
         return out << '(';
-      case bracket::type::CLOSE_ROUND_BRACKET:
+      case Bracket::Type::ROUND_CLOSE:
         return out << ')';
       default:
         throw std::runtime_error("Invalid bracket.");
     }
   }
 
-  inline bool operator ==(const bracket& lhs, const bracket& rhs) {
+  inline bool operator ==(const Bracket& lhs, const Bracket& rhs) {
     return lhs.get_type() == rhs.get_type();
   }
 
-  inline bool operator !=(const bracket& lhs, const bracket& rhs) {
+  inline bool operator !=(const Bracket& lhs, const Bracket& rhs) {
     return !(lhs == rhs);
   }
 
-  inline bracket::bracket(type t)
+  inline Bracket::Bracket(Type t)
       : m_type(t) {}
 
-  inline bracket::type bracket::get_type() const {
+  inline Bracket::Type Bracket::get_type() const {
     return m_type;
   }
 }

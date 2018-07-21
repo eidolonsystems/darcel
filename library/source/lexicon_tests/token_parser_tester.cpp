@@ -33,7 +33,7 @@ TEST_CASE("test_spaces_token_parser", "[token_parser]") {
   {
     auto t = parser.parse_token();
     REQUIRE(t.has_value());
-    REQUIRE(match(*t, keyword(keyword::word::LET)));
+    REQUIRE(match(*t, Keyword(Keyword::Word::LET)));
     REQUIRE(t->get_line_number() == 2);
     REQUIRE(t->get_column_number() == 1);
   }
@@ -47,7 +47,7 @@ TEST_CASE("test_spaces_token_parser", "[token_parser]") {
   {
     auto t = parser.parse_token();
     REQUIRE(t.has_value());
-    REQUIRE(match(*t, keyword(keyword::word::LET)));
+    REQUIRE(match(*t, Keyword(Keyword::Word::LET)));
     REQUIRE(t->get_line_number() == 4);
     REQUIRE(t->get_column_number() == 4);
   }
@@ -60,7 +60,7 @@ TEST_CASE("test_line_continuations", "[token_parser]") {
     {
       auto t = parser.parse_token();
       REQUIRE(t.has_value());
-      REQUIRE(std::get_if<literal>(&t->get_instance()) != nullptr);
+      REQUIRE(std::get_if<Literal>(&t->get_instance()) != nullptr);
     }
     {
       auto t = parser.parse_token();
@@ -70,7 +70,7 @@ TEST_CASE("test_line_continuations", "[token_parser]") {
     {
       auto t = parser.parse_token();
       REQUIRE(t.has_value());
-      REQUIRE(std::get_if<literal>(&t->get_instance()) != nullptr);
+      REQUIRE(std::get_if<Literal>(&t->get_instance()) != nullptr);
     }
   }
   SECTION("Round bracket continuation.") {
@@ -79,7 +79,7 @@ TEST_CASE("test_line_continuations", "[token_parser]") {
     {
       auto t = parser.parse_token();
       REQUIRE(t.has_value());
-      REQUIRE(std::get_if<literal>(&t->get_instance()) != nullptr);
+      REQUIRE(std::get_if<Literal>(&t->get_instance()) != nullptr);
     }
     {
       auto t = parser.parse_token();
@@ -89,22 +89,22 @@ TEST_CASE("test_line_continuations", "[token_parser]") {
     {
       auto t = parser.parse_token();
       REQUIRE(t.has_value());
-      REQUIRE(std::get_if<bracket>(&t->get_instance()) != nullptr);
+      REQUIRE(std::get_if<Bracket>(&t->get_instance()) != nullptr);
     }
     {
       auto t = parser.parse_token();
       REQUIRE(t.has_value());
-      REQUIRE(std::get_if<literal>(&t->get_instance()) != nullptr);
+      REQUIRE(std::get_if<Literal>(&t->get_instance()) != nullptr);
     }
     {
       auto t = parser.parse_token();
       REQUIRE(t.has_value());
-      REQUIRE(std::get_if<bracket>(&t->get_instance()) != nullptr);
+      REQUIRE(std::get_if<Bracket>(&t->get_instance()) != nullptr);
     }
     {
       auto t = parser.parse_token();
       REQUIRE(t.has_value());
-      REQUIRE(std::get_if<literal>(&t->get_instance()) != nullptr);
+      REQUIRE(std::get_if<Literal>(&t->get_instance()) != nullptr);
     }
   }
 }

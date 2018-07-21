@@ -263,10 +263,10 @@ namespace darcel {
 
   inline void reactor_translator::visit(const literal_expression& node) {
     struct literal_visitor : DataTypeVisitor {
-      literal m_literal;
+      Literal m_literal;
       std::unique_ptr<reactor_builder> m_builder;
 
-      literal_visitor(literal l)
+      literal_visitor(Literal l)
           : m_literal(std::move(l)) {}
 
       void visit(const BoolDataType& type) {

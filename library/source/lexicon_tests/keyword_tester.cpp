@@ -5,38 +5,38 @@
 using namespace darcel;
 using namespace std;
 
-TEST_CASE("test_keyword_stream", "[keyword]") {
+TEST_CASE("test_keyword_stream", "[Keyword]") {
   SECTION("enum") {
-    keyword k(keyword::word::ENUM);
+    Keyword k(Keyword::Word::ENUM);
     stringstream ss;
     ss << k;
     REQUIRE(ss.str() == "enum");
   }
   SECTION("let") {
-    keyword k(keyword::word::LET);
+    Keyword k(Keyword::Word::LET);
     stringstream ss;
     ss << k;
     REQUIRE(ss.str() == "let");
   }
 }
 
-TEST_CASE("test_keyword_equality", "[keyword]") {
-  keyword k1(keyword::word::ENUM);
-  keyword k2(keyword::word::LET);
+TEST_CASE("test_keyword_equality", "[Keyword]") {
+  Keyword k1(Keyword::Word::ENUM);
+  Keyword k2(Keyword::Word::LET);
   REQUIRE(k1 == k1);
   REQUIRE(k2 == k2);
   REQUIRE(k1 != k2);
   REQUIRE(k2 != k1);
 }
 
-TEST_CASE("test_parse_keyword", "[keyword]") {
+TEST_CASE("test_parse_keyword", "[Keyword]") {
   SECTION("Valid Keywords") {
-    REQUIRE(parse_keyword("enum") == keyword::word::ENUM);
-    REQUIRE(parse_keyword("let") == keyword::word::LET);
+    REQUIRE(parse_keyword("enum") == Keyword::Word::ENUM);
+    REQUIRE(parse_keyword("let") == Keyword::Word::LET);
   }
   SECTION("Delimiters") {
-    REQUIRE(parse_keyword("let+") == keyword::word::LET);
-    REQUIRE(parse_keyword("let.") == keyword::word::LET);
+    REQUIRE(parse_keyword("let+") == Keyword::Word::LET);
+    REQUIRE(parse_keyword("let.") == Keyword::Word::LET);
     REQUIRE(parse_keyword("let5") == nullopt);
     REQUIRE(parse_keyword("lets") == std::nullopt);
   }

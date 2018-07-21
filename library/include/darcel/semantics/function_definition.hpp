@@ -17,7 +17,7 @@ namespace darcel {
         \param f The function being defined.
         \param t The function definition's data type.
       */
-      function_definition(location l, std::shared_ptr<function> f,
+      function_definition(Location l, std::shared_ptr<function> f,
         std::shared_ptr<FunctionDataType> t);
 
       //! Returns the function being defined.
@@ -26,17 +26,17 @@ namespace darcel {
       //! Returns the function definition's data type.
       const std::shared_ptr<FunctionDataType>& get_type() const;
 
-      const location& get_location() const override;
+      const Location& get_location() const override;
 
       const std::string& get_name() const override;
 
     private:
-      location m_location;
+      Location m_location;
       std::shared_ptr<function> m_function;
       std::shared_ptr<FunctionDataType> m_type;
   };
 
-  inline function_definition::function_definition(location l,
+  inline function_definition::function_definition(Location l,
       std::shared_ptr<function> f, std::shared_ptr<FunctionDataType> t)
       : m_location(std::move(l)),
         m_function(std::move(f)),
@@ -52,7 +52,7 @@ namespace darcel {
     return m_type;
   }
 
-  inline const location& function_definition::get_location() const {
+  inline const Location& function_definition::get_location() const {
     return m_location;
   }
 

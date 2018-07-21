@@ -14,7 +14,7 @@ namespace darcel {
         \param l The location where the function was first declared.
         \param name The name of the function.
       */
-      function(location l, std::string name);
+      function(Location l, std::string name);
 
       //! Constructs a root function.
       /*!
@@ -27,7 +27,7 @@ namespace darcel {
         \param l The location where the function was first declared.
         \param parent The parent function.
       */
-      function(location l, std::shared_ptr<function> parent);
+      function(Location l, std::shared_ptr<function> parent);
 
       //! Constructs a child function.
       /*!
@@ -38,36 +38,36 @@ namespace darcel {
       //! Returns the parent function, or null if this function is the root.
       const std::shared_ptr<function>& get_parent() const;
 
-      const location& get_location() const override;
+      const Location& get_location() const override;
 
       const std::string& get_name() const override;
 
     private:
-      location m_location;
+      Location m_location;
       std::string m_name;
       std::shared_ptr<function> m_parent;
   };
 
-  inline function::function(location l, std::string name)
+  inline function::function(Location l, std::string name)
       : m_location(std::move(l)),
         m_name(std::move(name)) {}
 
   inline function::function(std::string name)
-      : function(location::global(), std::move(name)) {}
+      : function(Location::global(), std::move(name)) {}
 
-  inline function::function(location l, std::shared_ptr<function> parent)
+  inline function::function(Location l, std::shared_ptr<function> parent)
       : m_location(std::move(l)),
         m_name(parent->get_name()),
         m_parent(std::move(parent)) {}
 
   inline function::function(std::shared_ptr<function> parent)
-      : function(location::global(), std::move(parent)) {}
+      : function(Location::global(), std::move(parent)) {}
 
   inline const std::shared_ptr<function>& function::get_parent() const {
     return m_parent;
   }
 
-  inline const location& function::get_location() const {
+  inline const Location& function::get_location() const {
     return m_location;
   }
 

@@ -32,25 +32,25 @@ TEST_CASE("test_terminal_equality", "[terminal]") {
 TEST_CASE("test_parse_terminal", "[terminal]") {
   SECTION("Valid Terminal") {
     auto s = "\0";
-    REQUIRE(parse_terminal(lexical_iterator(s, 1)) ==
+    REQUIRE(parse_terminal(LexicalIterator(s, 1)) ==
       terminal::type::end_of_file);
     REQUIRE(parse_terminal("\n") == terminal::type::new_line);
   }
   SECTION("Delimiters") {
     auto s = "\09";
-    REQUIRE(parse_terminal(lexical_iterator(s, 2)) ==
+    REQUIRE(parse_terminal(LexicalIterator(s, 2)) ==
       terminal::type::end_of_file);
     s = "\0+";
-    REQUIRE(parse_terminal(lexical_iterator(s, 1)) ==
+    REQUIRE(parse_terminal(LexicalIterator(s, 1)) ==
       terminal::type::end_of_file);
     s = "\0:";
-    REQUIRE(parse_terminal(lexical_iterator(s, 1)) ==
+    REQUIRE(parse_terminal(LexicalIterator(s, 1)) ==
       terminal::type::end_of_file);
     s = "\0,";
-    REQUIRE(parse_terminal(lexical_iterator(s, 1)) ==
+    REQUIRE(parse_terminal(LexicalIterator(s, 1)) ==
       terminal::type::end_of_file);
     s = "\0a";
-    REQUIRE(parse_terminal(lexical_iterator(s, 1)) ==
+    REQUIRE(parse_terminal(LexicalIterator(s, 1)) ==
       terminal::type::end_of_file);
   }
   SECTION("Invalid Terminal") {

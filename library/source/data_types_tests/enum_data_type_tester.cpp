@@ -5,7 +5,7 @@ using namespace darcel;
 using namespace std;
 
 TEST_CASE("test_enum_constructor", "[EnumDataType]") {
-  auto e = std::make_shared<EnumDataType>(location::global(), "e",
+  auto e = std::make_shared<EnumDataType>(Location::global(), "e",
     vector<EnumDataType::Symbol>{{"a", 0}, {"b", 1}});
   REQUIRE(e->get_name() == "e");
   REQUIRE(e->get_symbols().size() == 2);
@@ -16,9 +16,9 @@ TEST_CASE("test_enum_constructor", "[EnumDataType]") {
 }
 
 TEST_CASE("test_enum_equality", "[EnumDataType]") {
-  auto a = std::make_shared<EnumDataType>(location::global(), "e",
+  auto a = std::make_shared<EnumDataType>(Location::global(), "e",
     vector<EnumDataType::Symbol>{{"a", 0}, {"b", 1}});
-  auto b = std::make_shared<EnumDataType>(location::global(), "e",
+  auto b = std::make_shared<EnumDataType>(Location::global(), "e",
     vector<EnumDataType::Symbol>{{"a", 0}, {"b", 1}});
   REQUIRE(*a == *a);
   REQUIRE(*b == *b);

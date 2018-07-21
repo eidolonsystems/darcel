@@ -18,7 +18,7 @@ namespace darcel {
         \param argument_count The number of arguments passed to the operation.
         \param operation The operation called.
       */
-      arity_syntax_error(location error_location, int argument_count,
+      arity_syntax_error(Location error_location, int argument_count,
         op operation);
 
       //! Returns the number of arguments passed to the operation.
@@ -32,7 +32,7 @@ namespace darcel {
       op m_operation;
   };
 
-  inline arity_syntax_error::arity_syntax_error(location error_location,
+  inline arity_syntax_error::arity_syntax_error(Location error_location,
       int argument_count, op operation)
       : syntax_error(syntax_error_code::INSUFFICIENT_ARGUMENTS,
           std::move(error_location)),

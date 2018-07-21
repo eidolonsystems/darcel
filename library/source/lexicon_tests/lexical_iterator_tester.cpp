@@ -3,9 +3,9 @@
 
 using namespace darcel;
 
-TEST_CASE("test_lexical_iterator", "[lexical_iterator]") {
+TEST_CASE("test_lexical_iterator", "[LexicalIterator]") {
   auto s = "hello world";
-  lexical_iterator c(s, std::strlen(s));
+  LexicalIterator c(s, std::strlen(s));
   REQUIRE(c.get_size_remaining() == 11);
   REQUIRE(*c == 'h');
   ++c;
@@ -13,10 +13,10 @@ TEST_CASE("test_lexical_iterator", "[lexical_iterator]") {
   REQUIRE(*c == 'e');
 }
 
-TEST_CASE("test_subtract_iterator", "[lexical_iterator]") {
+TEST_CASE("test_subtract_iterator", "[LexicalIterator]") {
   auto s = "hello world";
-  lexical_iterator c1(s, std::strlen(s));
-  lexical_iterator c2 = c1 + 6;
+  LexicalIterator c1(s, std::strlen(s));
+  LexicalIterator c2 = c1 + 6;
   REQUIRE(c2.get_size_remaining() == 5);
   REQUIRE(*c2 == 'w');
   REQUIRE(c2 - c1 == 6);

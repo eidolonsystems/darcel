@@ -18,7 +18,7 @@ namespace darcel {
         \param e The enum data type being accessed.
         \param index The index of the symbol being accessed.
       */
-      enum_expression(location l, std::shared_ptr<EnumDataType> e, int index);
+      enum_expression(Location l, std::shared_ptr<EnumDataType> e, int index);
 
       //! Returns the enum data type being accessed.
       const std::shared_ptr<EnumDataType>& get_enum() const;
@@ -33,7 +33,7 @@ namespace darcel {
       int m_index;
   };
 
-  inline enum_expression::enum_expression(location l,
+  inline enum_expression::enum_expression(Location l,
       std::shared_ptr<EnumDataType> e, int index)
       : expression(std::move(l)),
         m_enum(std::move(e)),

@@ -19,7 +19,7 @@ namespace darcel {
         \param e The element being accessed.
         \param name The name of the invalid member.
       */
-      invalid_member_syntax_error(location error_location,
+      invalid_member_syntax_error(Location error_location,
         std::shared_ptr<element> e, std::string name);
 
       //! Returns the element being accessed.
@@ -34,7 +34,7 @@ namespace darcel {
   };
 
   inline invalid_member_syntax_error::invalid_member_syntax_error(
-      location error_location, std::shared_ptr<element> e, std::string name)
+      Location error_location, std::shared_ptr<element> e, std::string name)
       : syntax_error(syntax_error_code::INVALID_MEMBER,
           std::move(error_location)),
         m_element(std::move(e)),

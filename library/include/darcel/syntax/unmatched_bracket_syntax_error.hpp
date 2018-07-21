@@ -16,23 +16,23 @@ namespace darcel {
         \param error_location The location of the unmatched bracket.
         \param bracket The bracket at the error location.
       */
-      unmatched_bracket_syntax_error(location error_location,
-        bracket bracket);
+      unmatched_bracket_syntax_error(Location error_location,
+        Bracket bracket);
 
       //! Returns the unmatched bracket.
-      bracket get_unmatched_bracket() const;
+      Bracket get_unmatched_bracket() const;
 
     private:
-      bracket m_bracket;
+      Bracket m_bracket;
   };
 
   inline unmatched_bracket_syntax_error::unmatched_bracket_syntax_error(
-      location error_location, bracket bracket)
+      Location error_location, Bracket bracket)
       : syntax_error(syntax_error_code::UNMATCHED_BRACKET,
           std::move(error_location)),
         m_bracket(std::move(bracket)) {}
 
-  inline bracket unmatched_bracket_syntax_error::get_unmatched_bracket() const {
+  inline Bracket unmatched_bracket_syntax_error::get_unmatched_bracket() const {
     return m_bracket;
   }
 }

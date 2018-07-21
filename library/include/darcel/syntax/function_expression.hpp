@@ -18,7 +18,7 @@ namespace darcel {
         \param l The location of the identifier token.
         \param f The function to evaluate.
       */
-      function_expression(location l, std::shared_ptr<function> f);
+      function_expression(Location l, std::shared_ptr<function> f);
 
       //! Returns the function to evaluate.
       const std::shared_ptr<function>& get_function() const;
@@ -29,7 +29,7 @@ namespace darcel {
       std::shared_ptr<function> m_function;
   };
 
-  inline function_expression::function_expression(location l,
+  inline function_expression::function_expression(Location l,
       std::shared_ptr<function> f)
       : expression(std::move(l)),
         m_function(std::move(f)) {}

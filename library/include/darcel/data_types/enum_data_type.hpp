@@ -28,12 +28,12 @@ namespace darcel {
         \param name The name of the data type.
         \param symbols The enum's symbols.
       */
-      EnumDataType(location l, std::string name, std::vector<Symbol> symbols);
+      EnumDataType(Location l, std::string name, std::vector<Symbol> symbols);
 
       //! Returns the symbols belonging to this enum.
       const std::vector<Symbol>& get_symbols() const;
 
-      const location& get_location() const override;
+      const Location& get_location() const override;
 
       const std::string& get_name() const override;
 
@@ -43,7 +43,7 @@ namespace darcel {
       bool is_equal(const DataType& rhs) const override;
 
     private:
-      location m_location;
+      Location m_location;
       std::string m_name;
       std::vector<Symbol> m_symbols;
   };
@@ -63,7 +63,7 @@ namespace darcel {
     return -1;
   }
 
-  inline EnumDataType::EnumDataType(location l, std::string name,
+  inline EnumDataType::EnumDataType(Location l, std::string name,
       std::vector<Symbol> symbols)
       : m_location(std::move(l)),
         m_name(std::move(name)),
@@ -74,7 +74,7 @@ namespace darcel {
     return m_symbols;
   }
 
-  inline const location& EnumDataType::get_location() const {
+  inline const Location& EnumDataType::get_location() const {
     return m_location;
   }
 

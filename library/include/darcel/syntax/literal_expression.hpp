@@ -17,22 +17,22 @@ namespace darcel {
         \param l The location of the token representing the literal value.
         \param literal The literal to evaluate to.
       */
-      literal_expression(location l, literal literal);
+      literal_expression(Location l, Literal literal);
 
       //! Returns the literal that is evaluated.
-      const literal& get_literal() const;
+      const Literal& get_literal() const;
 
       void apply(syntax_node_visitor& visitor) const override;
 
     private:
-      literal m_literal;
+      Literal m_literal;
   };
 
-  inline literal_expression::literal_expression(location l, literal literal)
+  inline literal_expression::literal_expression(Location l, Literal literal)
       : expression(std::move(l)),
         m_literal(std::move(literal)) {}
 
-  inline const literal& literal_expression::get_literal() const {
+  inline const Literal& literal_expression::get_literal() const {
     return m_literal;
   }
 

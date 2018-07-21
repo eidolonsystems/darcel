@@ -17,7 +17,7 @@ namespace darcel {
       //! Constructs a bool data type.
       BoolDataType() = default;
 
-      const location& get_location() const override;
+      const Location& get_location() const override;
 
       const std::string& get_name() const override;
 
@@ -32,8 +32,8 @@ namespace darcel {
     return instance;
   }
 
-  inline const location& BoolDataType::get_location() const {
-    return location::global();
+  inline const Location& BoolDataType::get_location() const {
+    return Location::global();
   }
 
   inline const std::string& BoolDataType::get_name() const {

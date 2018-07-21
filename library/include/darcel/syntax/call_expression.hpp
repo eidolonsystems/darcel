@@ -20,7 +20,7 @@ namespace darcel {
         \param callable The expression to call.
         \param arguments The arguments to apply to the <i>callable</i>.
       */
-      call_expression(location l, std::unique_ptr<expression> callable,
+      call_expression(Location l, std::unique_ptr<expression> callable,
         std::vector<std::unique_ptr<expression>> arguments);
 
       //! Returns the callable expression.
@@ -36,7 +36,7 @@ namespace darcel {
       std::vector<std::unique_ptr<expression>> m_arguments;
   };
 
-  inline call_expression::call_expression(location l,
+  inline call_expression::call_expression(Location l,
       std::unique_ptr<expression> callable,
       std::vector<std::unique_ptr<expression>> arguments)
       : expression(std::move(l)),

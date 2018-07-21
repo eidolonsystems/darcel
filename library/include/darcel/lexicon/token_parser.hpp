@@ -38,14 +38,14 @@ namespace darcel {
 
     private:
       std::vector<char> m_data;
-      lexical_iterator m_cursor;
+      LexicalIterator m_cursor;
       bool m_parsed_new_line;
       bool m_parsed_line_continuation;
       std::array<int, 1> m_bracket_count;
 
       token_parser(const token_parser&) = delete;
       token_parser& operator =(const token_parser&) = delete;
-      void update_bracket_count(const bracket& p);
+      void update_bracket_count(const Bracket& p);
       bool is_new_line_signifcant() const;
   };
 
@@ -120,12 +120,12 @@ namespace darcel {
     return std::nullopt;
   }
 
-  inline void token_parser::update_bracket_count(const bracket& b) {
+  inline void token_parser::update_bracket_count(const Bracket& b) {
     switch(b.get_type()) {
-      case bracket::type::OPEN_ROUND_BRACKET:
+      case Bracket::Type::ROUND_OPEN:
         ++m_bracket_count[0];
         return;
-      case bracket::type::CLOSE_ROUND_BRACKET:
+      case Bracket::Type::ROUND_CLOSE:
         --m_bracket_count[0];
         return;
     }

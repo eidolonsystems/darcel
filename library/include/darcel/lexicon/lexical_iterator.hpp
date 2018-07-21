@@ -8,21 +8,21 @@
 namespace darcel {
 
   //! An iterator over characters used to parse lexical tokens.
-  class lexical_iterator {
+  class LexicalIterator {
     public:
 
       //! The type of data to parse.
       using value_type = char;
 
       //! Constructs an empty lexical iterator.
-      lexical_iterator();
+      LexicalIterator();
 
       //! Constructs a lexical iterator from a raw pointer.
       /*!
         \param first A pointer to the first object to parse.
         \param size_remaining The number of objects left to parse.
       */
-      lexical_iterator(const char* first, std::size_t size_remaining);
+      LexicalIterator(const char* first, std::size_t size_remaining);
 
       //! Constructs a lexical iterator from a raw pointer.
       /*!
@@ -30,8 +30,8 @@ namespace darcel {
         \param size_remaining The number of objects left to parse.
         \param l The location of the first character being parsed.
       */
-      lexical_iterator(const char* first, std::size_t size_remaining,
-        const location& l);
+      LexicalIterator(const char* first, std::size_t size_remaining,
+        const Location& l);
 
       //! Returns <code>true</code> iff the size remaining is 0.
       bool is_empty() const;
@@ -40,7 +40,7 @@ namespace darcel {
       std::size_t get_size_remaining() const;
 
       //! Returns the current location.
-      location get_location() const;
+      Location get_location() const;
 
       //! Adjusts the pointer.
       /*!
@@ -50,24 +50,24 @@ namespace darcel {
       void adjust(const char* c, std::size_t s);
 
       //! Increments this iterator.
-      lexical_iterator& operator ++();
+      LexicalIterator& operator ++();
 
       //! Increments this iterator.
-      lexical_iterator operator ++(int);
+      LexicalIterator operator ++(int);
 
       //! Adds an integer to this iterator.
       /*!
         \param rhs The integer to add to the iterator.
         \return An iterator advanced by <i>rhs</i>.
       */
-      lexical_iterator operator +(std::size_t rhs) const;
+      LexicalIterator operator +(std::size_t rhs) const;
 
       //! Advances this iterator.
       /*!
         \param rhs The number of objects to advance by.
         \return <code>*this</code>
       */
-      lexical_iterator& operator +=(std::size_t rhs);
+      LexicalIterator& operator +=(std::size_t rhs);
 
       //! Returns the current object.
       const char& operator *() const;
@@ -87,8 +87,8 @@ namespace darcel {
     \return The difference in number of characters remaining to parse between
             the two iterators.
   */
-  inline std::ptrdiff_t operator -(const lexical_iterator& lhs,
-      const lexical_iterator& rhs) {
+  inline std::ptrdiff_t operator -(const LexicalIterator& lhs,
+      const LexicalIterator& rhs) {
     return static_cast<std::ptrdiff_t>(rhs.get_size_remaining()) -
       lhs.get_size_remaining();
   }
@@ -101,8 +101,8 @@ namespace darcel {
     \return <code>true</code> iff both iterators point to the same object in the
             same location and have the same size remaining to parse.
   */
-  inline bool operator ==(const lexical_iterator& lhs,
-      const lexical_iterator& rhs) {
+  inline bool operator ==(const LexicalIterator& lhs,
+      const LexicalIterator& rhs) {
     return lhs.get_size_remaining() == rhs.get_size_remaining() &&
       &*lhs == &*rhs;
   }
@@ -114,45 +114,45 @@ namespace darcel {
     \return <code>true</code> iff both iterators point to different objects or
             have different sizes remaining to parse.
   */
-  inline bool operator !=(const lexical_iterator& lhs,
-      const lexical_iterator& rhs) {
+  inline bool operator !=(const LexicalIterator& lhs,
+      const LexicalIterator& rhs) {
     return !(lhs == rhs);
   }
 
-  inline lexical_iterator::lexical_iterator()
-      : lexical_iterator(nullptr, 0) {}
+  inline LexicalIterator::LexicalIterator()
+      : LexicalIterator(nullptr, 0) {}
 
-  inline lexical_iterator::lexical_iterator(const char* first,
+  inline LexicalIterator::LexicalIterator(const char* first,
       std::size_t size_remaining)
-      : lexical_iterator(first, size_remaining, location({}, 1, 1)) {}
+      : LexicalIterator(first, size_remaining, Location({}, 1, 1)) {}
 
-  inline lexical_iterator::lexical_iterator(const char* first,
-      std::size_t size_remaining, const location& l)
+  inline LexicalIterator::LexicalIterator(const char* first,
+      std::size_t size_remaining, const Location& l)
       : m_position(first),
         m_size_remaining(size_remaining),
         m_path(l.get_path()),
         m_line_number(l.get_line_number()),
         m_column_number(l.get_column_number()) {}
 
-  inline bool lexical_iterator::is_empty() const {
+  inline bool LexicalIterator::is_empty() const {
     return m_size_remaining == 0;
   }
 
-  inline std::size_t lexical_iterator::get_size_remaining() const {
+  inline std::size_t LexicalIterator::get_size_remaining() const {
     return m_size_remaining;
   }
 
-  inline location lexical_iterator::get_location() const {
-    location l(m_path, m_line_number, m_column_number);
+  inline Location LexicalIterator::get_location() const {
+    Location l(m_path, m_line_number, m_column_number);
     return l;
   }
 
-  inline void lexical_iterator::adjust(const char* c, std::size_t s) {
+  inline void LexicalIterator::adjust(const char* c, std::size_t s) {
     m_position = c;
     m_size_remaining = s;
   }
 
-  inline lexical_iterator& lexical_iterator::operator ++() {
+  inline LexicalIterator& LexicalIterator::operator ++() {
     assert(m_size_remaining != 0);
     if(*m_position == '\n') {
       ++m_line_number;
@@ -165,19 +165,19 @@ namespace darcel {
     return *this;
   }
 
-  inline lexical_iterator lexical_iterator::operator ++(int) {
+  inline LexicalIterator LexicalIterator::operator ++(int) {
     auto c = *this;
     ++*this;
     return c;
   }
 
-  inline lexical_iterator lexical_iterator::operator +(std::size_t rhs) const {
+  inline LexicalIterator LexicalIterator::operator +(std::size_t rhs) const {
     auto i = *this;
     i += rhs;
     return i;
   }
 
-  inline lexical_iterator& lexical_iterator::operator +=(std::size_t rhs) {
+  inline LexicalIterator& LexicalIterator::operator +=(std::size_t rhs) {
     assert(m_size_remaining >= rhs);
     while(rhs != 0) {
       ++(*this);
@@ -186,7 +186,7 @@ namespace darcel {
     return *this;
   }
 
-  inline const char& lexical_iterator::operator *() const {
+  inline const char& LexicalIterator::operator *() const {
     return *m_position;
   }
 }

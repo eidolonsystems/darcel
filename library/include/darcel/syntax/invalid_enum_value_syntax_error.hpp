@@ -15,7 +15,7 @@ namespace darcel {
         \param error_location The location of the operation.
         \param next_value The next minimum permissible value.
       */
-      invalid_enum_value_syntax_error(location error_location,
+      invalid_enum_value_syntax_error(Location error_location,
         int next_value);
 
       //! Returns the next minimum permissible value.
@@ -26,7 +26,7 @@ namespace darcel {
   };
 
   inline invalid_enum_value_syntax_error::invalid_enum_value_syntax_error(
-      location error_location, int next_value)
+      Location error_location, int next_value)
       : syntax_error(syntax_error_code::INVALID_ENUM_VALUE,
           std::move(error_location)),
         m_next_value(next_value) {}

@@ -44,8 +44,8 @@ namespace darcel {
       };
 
       //! A variant that stores the token's data.
-      using instance = std::variant<keyword, punctuation, bracket, operation,
-        identifier, literal, terminal>;
+      using instance = std::variant<Keyword, punctuation, Bracket, operation,
+        Identifier, Literal, terminal>;
 
       //! Constructs a keyword token.
       /*!

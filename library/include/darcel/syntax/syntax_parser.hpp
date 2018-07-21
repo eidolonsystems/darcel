@@ -105,7 +105,7 @@ namespace darcel {
     return std::visit(
       [&] (auto&& value) -> const std::string& {
         using T = std::decay_t<decltype(value)>;
-        if constexpr(std::is_same_v<T, identifier>) {
+        if constexpr(std::is_same_v<T, Identifier>) {
           ++cursor;
           return value.get_symbol();
         }
@@ -159,8 +159,8 @@ namespace darcel {
               throw syntax_error(syntax_error_code::COMMA_EXPECTED,
                 cursor.get_location());
             }
-          } else if constexpr(std::is_same_v<T, bracket>) {
-            if(instance == bracket::type::OPEN_ROUND_BRACKET) {
+          } else if constexpr(std::is_same_v<T, Bracket>) {
+            if(instance == Bracket::Type::ROUND_OPEN) {
               throw syntax_error(syntax_error_code::OPEN_ROUND_BRACKET_EXPECTED,
                 cursor.get_location());
             }
@@ -223,9 +223,9 @@ namespace darcel {
     auto is_symbol = std::visit(
       [&] (auto&& t) {
         using T = std::decay_t<decltype(t)>;
-        if constexpr(std::is_same_v<T, identifier> ||
-            std::is_same_v<T, keyword> ||
-            std::is_same_v<T, literal> ||
+        if constexpr(std::is_same_v<T, Identifier> ||
+            std::is_same_v<T, Keyword> ||
+            std::is_same_v<T, Literal> ||
             std::is_same_v<T, punctuation>) {
           return true;
         }
@@ -245,7 +245,7 @@ namespace darcel {
       }
       return get_next_terminal(c);
     }
-    if(auto open_bracket = std::get_if<bracket>(&c->get_instance())) {
+    if(auto open_bracket = std::get_if<Bracket>(&c->get_instance())) {
       if(!is_open(*open_bracket)) {
         return c;
       }
@@ -255,7 +255,7 @@ namespace darcel {
       if(end.is_empty()) {
         return cursor;
       }
-      auto close_bracket = std::get_if<bracket>(&end->get_instance());
+      auto close_bracket = std::get_if<Bracket>(&end->get_instance());
       if(close_bracket == nullptr ||
           get_opposite(*close_bracket) != *open_bracket) {
         throw unmatched_bracket_syntax_error(l, *open_bracket);
@@ -269,9 +269,9 @@ namespace darcel {
   inline std::shared_ptr<FunctionDataType>
       syntax_parser::parse_function_data_type(token_iterator& cursor) {
     auto c = cursor;
-    expect(c, bracket::type::OPEN_ROUND_BRACKET);
+    expect(c, Bracket::Type::ROUND_OPEN);
     std::vector<FunctionDataType::Parameter> parameters;
-    if(!match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+    if(!match(*c, Bracket::Type::ROUND_CLOSE)) {
       while(true) {
         auto name_location = c.get_location();
         auto& parameter_name = parse_identifier(c);
@@ -288,7 +288,7 @@ namespace darcel {
         expect(c, punctuation::mark::COLON);
         auto parameter_type = expect_data_type(c);
         parameters.emplace_back(parameter_name, std::move(parameter_type));
-        if(match(*c, bracket::type::CLOSE_ROUND_BRACKET)) {
+        if(match(*c, Bracket::Type::ROUND_CLOSE)) {
           break;
         }
         expect(c, punctuation::mark::COMMA);
@@ -326,7 +326,7 @@ namespace darcel {
     if(cursor.is_empty()) {
       return nullptr;
     }
-    if(match(*cursor, bracket::type::OPEN_ROUND_BRACKET)) {
+    if(match(*cursor, Bracket::Type::ROUND_OPEN)) {
       return parse_function_data_type(cursor);
     }
     if(match(*cursor, punctuation::mark::BACKTICK)) {

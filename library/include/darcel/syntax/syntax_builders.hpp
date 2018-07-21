@@ -21,7 +21,7 @@
 
 
 namespace darcel {
-  std::unique_ptr<expression> find_term(location l, const scope& s,
+  std::unique_ptr<expression> find_term(Location l, const scope& s,
     const std::string& name);
 
   //! Function used to build a sub-expression.
@@ -38,7 +38,7 @@ namespace darcel {
     \param name The name of the enum to bind.
     \param symbols The symbols belonging to the enum.
   */
-  inline std::unique_ptr<bind_enum_statement> bind_enum(location l, scope& s,
+  inline std::unique_ptr<bind_enum_statement> bind_enum(Location l, scope& s,
       std::string name, std::vector<EnumDataType::Symbol> symbols) {
     auto type = std::make_shared<EnumDataType>(std::move(l), std::move(name),
       std::move(symbols));
@@ -54,7 +54,7 @@ namespace darcel {
     \param parameters The list of function parameters.
     \param body The function called to build the body of the function.
   */
-  inline std::unique_ptr<bind_function_statement> bind_function(location l,
+  inline std::unique_ptr<bind_function_statement> bind_function(Location l,
       scope& s, std::string name,
       std::vector<bind_function_statement::parameter> parameters,
       const expression_builder& body) {
@@ -107,7 +107,7 @@ namespace darcel {
       std::string name,
       std::vector<bind_function_statement::parameter> parameters,
       const expression_builder& body) {
-    return bind_function(location::global(), s, std::move(name),
+    return bind_function(Location::global(), s, std::move(name),
       std::move(parameters), body);
   }
 
@@ -123,10 +123,10 @@ namespace darcel {
       const expression_builder& body) {
     std::vector<bind_function_statement::parameter> p;
     for(auto& parameter : parameters) {
-      p.emplace_back(std::make_shared<variable>(location::global(),
+      p.emplace_back(std::make_shared<variable>(Location::global(),
         parameter.m_name), parameter.m_type);
     }
-    return bind_function(location::global(), s, std::move(name), std::move(p),
+    return bind_function(Location::global(), s, std::move(name), std::move(p),
       body);
   }
 
@@ -139,7 +139,7 @@ namespace darcel {
   inline std::unique_ptr<bind_function_statement> bind_function(scope& s,
       std::string name, const expression_builder& body) {
     std::vector<bind_function_statement::parameter> p;
-    return bind_function(location::global(), s, std::move(name), std::move(p),
+    return bind_function(Location::global(), s, std::move(name), std::move(p),
       body);
   }
 
@@ -150,7 +150,7 @@ namespace darcel {
     \param name The name of the variable to bind.
     \param e The expression to bind to the variable.
   */
-  inline std::unique_ptr<bind_variable_statement> bind_variable(location l,
+  inline std::unique_ptr<bind_variable_statement> bind_variable(Location l,
       scope& s, std::string name, std::unique_ptr<expression> e) {
     auto existing_element = s.find_within(name);
     if(existing_element != nullptr) {
@@ -171,7 +171,7 @@ namespace darcel {
   */
   inline std::unique_ptr<bind_variable_statement> bind_variable(scope& s,
       std::string name, std::unique_ptr<expression> e) {
-    return bind_variable(location::global(), s, std::move(name), std::move(e));
+    return bind_variable(Location::global(), s, std::move(name), std::move(e));
   }
 
   //! Makes a call expression.
@@ -180,7 +180,7 @@ namespace darcel {
     \param callable The expression to call.
     \param arguments The list of arguments to pass to the function.
   */
-  inline std::unique_ptr<call_expression> call(location l,
+  inline std::unique_ptr<call_expression> call(Location l,
       std::unique_ptr<expression> callable,
       std::vector<std::unique_ptr<expression>> arguments) {
     return std::make_unique<call_expression>(l, std::move(callable),
@@ -195,7 +195,7 @@ namespace darcel {
     \param arguments The list of arguments to pass to the function.
     \param s The scope to find the function in.
   */
-  inline std::unique_ptr<call_expression> call(location l, const scope& s,
+  inline std::unique_ptr<call_expression> call(Location l, const scope& s,
       std::string name, std::vector<std::unique_ptr<expression>> arguments) {
     auto callable = find_term(l, s, name);
     return call(std::move(l), std::move(callable), std::move(arguments));
@@ -209,7 +209,7 @@ namespace darcel {
   */
   inline std::unique_ptr<call_expression> call(const scope& s, std::string name,
       std::vector<std::unique_ptr<expression>> arguments) {
-    return call(location::global(), s, std::move(name), std::move(arguments));
+    return call(Location::global(), s, std::move(name), std::move(arguments));
   }
 
   //! Makes a call expression.
@@ -219,7 +219,7 @@ namespace darcel {
   */
   inline std::unique_ptr<call_expression> call(const scope& s,
       std::string name) {
-    return call(location::global(), s, std::move(name), {});
+    return call(Location::global(), s, std::move(name), {});
   }
 
   //! Makes a call expression.
@@ -232,7 +232,7 @@ namespace darcel {
       std::unique_ptr<expression> arg1) {
     std::vector<std::unique_ptr<expression>> arguments;
     arguments.push_back(std::move(arg1));
-    return call(location::global(), s, std::move(name), std::move(arguments));
+    return call(Location::global(), s, std::move(name), std::move(arguments));
   }
 
   //! Makes a call expression.
@@ -247,7 +247,7 @@ namespace darcel {
     std::vector<std::unique_ptr<expression>> arguments;
     arguments.push_back(std::move(arg1));
     arguments.push_back(std::move(arg2));
-    return call(location::global(), s, std::move(name), std::move(arguments));
+    return call(Location::global(), s, std::move(name), std::move(arguments));
   }
 
   //! Makes a literal boolean expression.
@@ -256,7 +256,7 @@ namespace darcel {
     \param s The scope containing the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_literal(location l,
+  inline std::unique_ptr<literal_expression> make_literal(Location l,
       bool value) {
     std::string v = [&] {
       if(value) {
@@ -265,7 +265,7 @@ namespace darcel {
       return "false";
     }();
     return std::make_unique<literal_expression>(std::move(l),
-      literal(v, BoolDataType::get_instance()));
+      Literal(v, BoolDataType::get_instance()));
   }
 
   //! Makes a literal integer expression.
@@ -273,7 +273,7 @@ namespace darcel {
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_literal(bool value) {
-    return make_literal(location::global(), value);
+    return make_literal(Location::global(), value);
   }
 
   //! Makes a literal integer expression.
@@ -281,10 +281,10 @@ namespace darcel {
     \param l The location of the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_literal(location l,
+  inline std::unique_ptr<literal_expression> make_literal(Location l,
       int value) {
     return std::make_unique<literal_expression>(std::move(l),
-      literal(std::to_string(value), IntegerDataType::get_instance()));
+      Literal(std::to_string(value), IntegerDataType::get_instance()));
   }
 
   //! Makes a literal integer expression.
@@ -292,7 +292,7 @@ namespace darcel {
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_literal(int value) {
-    return make_literal(location::global(), value);
+    return make_literal(Location::global(), value);
   }
 
   //! Makes a literal text expression.
@@ -300,10 +300,10 @@ namespace darcel {
     \param l The location of the expression.
     \param value The value to represent.
   */
-  inline std::unique_ptr<literal_expression> make_text(location l,
+  inline std::unique_ptr<literal_expression> make_text(Location l,
       std::string value) {
     return std::make_unique<literal_expression>(std::move(l),
-      literal(std::move(value), TextDataType::get_instance()));
+      Literal(std::move(value), TextDataType::get_instance()));
   }
 
   //! Makes a literal text expression.
@@ -311,7 +311,7 @@ namespace darcel {
     \param value The value to represent.
   */
   inline std::unique_ptr<literal_expression> make_text(std::string value) {
-    return make_text(location::global(), std::move(value));
+    return make_text(Location::global(), std::move(value));
   }
 
   //! Makes a variable expression.
@@ -321,7 +321,7 @@ namespace darcel {
     \param name The name of the variable.
   */
   inline std::unique_ptr<variable_expression> make_variable_expression(
-      location l, const scope& s, const std::string& name) {
+      Location l, const scope& s, const std::string& name) {
     auto v = s.find<variable>(name);
     if(v == nullptr) {
       throw variable_not_found_error(l, name);
@@ -336,7 +336,7 @@ namespace darcel {
   */
   inline std::unique_ptr<variable_expression> make_variable_expression(
       const scope& s, const std::string& name) {
-    return make_variable_expression(location::global(), s, name);
+    return make_variable_expression(Location::global(), s, name);
   }
 
   //! Returns an expression that is either a variable term or a function term.
@@ -345,7 +345,7 @@ namespace darcel {
     \param s The scope to find the term in.
     \param name The name of the term.
   */
-  inline std::unique_ptr<expression> find_term(location l, const scope& s,
+  inline std::unique_ptr<expression> find_term(Location l, const scope& s,
       const std::string& name) {
     auto e = s.find(name);
     if(auto f = std::dynamic_pointer_cast<function>(e)) {
@@ -363,7 +363,7 @@ namespace darcel {
   */
   inline std::unique_ptr<expression> find_term(const std::string& name,
       const scope& s) {
-    return find_term(location::global(), s, name);
+    return find_term(Location::global(), s, name);
   }
 }
 

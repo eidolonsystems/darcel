@@ -20,7 +20,7 @@ namespace darcel {
       //! Returns the function represented.
       const std::shared_ptr<function> get_function() const;
 
-      const location& get_location() const override;
+      const Location& get_location() const override;
 
       const std::string& get_name() const override;
 
@@ -43,7 +43,7 @@ namespace darcel {
     return m_function;
   }
 
-  inline const location& CallableDataType::get_location() const {
+  inline const Location& CallableDataType::get_location() const {
     return m_function->get_location();
   }
 

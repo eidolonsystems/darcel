@@ -65,7 +65,7 @@ namespace darcel {
     \return The punctuation that was parsed.
   */
   inline std::optional<punctuation> parse_punctuation(
-      lexical_iterator& cursor) {
+      LexicalIterator& cursor) {
     if(!cursor.is_empty()) {
       if(*cursor == ':') {
         auto c = cursor + 1;
@@ -111,7 +111,7 @@ namespace darcel {
   */
   inline auto parse_punctuation(const std::string_view& source) {
     return darcel::parse_punctuation(
-      lexical_iterator(source.data(), source.size() + 1));
+      LexicalIterator(source.data(), source.size() + 1));
   }
 
   inline std::ostream& operator <<(std::ostream& out,

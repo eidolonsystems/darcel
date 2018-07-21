@@ -8,11 +8,11 @@
 namespace darcel {
 
   //! Represents a location in darcel source code.
-  class location {
+  class Location {
     public:
 
       //! Represents a location used for globally defined elements.
-      static const location& global();
+      static const Location& global();
 
       //! Constructs a location.
       /*!
@@ -20,7 +20,7 @@ namespace darcel {
         \param line_number The source code's line number.
         \param column_number The source code's column number.
       */
-      location(std::string path, int line_number, int column_number);
+      Location(std::string path, int line_number, int column_number);
 
       //! Returns the path to the file containing the source code.
       const std::string& get_path() const;
@@ -42,7 +42,7 @@ namespace darcel {
     \param lhs The left hand side.
     \param rhs The right hand side.
   */
-  inline bool operator ==(const location& lhs, const location& rhs) {
+  inline bool operator ==(const Location& lhs, const Location& rhs) {
     return lhs.get_path() == rhs.get_path() &&
       lhs.get_line_number() == rhs.get_line_number() &&
       lhs.get_column_number() == rhs.get_column_number();
@@ -53,35 +53,35 @@ namespace darcel {
     \param lhs The left hand side.
     \param rhs The right hand side.
   */
-  inline bool operator !=(const location& lhs, const location& rhs) {
+  inline bool operator !=(const Location& lhs, const Location& rhs) {
     return !(lhs == rhs);
   }
 
-  inline std::ostream& operator <<(std::ostream& out, const location& value) {
+  inline std::ostream& operator <<(std::ostream& out, const Location& value) {
     return out << value.get_path() << ":" << value.get_line_number() << ":" <<
       value.get_column_number();
   }
 
-  inline const location& location::global() {
-    static location value("", 0, 0);
+  inline const Location& Location::global() {
+    static Location value("", 0, 0);
     return value;
   }
 
-  inline location::location(std::string path, int line_number,
+  inline Location::Location(std::string path, int line_number,
       int column_number)
       : m_path(std::move(path)),
         m_line_number(line_number),
         m_column_number(column_number) {}
 
-  inline const std::string& location::get_path() const {
+  inline const std::string& Location::get_path() const {
     return m_path;
   }
 
-  inline int location::get_line_number() const {
+  inline int Location::get_line_number() const {
     return m_line_number;
   }
 
-  inline int location::get_column_number() const {
+  inline int Location::get_column_number() const {
     return m_column_number;
   }
 }

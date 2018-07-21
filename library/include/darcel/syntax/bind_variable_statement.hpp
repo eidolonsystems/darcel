@@ -18,7 +18,7 @@ namespace darcel {
         \param v The variable to bind.
         \param e The expression to bind to the variable.
       */
-      bind_variable_statement(location l, std::shared_ptr<variable> v,
+      bind_variable_statement(Location l, std::shared_ptr<variable> v,
         std::unique_ptr<expression> e);
 
       //! Returns the variable.
@@ -34,7 +34,7 @@ namespace darcel {
       std::unique_ptr<expression> m_expression;
   };
 
-  inline bind_variable_statement::bind_variable_statement(location l,
+  inline bind_variable_statement::bind_variable_statement(Location l,
       std::shared_ptr<variable> v, std::unique_ptr<expression> e)
       : statement(std::move(l)),
         m_variable(std::move(v)),

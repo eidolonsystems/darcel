@@ -14,22 +14,22 @@ namespace darcel {
         \param l The location where the variable was declared.
         \param name The name of the variable.
       */
-      variable(location l, std::string name);
+      variable(Location l, std::string name);
 
-      const location& get_location() const override;
+      const Location& get_location() const override;
 
       const std::string& get_name() const override;
 
     private:
-      location m_location;
+      Location m_location;
       std::string m_name;
   };
 
-  inline variable::variable(location l, std::string name)
+  inline variable::variable(Location l, std::string name)
       : m_location(std::move(l)),
         m_name(std::move(name)) {}
 
-  inline const location& variable::get_location() const {
+  inline const Location& variable::get_location() const {
     return m_location;
   }
 

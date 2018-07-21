@@ -3,12 +3,12 @@
 #include "darcel/darcel/darcel.hpp"
 
 namespace darcel {
-  class bracket;
-  class identifier;
-  class keyword;
-  class lexical_iterator;
-  class literal;
-  class location;
+  class Bracket;
+  class Identifier;
+  class Keyword;
+  class LexicalIterator;
+  class Literal;
+  class Location;
   class operation;
   class punctuation;
   class terminal;

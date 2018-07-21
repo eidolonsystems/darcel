@@ -16,22 +16,22 @@ namespace darcel {
         \param name The name of the identifier being redefined.
         \param original_location The location of the original identifier.
       */
-      redefinition_syntax_error(location error_location, std::string name,
-        location original_location);
+      redefinition_syntax_error(Location error_location, std::string name,
+        Location original_location);
 
       //! Returns the name of the identifier being redefined.
       const std::string& get_name() const;
 
       //! Returns the location of the original identifier.
-      const location& get_original_location() const;
+      const Location& get_original_location() const;
 
     private:
       std::string m_name;
-      location m_original_location;
+      Location m_original_location;
   };
 
   inline redefinition_syntax_error::redefinition_syntax_error(
-      location error_location, std::string name, location original_location)
+      Location error_location, std::string name, Location original_location)
       : syntax_error(syntax_error_code::IDENTIFIER_ALREADY_DEFINED,
           std::move(error_location)),
         m_name(std::move(name)),
@@ -41,7 +41,7 @@ namespace darcel {
     return m_name;
   }
 
-  inline const location& redefinition_syntax_error::
+  inline const Location& redefinition_syntax_error::
       get_original_location() const {
     return m_original_location;
   }

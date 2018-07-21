@@ -7,8 +7,8 @@ using namespace std;
 
 TEST_CASE("test_clone_structure_literal", "[clone_structure]") {
   SECTION("Int literal") {
-    auto l = std::make_unique<literal_expression>(location::global(),
-      literal("123", IntegerDataType::get_instance()));
+    auto l = std::make_unique<literal_expression>(Location::global(),
+      Literal("123", IntegerDataType::get_instance()));
     auto m = clone_structure(*l);
     REQUIRE(m->get_literal() == l->get_literal());
   }

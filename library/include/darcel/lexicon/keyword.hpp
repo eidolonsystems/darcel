@@ -12,11 +12,11 @@
 namespace darcel {
 
   //! Stores a keyword token.
-  class keyword {
+  class Keyword {
     public:
 
       //! The list of keywords.
-      enum class word {
+      enum class Word {
 
         //! enum
         ENUM,
@@ -29,13 +29,13 @@ namespace darcel {
       /*!
         \param word The word to represent.
       */
-      keyword(word word);
+      Keyword(Word word);
 
       //! Returns the word represented.
-      word get_word() const;
+      Word get_word() const;
 
     private:
-      word m_word;
+      Word m_word;
   };
 
   //! Checks if a string prefix matches a string literal.
@@ -45,7 +45,7 @@ namespace darcel {
     \return <code>true</code> iff the iterator contains <i>rhs</i> as a prefix.
   */
   template<std::size_t N>
-  bool prefix_match(lexical_iterator& lhs, const char (&rhs)[N]) {
+  bool prefix_match(LexicalIterator& lhs, const char (&rhs)[N]) {
     if(lhs.get_size_remaining() >= N &&
         std::equal(&*lhs, &*lhs + (N - 1), rhs) &&
         !std::isalnum(*(lhs + (N - 1))) && *(lhs + (N - 1)) != '_') {
@@ -61,11 +61,11 @@ namespace darcel {
            will be adjusted to one past the last character that was parsed.
     \return The keyword that was parsed.
   */
-  inline std::optional<keyword> parse_keyword(lexical_iterator& cursor) {
+  inline std::optional<Keyword> parse_keyword(LexicalIterator& cursor) {
     if(prefix_match(cursor, "enum")) {
-      return keyword::word::ENUM;
+      return Keyword::Word::ENUM;
     } else if(prefix_match(cursor, "let")) {
-      return keyword::word::LET;
+      return Keyword::Word::LET;
     }
     return std::nullopt;
   }
@@ -77,32 +77,32 @@ namespace darcel {
   */
   inline auto parse_keyword(const std::string_view& source) {
     return darcel::parse_keyword(
-      lexical_iterator(source.data(), source.size() + 1));
+      LexicalIterator(source.data(), source.size() + 1));
   }
 
-  inline std::ostream& operator <<(std::ostream& out, const keyword& value) {
+  inline std::ostream& operator <<(std::ostream& out, const Keyword& value) {
     switch(value.get_word()) {
-      case keyword::word::ENUM:
+      case Keyword::Word::ENUM:
         return out << "enum";
-      case keyword::word::LET:
+      case Keyword::Word::LET:
         return out << "let";
       default:
         throw std::runtime_error("Invalid keyword.");
     }
   }
 
-  inline bool operator ==(const keyword& lhs, const keyword& rhs) {
+  inline bool operator ==(const Keyword& lhs, const Keyword& rhs) {
     return lhs.get_word() == rhs.get_word();
   }
 
-  inline bool operator !=(const keyword& lhs, const keyword& rhs) {
+  inline bool operator !=(const Keyword& lhs, const Keyword& rhs) {
     return !(lhs == rhs);
   }
 
-  inline keyword::keyword(word word)
+  inline Keyword::Keyword(Word word)
       : m_word(word) {}
 
-  inline keyword::word keyword::get_word() const {
+  inline Keyword::Word Keyword::get_word() const {
     return m_word;
   }
 }

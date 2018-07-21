@@ -40,7 +40,7 @@ namespace darcel {
            will be adjusted to one past the last character that was parsed.
     \return The terminal token that was parsed.
   */
-  inline std::optional<terminal> parse_terminal(lexical_iterator& cursor) {
+  inline std::optional<terminal> parse_terminal(LexicalIterator& cursor) {
     if(!cursor.is_empty()) {
       if(*cursor == '\0') {
         ++cursor;
@@ -60,7 +60,7 @@ namespace darcel {
   */
   inline auto parse_terminal(const std::string_view& source) {
     return darcel::parse_terminal(
-      lexical_iterator(source.data(), source.size()));
+      LexicalIterator(source.data(), source.size()));
   }
 
   inline std::ostream& operator <<(std::ostream& out, const terminal& value) {

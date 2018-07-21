@@ -19,7 +19,7 @@
 namespace darcel {
 
   //! Stores a literal token.
-  class literal {
+  class Literal {
     public:
 
       //! Constructs a literal.
@@ -27,7 +27,7 @@ namespace darcel {
         \param value The string representation of the value.
         \param type The literal value's data type.
       */
-      literal(std::string value, std::shared_ptr<DataType> type);
+      Literal(std::string value, std::shared_ptr<DataType> type);
 
       //! Returns the string representation of the value.
       const std::string& get_value() const;
@@ -70,8 +70,8 @@ namespace darcel {
            will be adjusted to one past the last character that was parsed.
     \return The text literal that was parsed.
   */
-  inline std::optional<literal> parse_text_literal(
-      lexical_iterator& cursor) {
+  inline std::optional<Literal> parse_text_literal(
+      LexicalIterator& cursor) {
     if(cursor.is_empty() || *cursor != '"') {
       return std::nullopt;
     }
@@ -103,7 +103,7 @@ namespace darcel {
     }
     ++c;
     cursor = c;
-    return literal(value, TextDataType::get_instance());
+    return Literal(value, TextDataType::get_instance());
   }
 
   //! Parses a literal.
@@ -112,14 +112,14 @@ namespace darcel {
            will be adjusted to one past the last character that was parsed.
     \return The literal that was parsed.
   */
-  inline std::optional<literal> parse_literal(lexical_iterator& cursor) {
+  inline std::optional<Literal> parse_literal(LexicalIterator& cursor) {
     auto is_separator =
       [] (char c) {
         return std::isspace(c) || is_punctuation(c) || is_bracket(c) ||
           is_operation_delimiter(c) || c == '\0';
       };
     auto parse_decimal =
-      [] (lexical_iterator& cursor) {
+      [] (LexicalIterator& cursor) {
         while(!cursor.is_empty() && std::isdigit(*cursor)) {
           ++cursor;
         }
@@ -128,10 +128,10 @@ namespace darcel {
       return std::nullopt;
     }
     if(prefix_match(cursor, "true")) {
-      return literal("true", BoolDataType::get_instance());
+      return Literal("true", BoolDataType::get_instance());
     }
     if(prefix_match(cursor, "false")) {
-      return literal("false", BoolDataType::get_instance());
+      return Literal("false", BoolDataType::get_instance());
     }
     if(auto l = parse_text_literal(cursor)) {
       return l;
@@ -148,7 +148,7 @@ namespace darcel {
         }
         auto value = std::string(&*cursor, c - cursor);
         cursor = c;
-        return literal(std::move(value), IntegerDataType::get_instance());
+        return Literal(std::move(value), IntegerDataType::get_instance());
       } else {
         ++c;
         parse_decimal(c);
@@ -160,7 +160,7 @@ namespace darcel {
         }
         auto value = std::string(&*cursor, c - cursor);
         cursor = c;
-        return literal(std::move(value), FloatDataType::get_instance());
+        return Literal(std::move(value), FloatDataType::get_instance());
       }
     }
     return std::nullopt;
@@ -173,31 +173,31 @@ namespace darcel {
   */
   inline auto parse_literal(const std::string_view& source) {
     return darcel::parse_literal(
-      lexical_iterator(source.data(), source.size() + 1));
+      LexicalIterator(source.data(), source.size() + 1));
   }
 
-  inline std::ostream& operator <<(std::ostream& out, const literal& value) {
+  inline std::ostream& operator <<(std::ostream& out, const Literal& value) {
     return out << value.get_value();
   }
 
-  inline bool operator ==(const literal& lhs, const literal& rhs) {
+  inline bool operator ==(const Literal& lhs, const Literal& rhs) {
     return lhs.get_value() == rhs.get_value() &&
       *lhs.get_type() == *rhs.get_type();
   }
 
-  inline bool operator !=(const literal& lhs, const literal& rhs) {
+  inline bool operator !=(const Literal& lhs, const Literal& rhs) {
     return !(lhs == rhs);
   }
 
-  inline literal::literal(std::string value, std::shared_ptr<DataType> type)
+  inline Literal::Literal(std::string value, std::shared_ptr<DataType> type)
       : m_value(std::move(value)),
         m_type(std::move(type)) {}
 
-  inline const std::string& literal::get_value() const {
+  inline const std::string& Literal::get_value() const {
     return m_value;
   }
 
-  inline const std::shared_ptr<DataType>& literal::get_type() const {
+  inline const std::shared_ptr<DataType>& Literal::get_type() const {
     return m_type;
   }
 }

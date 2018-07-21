@@ -14,12 +14,12 @@ namespace darcel {
       /*!
         \param l The location of the syntax node.
       */
-      syntax_node(location l);
+      syntax_node(Location l);
 
       virtual ~syntax_node() = default;
 
       //! Returns the location of the syntax node.
-      const location& get_location() const;
+      const Location& get_location() const;
 
       //! Applies a syntax_node_visitor to this instance.
       /*!
@@ -28,16 +28,16 @@ namespace darcel {
       virtual void apply(syntax_node_visitor& visitor) const = 0;
 
     private:
-      location m_location;
+      Location m_location;
 
       syntax_node(const syntax_node&) = delete;
       syntax_node& operator =(const syntax_node&) = delete;
   };
 
-  inline syntax_node::syntax_node(location l)
+  inline syntax_node::syntax_node(Location l)
       : m_location(std::move(l)) {}
 
-  inline const location& syntax_node::get_location() const {
+  inline const Location& syntax_node::get_location() const {
     return m_location;
   }
 }

@@ -20,12 +20,12 @@ namespace darcel {
         \param name The name of the generic.
         \param id The generic's unique id.
       */
-      GenericDataType(location l, std::string name, int id);
+      GenericDataType(Location l, std::string name, int id);
 
       //! Returns the generic's id.
       int get_id() const;
 
-      const location& get_location() const override;
+      const Location& get_location() const override;
 
       const std::string& get_name() const override;
 
@@ -35,7 +35,7 @@ namespace darcel {
       bool is_equal(const DataType& rhs) const override;
 
     private:
-      location m_location;
+      Location m_location;
       std::string m_name;
       int m_id;
   };
@@ -133,7 +133,7 @@ namespace darcel {
     \param index The generic's index.
   */
   inline std::shared_ptr<GenericDataType> make_generic_data_type(
-      location l, std::string name, int index) {
+      Location l, std::string name, int index) {
     return std::make_shared<GenericDataType>(std::move(l), std::move(name),
       index);
   }
@@ -145,10 +145,10 @@ namespace darcel {
   */
   inline std::shared_ptr<GenericDataType> make_generic_data_type(
       std::string name, int index) {
-    return make_generic_data_type(location::global(), std::move(name), index);
+    return make_generic_data_type(Location::global(), std::move(name), index);
   }
 
-  inline GenericDataType::GenericDataType(location l, std::string name,
+  inline GenericDataType::GenericDataType(Location l, std::string name,
       int id)
       : m_location(std::move(l)),
         m_name(std::move(name)),
@@ -158,7 +158,7 @@ namespace darcel {
     return m_id;
   }
 
-  inline const location& GenericDataType::get_location() const {
+  inline const Location& GenericDataType::get_location() const {
     return m_location;
   }
 

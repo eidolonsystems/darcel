@@ -8,31 +8,31 @@
 using namespace darcel;
 
 TEST_CASE("test_generic_name", "[GenericDataType]") {
-  REQUIRE(GenericDataType(location::global(), "`T", 0).get_name() == "`T");
+  REQUIRE(GenericDataType(Location::global(), "`T", 0).get_name() == "`T");
 }
 
 TEST_CASE("test_generic_equality", "[GenericDataType]") {
-  REQUIRE(GenericDataType(location::global(), "`T", 0) !=
-    GenericDataType(location::global(), "`T", 1));
-  REQUIRE(GenericDataType(location::global(), "`A", 2) ==
-    GenericDataType(location::global(), "`B", 2));
-  REQUIRE(GenericDataType(location::global(), "`A", 2) !=
+  REQUIRE(GenericDataType(Location::global(), "`T", 0) !=
+    GenericDataType(Location::global(), "`T", 1));
+  REQUIRE(GenericDataType(Location::global(), "`A", 2) ==
+    GenericDataType(Location::global(), "`B", 2));
+  REQUIRE(GenericDataType(Location::global(), "`A", 2) !=
     IntegerDataType());
 }
 
 TEST_CASE("test_is_generic", "[GenericDataType]") {
   SECTION("Generic terms.") {
-    REQUIRE(is_generic(GenericDataType(location::global(), "`T", 0)));
+    REQUIRE(is_generic(GenericDataType(Location::global(), "`T", 0)));
     REQUIRE(!is_generic(IntegerDataType()));
     REQUIRE(!is_generic(CallableDataType(
-      std::make_shared<function>(location::global(), "f"))));
-    REQUIRE(!is_generic(EnumDataType(location::global(), "e", {})));
+      std::make_shared<function>(Location::global(), "f"))));
+    REQUIRE(!is_generic(EnumDataType(Location::global(), "e", {})));
   }
   SECTION("Compound generics.") {
     auto f1 = make_function_data_type({}, IntegerDataType::get_instance());
     REQUIRE(!is_generic(*f1));
     auto f2 = make_function_data_type({},
-      std::make_shared<GenericDataType>(location::global(), "`T", 0));
+      std::make_shared<GenericDataType>(Location::global(), "`T", 0));
     REQUIRE(is_generic(*f2));
   }
 }

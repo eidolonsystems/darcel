@@ -29,23 +29,23 @@ TEST_CASE("test_parsing_generic_type", "[syntax_parser]") {
     syntax_parser p(*top_scope);
     feed(p, R"(let f(x: `T) = x)");
     auto f = ensure_bind_function(p, 1);
-    ensure_generic(*f, 0, GenericDataType(location::global(), "`T", 0));
+    ensure_generic(*f, 0, GenericDataType(Location::global(), "`T", 0));
   }
   SECTION("Two equal generics.") {
     auto top_scope = make_builtin_scope();
     syntax_parser p(*top_scope);
     feed(p, R"(let f(x: `T, y: `T) = y)");
     auto f = ensure_bind_function(p, 2);
-    ensure_generic(*f, 0, GenericDataType(location::global(), "`T", 0));
-    ensure_generic(*f, 1, GenericDataType(location::global(), "`T", 0));
+    ensure_generic(*f, 0, GenericDataType(Location::global(), "`T", 0));
+    ensure_generic(*f, 1, GenericDataType(Location::global(), "`T", 0));
   }
   SECTION("Two distinct generics.") {
     auto top_scope = make_builtin_scope();
     syntax_parser p(*top_scope);
     feed(p, R"(let f(x: `T, y: `U) = y)");
     auto f = ensure_bind_function(p, 2);
-    ensure_generic(*f, 0, GenericDataType(location::global(), "`T", 0));
-    ensure_generic(*f, 1, GenericDataType(location::global(), "`U", 1));
+    ensure_generic(*f, 0, GenericDataType(Location::global(), "`T", 0));
+    ensure_generic(*f, 1, GenericDataType(Location::global(), "`U", 1));
   }
 }
 
@@ -61,7 +61,7 @@ TEST_CASE("test_parsing_generic_function_type_one_parameter",
   REQUIRE(x != nullptr);
   REQUIRE(x->get_parameters().size() == 1);
   REQUIRE(*x->get_parameters()[0].m_type ==
-    GenericDataType(location::global(), "`T", 0));
+    GenericDataType(Location::global(), "`T", 0));
 }
 
 TEST_CASE("test_parsing_generic_function_type_two_equal_parameters",
@@ -75,8 +75,8 @@ TEST_CASE("test_parsing_generic_function_type_two_equal_parameters",
   REQUIRE(x != nullptr);
   REQUIRE(x->get_parameters().size() == 1);
   REQUIRE(*x->get_parameters()[0].m_type ==
-    GenericDataType(location::global(), "`T", 0));
-  ensure_generic(*f, 1, GenericDataType(location::global(), "`T", 0));
+    GenericDataType(Location::global(), "`T", 0));
+  ensure_generic(*f, 1, GenericDataType(Location::global(), "`T", 0));
 }
 
 TEST_CASE("test_generic_function_substitution", "[syntax_parser]") {

@@ -40,7 +40,7 @@ namespace darcel {
       //! Returns the return type.
       const std::shared_ptr<DataType>& get_return_type() const;
 
-      const location& get_location() const override;
+      const Location& get_location() const override;
 
       const std::string& get_name() const override;
 
@@ -119,8 +119,8 @@ namespace darcel {
     return m_return_type;
   }
 
-  inline const location& FunctionDataType::get_location() const {
-    return location::global();
+  inline const Location& FunctionDataType::get_location() const {
+    return Location::global();
   }
 
   inline const std::string& FunctionDataType::get_name() const {

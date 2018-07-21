@@ -7,7 +7,7 @@ using namespace std;
 
 TEST_CASE("test_token_stream", "[token]") {
   SECTION("Keyword") {
-    token t(keyword::word::LET, 0, 0);
+    token t(Keyword::Word::LET, 0, 0);
     stringstream ss;
     ss << t;
     REQUIRE(ss.str() == "let");
@@ -25,13 +25,13 @@ TEST_CASE("test_token_stream", "[token]") {
     REQUIRE(ss.str() == "<=");
   }
   SECTION("Identifier") {
-    token t(identifier("hello"), 0, 0);
+    token t(Identifier("hello"), 0, 0);
     stringstream ss;
     ss << t;
     REQUIRE(ss.str() == "hello");
   }
   SECTION("Literal") {
-    token t(literal("123", IntegerDataType::get_instance()), 0, 0);
+    token t(Literal("123", IntegerDataType::get_instance()), 0, 0);
     stringstream ss;
     ss << t;
     REQUIRE(ss.str() == "123");
