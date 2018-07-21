@@ -14,7 +14,7 @@ namespace darcel {
   */
   template<typename T>
   std::unique_ptr<T> clone_structure(const T& node) {
-    struct clone_visitor final : syntax_node_visitor {
+    struct CloneVisitor final : syntax_node_visitor {
       std::unique_ptr<syntax_node> m_clone;
 
       std::unique_ptr<T> operator ()(const T& node) {
@@ -63,7 +63,7 @@ namespace darcel {
           node.get_variable());
       }
     };
-    return clone_visitor()(node);
+    return CloneVisitor()(node);
   }
 
   template<typename T>

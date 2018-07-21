@@ -12,7 +12,7 @@ namespace darcel {
     \param out The output stream to print to.
   */
   inline void pretty_print(const syntax_node& node, std::ostream& out) {
-    struct pretty_print_visitor final : syntax_node_visitor {
+    struct PrettyPrintVisitor final : syntax_node_visitor {
       int m_indent_level;
       std::ostream* m_out;
 
@@ -110,7 +110,7 @@ namespace darcel {
         }
       }
     };
-    pretty_print_visitor()(node, out);
+    PrettyPrintVisitor()(node, out);
   }
 
   //! Pretty prints a syntax node to stdout.

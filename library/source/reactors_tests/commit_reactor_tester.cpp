@@ -3,5 +3,5 @@
 
 using namespace darcel;
 
-TEST_CASE("test_literal_commits", "[commit_reactor]") {
+TEST_CASE("test_literal_commits", "[CommitReactor]") {
 }

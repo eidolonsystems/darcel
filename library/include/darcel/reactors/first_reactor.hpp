@@ -14,11 +14,11 @@ namespace darcel {
     \param source The source that will provide the value to evaluate to.
   */
   template<typename T>
-  auto make_first_reactor(std::shared_ptr<reactor<T>> source) {
+  auto make_first_reactor(std::shared_ptr<Reactor<T>> source) {
     return make_function_reactor(
       [] (auto&& value) {
         return make_function_evaluation(std::forward<decltype(value)>(value),
-          base_reactor::update::COMPLETE);
+          BaseReactor::Update::COMPLETE);
       }, std::move(source));
   }
 
@@ -35,10 +35,10 @@ namespace darcel {
   //! Builds a first reactor.
   template<typename T>
   auto make_first_reactor_builder() {
-    return std::make_unique<function_reactor_builder>(
+    return std::make_unique<FunctionReactorBuilder>(
       [] (auto& parameters, auto& t) {
         return make_first_reactor(
-          std::static_pointer_cast<reactor<T>>(parameters.front()->build(t)));
+          std::static_pointer_cast<Reactor<T>>(parameters.front()->build(t)));
       });
   }
 }

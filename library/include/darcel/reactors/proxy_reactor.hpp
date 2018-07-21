@@ -7,44 +7,44 @@
 namespace darcel {
 
   //! The untyped base class for a proxy reactor.
-  class base_proxy_reactor {
+  class BaseProxyReactor {
     public:
-      virtual ~base_proxy_reactor() = default;
+      virtual ~BaseProxyReactor() = default;
 
       //! The reactor to proxy calls to.
-      virtual void set_source(std::shared_ptr<base_reactor> source) = 0;
+      virtual void set_source(std::shared_ptr<BaseReactor> source) = 0;
 
     protected:
-      base_proxy_reactor() = default;
+      BaseProxyReactor() = default;
 
     private:
-      base_proxy_reactor(const base_proxy_reactor&) = delete;
-      base_proxy_reactor& operator =(const base_proxy_reactor&) = delete;
+      BaseProxyReactor(const BaseProxyReactor&) = delete;
+      BaseProxyReactor& operator =(const BaseProxyReactor&) = delete;
   };
 
   //! A reactor that delegates all operations to another reactor.
   template<typename T>
-  class proxy_reactor final : public reactor<T>, public base_proxy_reactor {
+  class ProxyReactor final : public Reactor<T>, public BaseProxyReactor {
     public:
-      using type = typename reactor<T>::type;
+      using Type = typename Reactor<T>::Type;
 
       //! Constructs a proxy reactor.
-      proxy_reactor() = default;
+      ProxyReactor() = default;
 
-      base_reactor::update commit(int sequence) override;
+      BaseReactor::Update commit(int sequence) override;
 
-      type eval() const override;
+      Type eval() const override;
 
-      void set_source(std::shared_ptr<base_reactor> source) override;
+      void set_source(std::shared_ptr<BaseReactor> source) override;
 
     private:
-      std::shared_ptr<reactor<T>> m_source;
+      std::shared_ptr<Reactor<T>> m_source;
   };
 
   //! Makes a proxy reactor.
   template<typename T>
   auto make_proxy_reactor() {
-    return std::make_shared<proxy_reactor<T>>();
+    return std::make_shared<ProxyReactor<T>>();
   };
 
   //! Makes a proxy reactor.
@@ -56,25 +56,25 @@ namespace darcel {
   //! Makes a proxy reactor builder.
   template<typename T>
   auto make_proxy_reactor_builder() {
-    return std::make_unique<function_reactor_builder>(
+    return std::make_unique<FunctionReactorBuilder>(
       [] (auto& parameters, auto& t) {
-        return std::make_shared<proxy_reactor<T>>();
+        return std::make_shared<ProxyReactor<T>>();
       });
   }
 
   template<typename T>
-  base_reactor::update proxy_reactor<T>::commit(int sequence) {
+  BaseReactor::Update ProxyReactor<T>::commit(int sequence) {
     return m_source->commit(sequence);
   }
 
   template<typename T>
-  typename proxy_reactor<T>::type proxy_reactor<T>::eval() const {
+  typename ProxyReactor<T>::Type ProxyReactor<T>::eval() const {
     return m_source->eval();
   }
 
   template<typename T>
-  void proxy_reactor<T>::set_source(std::shared_ptr<base_reactor> source) {
-    m_source = std::static_pointer_cast<reactor<T>>(source);
+  void ProxyReactor<T>::set_source(std::shared_ptr<BaseReactor> source) {
+    m_source = std::static_pointer_cast<Reactor<T>>(source);
   }
 }
 

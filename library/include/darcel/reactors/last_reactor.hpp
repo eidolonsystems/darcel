@@ -11,15 +11,15 @@
 namespace darcel {
 namespace details {
   template<typename T>
-  struct last_reactor_core {
-    using type = T;
-    std::optional<type> m_last;
+  struct LastReactorCore {
+    using Type = T;
+    std::optional<Type> m_last;
 
-    std::optional<type> operator ()(const type& value,
-        base_reactor::update update) {
-      if(update == base_reactor::update::COMPLETE_EVAL) {
+    std::optional<Type> operator ()(const Type& value,
+        BaseReactor::Update update) {
+      if(update == BaseReactor::Update::COMPLETE_EVAL) {
         return value;
-      } else if(update == base_reactor::update::NONE) {
+      } else if(update == BaseReactor::Update::NONE) {
         return std::nullopt;
       } else if(has_eval(update)) {
         m_last = value;
@@ -37,8 +37,8 @@ namespace details {
     \param source The source that will provide the value to evaluate to.
   */
   template<typename T>
-  auto make_last_reactor(std::shared_ptr<reactor<T>> source) {
-    return make_function_reactor(details::last_reactor_core<T>(),
+  auto make_last_reactor(std::shared_ptr<Reactor<T>> source) {
+    return make_function_reactor(details::LastReactorCore<T>(),
       std::move(source), get_updates(source));
   }
 
@@ -55,10 +55,10 @@ namespace details {
   //! Builds a last reactor.
   template<typename T>
   auto make_last_reactor_builder() {
-    return std::make_unique<function_reactor_builder>(
+    return std::make_unique<FunctionReactorBuilder>(
       [] (auto& parameters, auto& t) {
         return make_last_reactor(
-          std::static_pointer_cast<reactor<T>>(parameters.front()->build(t)));
+          std::static_pointer_cast<Reactor<T>>(parameters.front()->build(t)));
       });
   }
 }

@@ -19,8 +19,8 @@ namespace tests {
     \param expected The expected evaluation.
   */
   template<typename T, typename U>
-  void assert_value(reactor<T>& reactor, int sequence,
-      base_reactor::update update, const U& expected) {
+  void assert_value(Reactor<T>& reactor, int sequence,
+      BaseReactor::Update update, const U& expected) {
     REQUIRE(reactor.commit(sequence) == update);
     REQUIRE(reactor.commit(sequence) == update);
     REQUIRE(reactor.eval() == expected);
@@ -37,8 +37,8 @@ namespace tests {
     \param update The type of update at the <i>sequence</i>.
   */
   template<typename E, typename T>
-  void assert_exception(reactor<T>& reactor, int sequence,
-      base_reactor::update update) {
+  void assert_exception(Reactor<T>& reactor, int sequence,
+      BaseReactor::Update update) {
     REQUIRE(reactor.commit(sequence) == update);
     try {
       reactor.eval();

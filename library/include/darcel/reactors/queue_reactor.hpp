@@ -17,21 +17,21 @@ namespace darcel {
     \tparam T the type of value to queue.
   */
   template<typename T>
-  class queue_reactor final : public reactor<T> {
+  class QueueReactor final : public Reactor<T> {
     public:
-      using type = reactor_type_t<reactor<T>>;
+      using Type = reactor_type_t<Reactor<T>>;
 
       //! Constructs a queue reactor.
       /*!
         \param t The trigger used to indicate updates.
       */
-      queue_reactor(trigger& t);
+      QueueReactor(Trigger& t);
 
       //! Pushes a value to the queue.
       /*!
         \param value The value to push.
       */
-      void push(type value);
+      void push(Type value);
 
       //! Brings this reactor to a completion state.
       void set_complete();
@@ -49,17 +49,17 @@ namespace darcel {
       template<typename E>
       void set_complete(const E& e);
 
-      base_reactor::update commit(int sequence) override;
+      BaseReactor::Update commit(int sequence) override;
 
-      type eval() const override;
+      Type eval() const override;
 
     private:
       std::mutex m_mutex;
-      trigger* m_trigger;
-      maybe<type> m_value;
+      Trigger* m_trigger;
+      maybe<Type> m_value;
       int m_sequence;
-      update m_state;
-      std::deque<type> m_queue;
+      Update m_state;
+      std::deque<Type> m_queue;
       std::optional<std::exception_ptr> m_exception;
   };
 
@@ -68,19 +68,19 @@ namespace darcel {
     \param t The trigger used to indicate updates.
   */
   template<typename T>
-  auto make_queue_reactor(trigger& t) {
-    return std::make_shared<queue_reactor<T>>(t);
+  auto make_queue_reactor(Trigger& t) {
+    return std::make_shared<QueueReactor<T>>(t);
   }
 
   template<typename T>
-  queue_reactor<T>::queue_reactor(trigger& t)
+  QueueReactor<T>::QueueReactor(Trigger& t)
       : m_trigger(&t),
-        m_value(std::make_exception_ptr(reactor_unavailable_exception())),
+        m_value(std::make_exception_ptr(ReactorUnavailableException())),
         m_sequence(-1),
-        m_state(update::NONE) {}
+        m_state(Update::NONE) {}
 
   template<typename T>
-  void queue_reactor<T>::push(type value) {
+  void QueueReactor<T>::push(Type value) {
     {
       std::lock_guard<std::mutex> lock(m_mutex);
       m_queue.emplace_back(std::move(value));
@@ -89,7 +89,7 @@ namespace darcel {
   }
 
   template<typename T>
-  void queue_reactor<T>::set_complete() {
+  void QueueReactor<T>::set_complete() {
     {
       std::lock_guard<std::mutex> lock(m_mutex);
       m_exception.emplace();
@@ -98,7 +98,7 @@ namespace darcel {
   }
 
   template<typename T>
-  void queue_reactor<T>::set_complete(std::exception_ptr e) {
+  void QueueReactor<T>::set_complete(std::exception_ptr e) {
     {
       std::lock_guard<std::mutex> lock(m_mutex);
       m_exception.emplace(std::move(e));
@@ -108,12 +108,12 @@ namespace darcel {
 
   template<typename T>
   template<typename E>
-  void queue_reactor<T>::set_complete(const E& e) {
+  void QueueReactor<T>::set_complete(const E& e) {
     set_complete(std::make_exception_ptr(e));
   }
 
   template<typename T>
-  base_reactor::update queue_reactor<T>::commit(int sequence) {
+  BaseReactor::Update QueueReactor<T>::commit(int sequence) {
     if(is_complete(m_state) || sequence == m_sequence) {
       return m_state;
     }
@@ -121,25 +121,25 @@ namespace darcel {
     if(m_queue.empty()) {
       if(m_exception.has_value()) {
         if(*m_exception == nullptr) {
-          combine(m_state, base_reactor::update::COMPLETE);
+          combine(m_state, BaseReactor::Update::COMPLETE);
         } else {
           m_value = std::move(*m_exception);
-          m_state = base_reactor::update::COMPLETE_EVAL;
+          m_state = BaseReactor::Update::COMPLETE_EVAL;
         }
       } else {
-        m_state = base_reactor::update::NONE;
+        m_state = BaseReactor::Update::NONE;
       }
     } else {
       m_value = std::move(m_queue.front());
       m_queue.pop_front();
-      m_state = base_reactor::update::EVAL;
+      m_state = BaseReactor::Update::EVAL;
     }
     m_sequence = sequence;
     return m_state;
   }
 
   template<typename T>
-  typename queue_reactor<T>::type queue_reactor<T>::eval() const {
+  typename QueueReactor<T>::Type QueueReactor<T>::eval() const {
     return m_value;
   }
 }

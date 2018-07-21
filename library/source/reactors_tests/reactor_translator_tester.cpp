@@ -6,34 +6,34 @@
 
 using namespace darcel;
 
-TEST_CASE("test_translating_literal", "[reactor_translator]") {
+TEST_CASE("test_translating_literal", "[ReactorTranslator]") {
   scope s;
   auto node = bind_variable(s, "main", make_literal(123));
-  reactor_translator rt(s);
+  ReactorTranslator rt(s);
   REQUIRE_NOTHROW(rt.translate(*node));
-  trigger t;
+  Trigger t;
   auto result = rt.get_main(t);
-  auto l = std::dynamic_pointer_cast<constant_reactor<int>>(result);
+  auto l = std::dynamic_pointer_cast<ConstantReactor<int>>(result);
   REQUIRE(l != nullptr);
 }
 
-TEST_CASE("test_translating_identity_function", "[reactor_translator]") {
+TEST_CASE("test_translating_identity_function", "[ReactorTranslator]") {
   scope s;
   auto f = bind_function(s, "f", {{"x", IntegerDataType::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
     });
   auto node = bind_variable(s, "main", call(s, "f", make_literal(321)));
-  reactor_translator rt(s);
+  ReactorTranslator rt(s);
   REQUIRE_NOTHROW(rt.translate(*f));
   REQUIRE_NOTHROW(rt.translate(*node));
-  trigger t;
+  Trigger t;
   auto result = rt.get_main(t);
-  auto l = std::dynamic_pointer_cast<constant_reactor<int>>(result);
+  auto l = std::dynamic_pointer_cast<ConstantReactor<int>>(result);
   REQUIRE(l != nullptr);
 }
 
-TEST_CASE("test_translating_function_variable", "[reactor_translator]") {
+TEST_CASE("test_translating_function_variable", "[ReactorTranslator]") {
   scope s;
   auto f = bind_function(s, "f", {{"x", IntegerDataType::get_instance()}},
     [&] (auto& s) {
@@ -41,33 +41,33 @@ TEST_CASE("test_translating_function_variable", "[reactor_translator]") {
     });
   auto g = bind_variable(s, "g", find_term("f", s));
   auto node = bind_variable(s, "main", call(s, "g", make_literal(1)));
-  reactor_translator rt(s);
+  ReactorTranslator rt(s);
   REQUIRE_NOTHROW(rt.translate(*f));
   REQUIRE_NOTHROW(rt.translate(*g));
   REQUIRE_NOTHROW(rt.translate(*node));
-  trigger t;
+  Trigger t;
   auto result = rt.get_main(t);
-  auto l = std::dynamic_pointer_cast<constant_reactor<int>>(result);
+  auto l = std::dynamic_pointer_cast<ConstantReactor<int>>(result);
   REQUIRE(l != nullptr);
 }
 
-TEST_CASE("test_translating_identity_generic", "[reactor_translator]") {
+TEST_CASE("test_translating_identity_generic", "[ReactorTranslator]") {
   scope s;
   auto f = bind_function(s, "f", {{"x", make_generic_data_type("`T", 0)}},
     [&] (auto& s) {
       return find_term("x", s);
     });
   auto node = bind_variable(s, "main", call(s, "f", make_literal(true)));
-  reactor_translator rt(s);
+  ReactorTranslator rt(s);
   REQUIRE_NOTHROW(rt.translate(*f));
   REQUIRE_NOTHROW(rt.translate(*node));
-  trigger t;
+  Trigger t;
   auto result = rt.get_main(t);
-  auto l = std::dynamic_pointer_cast<constant_reactor<bool>>(result);
+  auto l = std::dynamic_pointer_cast<ConstantReactor<bool>>(result);
   REQUIRE(l != nullptr);
 }
 
-TEST_CASE("test_translating_generic_series", "[reactor_translator]") {
+TEST_CASE("test_translating_generic_series", "[ReactorTranslator]") {
   scope s;
   auto f = bind_function(s, "f", {{"x", make_generic_data_type("`T", 0)}},
     [&] (auto& s) {
@@ -78,17 +78,17 @@ TEST_CASE("test_translating_generic_series", "[reactor_translator]") {
       return call(s, "f", find_term("x", s));
     });
   auto node = bind_variable(s, "main", call(s, "g", make_literal(314)));
-  reactor_translator rt(s);
+  ReactorTranslator rt(s);
   REQUIRE_NOTHROW(rt.translate(*f));
   REQUIRE_NOTHROW(rt.translate(*g));
   REQUIRE_NOTHROW(rt.translate(*node));
-  trigger t;
+  Trigger t;
   auto result = rt.get_main(t);
-  auto l = std::dynamic_pointer_cast<constant_reactor<int>>(result);
+  auto l = std::dynamic_pointer_cast<ConstantReactor<int>>(result);
   REQUIRE(l != nullptr);
 }
 
-TEST_CASE("test_translating_function_parameter", "[reactor_translator]") {
+TEST_CASE("test_translating_function_parameter", "[ReactorTranslator]") {
   auto s = make_builtin_scope();
   auto f = bind_function(*s, "f", {{"x", IntegerDataType::get_instance()}},
     [&] (auto& s) {
@@ -101,18 +101,18 @@ TEST_CASE("test_translating_function_parameter", "[reactor_translator]") {
       return call(s, "f", make_literal(314));
     });
   auto node = bind_variable(*s, "main", call(*s, "g", find_term("f", *s)));
-  reactor_translator rt(*s);
+  ReactorTranslator rt(*s);
   REQUIRE_NOTHROW(rt.translate(*f));
   REQUIRE_NOTHROW(rt.translate(*g));
   REQUIRE_NOTHROW(rt.translate(*node));
-  trigger t;
+  Trigger t;
   auto result = rt.get_main(t);
-  auto l = std::dynamic_pointer_cast<constant_reactor<int>>(result);
+  auto l = std::dynamic_pointer_cast<ConstantReactor<int>>(result);
   REQUIRE(l != nullptr);
 }
 
 TEST_CASE("test_translating_generic_function_parameter",
-    "[reactor_translator]") {
+    "[ReactorTranslator]") {
   auto s = make_builtin_scope();
   auto f = bind_function(*s, "f", {{"x", make_generic_data_type("`T", 0)}},
     [&] (auto& s) {
@@ -127,12 +127,12 @@ TEST_CASE("test_translating_generic_function_parameter",
     });
   auto node = bind_variable(*s, "main",
     call(*s, "g", find_term("f", *s), make_literal(911)));
-  reactor_translator rt(*s);
+  ReactorTranslator rt(*s);
   REQUIRE_NOTHROW(rt.translate(*f));
   REQUIRE_NOTHROW(rt.translate(*g));
   REQUIRE_NOTHROW(rt.translate(*node));
-  trigger t;
+  Trigger t;
   auto result = rt.get_main(t);
-  auto l = std::dynamic_pointer_cast<constant_reactor<int>>(result);
+  auto l = std::dynamic_pointer_cast<ConstantReactor<int>>(result);
   REQUIRE(l != nullptr);
 }

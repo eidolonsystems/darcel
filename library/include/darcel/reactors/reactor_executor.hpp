@@ -7,7 +7,7 @@
 namespace darcel {
 
   //! Provides a runtime environment to execute a single reactor.
-  class reactor_executor {
+  class ReactorExecutor {
     public:
 
       //! Constructs an executor with an initial sequence of 0.
@@ -15,27 +15,27 @@ namespace darcel {
         \param r The reactor to execute.
         \param t The trigger used to indicate reactor updates.
       */
-      reactor_executor(std::shared_ptr<base_reactor> r, trigger& t);
+      ReactorExecutor(std::shared_ptr<BaseReactor> r, Trigger& t);
 
       //! Executes the reactors.
       void execute();
 
     private:
-      std::shared_ptr<base_reactor> m_reactor;
-      trigger* m_trigger;
+      std::shared_ptr<BaseReactor> m_reactor;
+      Trigger* m_trigger;
       int m_sequence;
 
-      reactor_executor(const reactor_executor&) = delete;
-      reactor_executor& operator =(const reactor_executor&) = delete;
+      ReactorExecutor(const ReactorExecutor&) = delete;
+      ReactorExecutor& operator =(const ReactorExecutor&) = delete;
   };
 
-  inline reactor_executor::reactor_executor(std::shared_ptr<base_reactor> r,
-      trigger& t)
+  inline ReactorExecutor::ReactorExecutor(std::shared_ptr<BaseReactor> r,
+      Trigger& t)
       : m_reactor(std::move(r)),
         m_trigger(&t),
         m_sequence(m_trigger->get_current_sequence()) {}
 
-  inline void reactor_executor::execute() {
+  inline void ReactorExecutor::execute() {
     while(true) {
       auto update = m_reactor->commit(m_sequence);
       ++m_sequence;

@@ -14,7 +14,7 @@ namespace darcel {
 namespace details {
   template<typename T>
   struct fold_parameter_type {
-    using type = std::shared_ptr<fold_parameter_reactor<reactor_type_t<
+    using type = std::shared_ptr<FoldParameterReactor<reactor_type_t<
       decltype(lift(std::forward<T>(std::declval<T&&>())))>>>;
   };
 
@@ -26,34 +26,34 @@ namespace details {
       \tparam T The type of placeholder to evaluate to.
    */
   template<typename T>
-  class fold_parameter_reactor final : public reactor<T> {
+  class FoldParameterReactor final : public Reactor<T> {
     public:
-      using type = typename reactor<T>::type;
+      using Type = typename Reactor<T>::Type;
 
       //! Constructs a fold parameter reactor.
-      fold_parameter_reactor();
+      FoldParameterReactor();
 
-      base_reactor::update commit(int sequence) override;
+      BaseReactor::Update commit(int sequence) override;
 
-      type eval() const override;
+      Type eval() const override;
 
     private:
-      template<typename> friend class fold_reactor;
-      maybe<type> m_value;
+      template<typename> friend class FoldReactor;
+      maybe<Type> m_value;
       int m_sequence;
-      maybe<type> m_next_value;
+      maybe<Type> m_next_value;
       int m_next_sequence;
 
-      void set(maybe<type> value, int sequence);
+      void set(maybe<Type> value, int sequence);
   };
 
   /*! \brief Folds the values produced by a reactor.
       \tparam T The type of value to evaluate.
    */
   template<typename T>
-  class fold_reactor final : public reactor<T> {
+  class FoldReactor final : public Reactor<T> {
     public:
-      using type = typename reactor<T>::type;
+      using Type = typename Reactor<T>::Type;
 
       //! Constructs a fold reactor.
       /*!
@@ -63,30 +63,30 @@ namespace details {
                evaluation.
         \param producer The reactor producing the values to fold.
       */
-      fold_reactor(std::shared_ptr<reactor<type>> evaluation,
-        std::shared_ptr<fold_parameter_reactor<type>> left,
-        std::shared_ptr<fold_parameter_reactor<type>> right,
-        std::shared_ptr<reactor<type>> producer);
+      FoldReactor(std::shared_ptr<Reactor<Type>> evaluation,
+        std::shared_ptr<FoldParameterReactor<Type>> left,
+        std::shared_ptr<FoldParameterReactor<Type>> right,
+        std::shared_ptr<Reactor<Type>> producer);
 
-      base_reactor::update commit(int sequence) override;
+      BaseReactor::Update commit(int sequence) override;
 
-      type eval() const override;
+      Type eval() const override;
 
     private:
-      std::shared_ptr<reactor<type>> m_evaluation;
-      std::shared_ptr<fold_parameter_reactor<type>> m_left;
-      std::shared_ptr<fold_parameter_reactor<type>> m_right;
-      std::shared_ptr<reactor<type>> m_producer;
-      maybe<type> m_value;
-      std::optional<maybe<type>> m_previous_value;
+      std::shared_ptr<Reactor<Type>> m_evaluation;
+      std::shared_ptr<FoldParameterReactor<Type>> m_left;
+      std::shared_ptr<FoldParameterReactor<Type>> m_right;
+      std::shared_ptr<Reactor<Type>> m_producer;
+      maybe<Type> m_value;
+      std::optional<maybe<Type>> m_previous_value;
       int m_sequence;
-      base_reactor::update m_update;
+      BaseReactor::Update m_update;
   };
 
   //! Makes a fold parameter.
   template<typename T>
   auto make_fold_parameter() {
-    return std::make_shared<fold_parameter_reactor<T>>();
+    return std::make_shared<FoldParameterReactor<T>>();
   }
 
   //! Makes a fold reactor.
@@ -97,11 +97,11 @@ namespace details {
     \param producer The reactor producing the values to fold.
   */
   template<typename T>
-  auto make_fold_reactor(std::shared_ptr<reactor<T>> evaluation,
-      std::shared_ptr<fold_parameter_reactor<T>> left,
-      std::shared_ptr<fold_parameter_reactor<T>> right,
-      std::shared_ptr<reactor<T>> producer) {
-    return std::make_shared<fold_reactor<T>>(std::move(evaluation),
+  auto make_fold_reactor(std::shared_ptr<Reactor<T>> evaluation,
+      std::shared_ptr<FoldParameterReactor<T>> left,
+      std::shared_ptr<FoldParameterReactor<T>> right,
+      std::shared_ptr<Reactor<T>> producer) {
+    return std::make_shared<FoldReactor<T>>(std::move(evaluation),
       std::move(left), std::move(right), std::move(producer));
   }
 
@@ -123,14 +123,14 @@ namespace details {
   //! Builds a fold reactor.
   template<typename T>
   auto make_fold_reactor_builder() {
-    return std::make_unique<function_reactor_builder>(
+    return std::make_unique<FunctionReactorBuilder>(
       [] (auto& parameters, auto& t) {
         auto left = make_fold_parameter<T>();
         auto right = make_fold_parameter<T>();
-        auto f = std::static_pointer_cast<reactor<T>>(parameters[0]->build(
+        auto f = std::static_pointer_cast<Reactor<T>>(parameters[0]->build(
           {make_passthrough_reactor_builder(left),
            make_passthrough_reactor_builder(right)}, t));
-        auto p = std::static_pointer_cast<reactor<T>>(parameters[1]->build(t));
+        auto p = std::static_pointer_cast<Reactor<T>>(parameters[1]->build(t));
         return make_fold_reactor(std::move(f), std::move(left),
           std::move(right), std::move(p));
       });
@@ -150,68 +150,68 @@ namespace details {
   }
 
   template<typename T>
-  fold_parameter_reactor<T>::fold_parameter_reactor()
-      : m_value(std::make_exception_ptr(reactor_unavailable_exception())),
+  FoldParameterReactor<T>::FoldParameterReactor()
+      : m_value(std::make_exception_ptr(ReactorUnavailableException())),
         m_sequence(-1),
-        m_next_value(std::make_exception_ptr(reactor_unavailable_exception())),
+        m_next_value(std::make_exception_ptr(ReactorUnavailableException())),
         m_next_sequence(-1) {}
 
   template<typename T>
-  base_reactor::update fold_parameter_reactor<T>::commit(int sequence) {
+  BaseReactor::Update FoldParameterReactor<T>::commit(int sequence) {
     if(sequence == m_sequence) {
-      return base_reactor::update::EVAL;
+      return BaseReactor::Update::EVAL;
     } else if(sequence == m_next_sequence) {
       m_value = std::move(m_next_value);
       m_sequence = sequence;
       m_next_sequence = -1;
-      return base_reactor::update::EVAL;
+      return BaseReactor::Update::EVAL;
     }
-    return base_reactor::update::NONE;
+    return BaseReactor::Update::NONE;
   }
 
   template<typename T>
-  typename fold_parameter_reactor<T>::type
-      fold_parameter_reactor<T>::eval() const {
+  typename FoldParameterReactor<T>::Type
+      FoldParameterReactor<T>::eval() const {
     return m_value.get();
   }
 
   template<typename T>
-  void fold_parameter_reactor<T>::set(maybe<type> value, int sequence) {
+  void FoldParameterReactor<T>::set(maybe<Type> value, int sequence) {
     m_next_value = std::move(value);
     m_next_sequence = sequence;
   }
 
   template<typename T>
-  fold_reactor<T>::fold_reactor(std::shared_ptr<reactor<type>> evaluation,
-      std::shared_ptr<fold_parameter_reactor<type>> left,
-      std::shared_ptr<fold_parameter_reactor<type>> right,
-      std::shared_ptr<reactor<type>> producer)
+  FoldReactor<T>::FoldReactor(std::shared_ptr<Reactor<Type>> evaluation,
+      std::shared_ptr<FoldParameterReactor<Type>> left,
+      std::shared_ptr<FoldParameterReactor<Type>> right,
+      std::shared_ptr<Reactor<Type>> producer)
       : m_evaluation(std::move(evaluation)),
         m_left(std::move(left)),
         m_right(std::move(right)),
         m_producer(std::move(producer)),
-        m_value(std::make_exception_ptr(reactor_unavailable_exception())),
+        m_value(std::make_exception_ptr(ReactorUnavailableException())),
         m_sequence(-1),
-        m_update(base_reactor::update::NONE) {}
+        m_update(BaseReactor::Update::NONE) {}
 
   template<typename T>
-  base_reactor::update fold_reactor<T>::commit(int sequence) {
+  BaseReactor::Update FoldReactor<T>::commit(int sequence) {
     if(m_sequence == sequence || is_complete(m_update)) {
       return m_update;
     }
     auto producer_update = m_producer->commit(sequence);
-    if(producer_update == base_reactor::update::NONE) {
-      return base_reactor::update::NONE;
+    if(producer_update == BaseReactor::Update::NONE) {
+      return BaseReactor::Update::NONE;
     } else if(has_eval(producer_update)) {
       if(!m_previous_value.has_value()) {
         if(is_complete(producer_update)) {
-          m_update = base_reactor::update::COMPLETE_EMPTY;
-          return base_reactor::update::COMPLETE_EMPTY;
+          m_update = BaseReactor::Update::COMPLETE_EMPTY;
+          return BaseReactor::Update::COMPLETE_EMPTY;
         }
         m_previous_value = try_eval(*m_producer);
         m_sequence = sequence;
-        m_update = base_reactor::update::NONE;
-        return base_reactor::update::NONE;
+        m_update = BaseReactor::Update::NONE;
+        return BaseReactor::Update::NONE;
       }
       m_left->set(std::move(*m_previous_value), sequence);
       m_right->set(try_eval(*m_producer), sequence);
@@ -222,14 +222,14 @@ namespace details {
       }
     }
     if(is_complete(producer_update)) {
-      combine(m_update, base_reactor::update::COMPLETE);
+      combine(m_update, BaseReactor::Update::COMPLETE);
     }
     m_sequence = sequence;
     return m_update;
   }
 
   template<typename T>
-  typename fold_reactor<T>::type fold_reactor<T>::eval() const {
+  typename FoldReactor<T>::Type FoldReactor<T>::eval() const {
     return m_value.get();
   }
 }

@@ -18,72 +18,72 @@ namespace darcel {
       \tparam T The result of the function.
    */
   template<typename T>
-  struct function_evaluation {
-    using type = T;
-    std::optional<maybe<type>> m_value;
-    base_reactor::update m_update;
+  struct FunctionEvaluation {
+    using Type = T;
+    std::optional<maybe<Type>> m_value;
+    BaseReactor::Update m_update;
 
     //! Constructs an uninitialized evaluation.
-    function_evaluation();
+    FunctionEvaluation();
 
     //! Constructs an evaluation resulting in a value and an EVAL.
     /*!
       \param value The value returned by the function.
     */
-    function_evaluation(maybe<type> value);
+    FunctionEvaluation(maybe<Type> value);
 
     //! Constructs an evaluation resulting in a value and an EVAL.
     /*!
       \param value The value returned by the function.
     */
-    function_evaluation(type value);
+    FunctionEvaluation(Type value);
 
     //! Constructs an evaluation resulting in a value and an EVAL.
     /*!
       \param value The value returned by the function.
     */
-    function_evaluation(std::optional<maybe<type>> value);
+    FunctionEvaluation(std::optional<maybe<Type>> value);
 
     //! Constructs an evaluation resulting in a value and an EVAL.
     /*!
       \param value The value returned by the function.
     */
-    function_evaluation(std::optional<type> value);
+    FunctionEvaluation(std::optional<Type> value);
 
     //! Constructs an evaluation resulting in a value and an update.
     /*!
       \param value The value returned by the function.
       \param update The type of update.
     */
-    function_evaluation(maybe<type> value, base_reactor::update update);
+    FunctionEvaluation(maybe<Type> value, BaseReactor::Update update);
 
     //! Constructs an evaluation resulting in a value and an update.
     /*!
       \param value The value returned by the function.
       \param update The type of update.
     */
-    function_evaluation(type value, base_reactor::update update);
+    FunctionEvaluation(Type value, BaseReactor::Update update);
 
     //! Constructs an evaluation resulting in a value and an update.
     /*!
       \param value The value returned by the function.
       \param update The type of update.
     */
-    function_evaluation(std::optional<maybe<type>> value,
-      base_reactor::update update);
+    FunctionEvaluation(std::optional<maybe<Type>> value,
+      BaseReactor::Update update);
 
     //! Constructs an evaluation resulting in a value and an update.
     /*!
       \param value The value returned by the function.
       \param update The type of update.
     */
-    function_evaluation(std::optional<type> value, base_reactor::update update);
+    FunctionEvaluation(std::optional<Type> value, BaseReactor::Update update);
 
     //! Constructs an evaluation resulting in just an update.
     /*!
       \param update The update.
     */
-    function_evaluation(base_reactor::update update);
+    FunctionEvaluation(BaseReactor::Update update);
   };
 
 namespace details {
@@ -107,29 +107,29 @@ namespace details {
   };
 
   template<typename T>
-  struct function_reactor_type<function_evaluation<T>> {
+  struct function_reactor_type<FunctionEvaluation<T>> {
     using type = T;
   };
 
-  struct function_eval {
+  struct FunctionEval {
     template<typename T>
-    auto operator ()(const reactor<T>* reactor) const {
+    auto operator ()(const Reactor<T>* reactor) const {
       return reactor->eval();
     }
 
-    maybe<void> operator ()(const base_reactor* reactor) const {
+    maybe<void> operator ()(const BaseReactor* reactor) const {
       return {};
     }
   };
 
   template<typename T>
-  struct function_update_eval {
+  struct FunctionUpdateEval {
     template<typename V, typename F, typename P>
-    base_reactor::update operator ()(V& value, F& function, const P& p) const {
+    BaseReactor::Update operator ()(V& value, F& function, const P& p) const {
       auto evaluation = std::apply(
         [&] (const auto&... parameters) {
-          return function_evaluation<T>(function(
-            try_call(std::bind(function_eval(), &*parameters))...));
+          return FunctionEvaluation<T>(function(
+            try_call(std::bind(FunctionEval(), &*parameters))...));
         }, p);
       if(evaluation.m_value.has_value()) {
         value = std::move(*evaluation.m_value);
@@ -139,28 +139,28 @@ namespace details {
   };
 
   template<>
-  struct function_update_eval<void> {
+  struct FunctionUpdateEval<void> {
     template<typename V, typename F, typename P>
-    base_reactor::update operator ()(V& value, F& function, const P& p) const {
+    BaseReactor::Update operator ()(V& value, F& function, const P& p) const {
       std::apply(
         [&] (const auto&... parameters) {
-          function(try_call(std::bind(function_eval(), &*parameters))...);
+          function(try_call(std::bind(FunctionEval(), &*parameters))...);
         }, p);
-      return base_reactor::update::EVAL;
+      return BaseReactor::Update::EVAL;
     }
   };
 
-  inline void append_child(std::vector<base_reactor*>& children) {}
+  inline void append_child(std::vector<BaseReactor*>& children) {}
 
   template<typename P, typename... Tail>
-  void append_child(std::vector<base_reactor*>& children, P&& parameter,
+  void append_child(std::vector<BaseReactor*>& children, P&& parameter,
       Tail&&... tail) {
     children.push_back(&*parameter);
     append_child(children, std::forward<Tail>(tail)...);
   }
 
   template<typename... P>
-  void initialize_children(std::vector<base_reactor*>& children,
+  void initialize_children(std::vector<BaseReactor*>& children,
       const std::tuple<P...>& parameters) {
     std::apply(
       [&] (auto&&... p) {
@@ -174,13 +174,13 @@ namespace details {
       \tparam P The type of parameters to apply the function to.
    */
   template<typename F, typename... P>
-  class function_reactor final : public reactor<
+  class FunctionReactor final : public Reactor<
       typename details::function_reactor_type<details::invocation_type_t<F,
       const maybe<reactor_type_t<P>>&...>>::type> {
     public:
-      using type = typename reactor<
+      using type = typename Reactor<
         typename details::function_reactor_type<details::invocation_type_t<
-        F, const maybe<reactor_type_t<P>>&...>>::type>::type;
+        F, const maybe<reactor_type_t<P>>&...>>::type>::Type;
 
       //! The type of function to apply.
       using function = F;
@@ -191,22 +191,22 @@ namespace details {
         \param parameters The parameters to apply the <i>function</i> to.
       */
       template<typename FF, typename... PF>
-      function_reactor(FF&& function, PF&&... parameters);
+      FunctionReactor(FF&& function, PF&&... parameters);
 
-      base_reactor::update commit(int sequence) override;
+      BaseReactor::Update commit(int sequence) override;
 
       type eval() const override;
 
     private:
       function m_function;
       std::tuple<P...> m_parameters;
-      std::optional<commit_reactor> m_commit_reactor;
+      std::optional<CommitReactor> m_commit_reactor;
       maybe<type> m_value;
       int m_sequence;
-      base_reactor::update m_update;
+      BaseReactor::Update m_update;
       bool m_has_eval;
 
-      base_reactor::update invoke();
+      BaseReactor::Update invoke();
   };
 
   //! Makes a function reactor.
@@ -216,7 +216,7 @@ namespace details {
   */
   template<typename F, typename... P>
   auto make_function_reactor(F&& function, P&&... parameters) {
-    return std::make_shared<function_reactor<std::decay_t<F>,
+    return std::make_shared<FunctionReactor<std::decay_t<F>,
       std::decay_t<P>...>>(std::forward<F>(function),
       std::forward<P>(parameters)...);
   }
@@ -227,8 +227,8 @@ namespace details {
     \param update The state of the reactor.
   */
   template<typename T>
-  auto make_function_evaluation(maybe<T> value, base_reactor::update update) {
-    return function_evaluation<T>(std::move(value), update);
+  auto make_function_evaluation(maybe<T> value, BaseReactor::Update update) {
+    return FunctionEvaluation<T>(std::move(value), update);
   }
 
   //! Makes a function evaluation.
@@ -238,8 +238,8 @@ namespace details {
   */
   template<typename T>
   auto make_function_evaluation(std::optional<maybe<T>> value,
-      base_reactor::update update) {
-    return function_evaluation<T>(std::move(value), update);
+      BaseReactor::Update update) {
+    return FunctionEvaluation<T>(std::move(value), update);
   }
 
   //! Makes a function evaluation.
@@ -248,114 +248,114 @@ namespace details {
     \param update The state of the reactor.
   */
   template<typename T>
-  auto make_function_evaluation(const T& value, base_reactor::update update) {
-    return function_evaluation<T>(value, update);
+  auto make_function_evaluation(const T& value, BaseReactor::Update update) {
+    return FunctionEvaluation<T>(value, update);
   }
 
   template<typename T>
-  function_evaluation<T>::function_evaluation()
-      : m_update(base_reactor::update::NONE) {}
+  FunctionEvaluation<T>::FunctionEvaluation()
+      : m_update(BaseReactor::Update::NONE) {}
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(maybe<type> value)
+  FunctionEvaluation<T>::FunctionEvaluation(maybe<Type> value)
       : m_value(std::move(value)),
-        m_update(base_reactor::update::EVAL) {}
+        m_update(BaseReactor::Update::EVAL) {}
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(type value)
-      : function_evaluation(maybe<type>(std::move(value))) {}
+  FunctionEvaluation<T>::FunctionEvaluation(Type value)
+      : FunctionEvaluation(maybe<Type>(std::move(value))) {}
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(std::optional<maybe<type>> value)
+  FunctionEvaluation<T>::FunctionEvaluation(std::optional<maybe<Type>> value)
       : m_value(std::move(value)) {
     if(m_value.has_value()) {
-      m_update = base_reactor::update::EVAL;
+      m_update = BaseReactor::Update::EVAL;
     } else {
-      m_update = base_reactor::update::NONE;
+      m_update = BaseReactor::Update::NONE;
     }
   }
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(std::optional<type> value)
-      : function_evaluation(std::optional<maybe<type>>(std::move(value))) {}
+  FunctionEvaluation<T>::FunctionEvaluation(std::optional<Type> value)
+      : FunctionEvaluation(std::optional<maybe<Type>>(std::move(value))) {}
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(maybe<type> value,
-      base_reactor::update update)
+  FunctionEvaluation<T>::FunctionEvaluation(maybe<Type> value,
+      BaseReactor::Update update)
       : m_value(std::move(value)),
         m_update(update) {
-    combine(m_update, base_reactor::update::EVAL);
+    combine(m_update, BaseReactor::Update::EVAL);
   }
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(type value,
-      base_reactor::update update)
+  FunctionEvaluation<T>::FunctionEvaluation(Type value,
+      BaseReactor::Update update)
       : m_value(std::move(value)),
         m_update(update) {
-    combine(m_update, base_reactor::update::EVAL);
+    combine(m_update, BaseReactor::Update::EVAL);
   }
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(std::optional<maybe<type>> value,
-      base_reactor::update update)
+  FunctionEvaluation<T>::FunctionEvaluation(std::optional<maybe<Type>> value,
+      BaseReactor::Update update)
       : m_value(std::move(value)),
         m_update(update) {
     if(m_value.has_value()) {
-      combine(m_update, base_reactor::update::EVAL);
+      combine(m_update, BaseReactor::Update::EVAL);
     } else {
-      assert(m_update != base_reactor::update::EVAL);
+      assert(m_update != BaseReactor::Update::EVAL);
     }
   }
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(std::optional<type> value,
-      base_reactor::update update)
-      : function_evaluation(std::optional<maybe<type>>(
-          maybe<type>(std::move(value))), update) {}
+  FunctionEvaluation<T>::FunctionEvaluation(std::optional<Type> value,
+      BaseReactor::Update update)
+      : FunctionEvaluation(std::optional<maybe<Type>>(
+          maybe<Type>(std::move(value))), update) {}
 
   template<typename T>
-  function_evaluation<T>::function_evaluation(base_reactor::update update)
+  FunctionEvaluation<T>::FunctionEvaluation(BaseReactor::Update update)
       : m_update(update) {
-    assert(m_update != base_reactor::update::EVAL);
+    assert(m_update != BaseReactor::Update::EVAL);
   }
 
   template<typename F, typename... P>
   template<typename FF, typename... PF>
-  function_reactor<F, P...>::function_reactor(FF&& function, PF&&... parameters)
+  FunctionReactor<F, P...>::FunctionReactor(FF&& function, PF&&... parameters)
       : m_function(std::forward<FF>(function)),
         m_parameters(std::forward<PF>(parameters)...),
-        m_value(std::make_exception_ptr(reactor_unavailable_exception())),
+        m_value(std::make_exception_ptr(ReactorUnavailableException())),
         m_sequence(-1),
-        m_update(base_reactor::update::NONE),
+        m_update(BaseReactor::Update::NONE),
         m_has_eval(false) {
-    std::vector<base_reactor*> children;
+    std::vector<BaseReactor*> children;
     details::initialize_children(children, m_parameters);
     m_commit_reactor.emplace(std::move(children));
   }
 
   template<typename F, typename... P>
-  base_reactor::update function_reactor<F, P...>::commit(int sequence) {
+  BaseReactor::Update FunctionReactor<F, P...>::commit(int sequence) {
     if(is_complete(m_update) || m_sequence == sequence) {
       return m_update;
     }
     m_update = m_commit_reactor->commit(sequence);
     if(has_eval(m_update)) {
       auto invocation = invoke();
-      if(invocation == base_reactor::update::NONE) {
+      if(invocation == BaseReactor::Update::NONE) {
         if(is_complete(m_update)) {
           if(m_has_eval) {
-            m_update = base_reactor::update::COMPLETE_EVAL;
+            m_update = BaseReactor::Update::COMPLETE_EVAL;
           } else {
-            m_update = base_reactor::update::COMPLETE_EMPTY;
+            m_update = BaseReactor::Update::COMPLETE_EMPTY;
           }
         } else {
-          m_update = base_reactor::update::NONE;
+          m_update = BaseReactor::Update::NONE;
         }
       } else if(is_complete(invocation)) {
         if(m_has_eval || has_eval(invocation)) {
-          m_update = base_reactor::update::COMPLETE_EVAL;
+          m_update = BaseReactor::Update::COMPLETE_EVAL;
         } else {
-          m_update = base_reactor::update::COMPLETE_EMPTY;
+          m_update = BaseReactor::Update::COMPLETE_EMPTY;
         }
       }
     }
@@ -365,19 +365,19 @@ namespace details {
   }
 
   template<typename F, typename... P>
-  typename function_reactor<F, P...>::type
-      function_reactor<F, P...>::eval() const {
+  typename FunctionReactor<F, P...>::type
+      FunctionReactor<F, P...>::eval() const {
     return m_value.get();
   }
 
   template<typename F, typename... P>
-  base_reactor::update function_reactor<F, P...>::invoke() {
+  BaseReactor::Update FunctionReactor<F, P...>::invoke() {
     try {
-      return details::function_update_eval<type>()(m_value, m_function,
+      return details::FunctionUpdateEval<type>()(m_value, m_function,
         m_parameters);
     } catch(const std::exception&) {
       m_value = std::current_exception();
-      return base_reactor::update::EVAL;
+      return BaseReactor::Update::EVAL;
     }
   }
 }

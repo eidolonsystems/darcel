@@ -15,7 +15,7 @@ namespace darcel {
   */
   inline std::unique_ptr<bind_function_statement> instantiate(
       const bind_function_statement& node, const FunctionDataType& t) {
-    struct instantiate_visitor final : syntax_node_visitor {
+    struct InstantiateVisitor final : syntax_node_visitor {
       std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<variable>>
         m_substitutions;
       std::unique_ptr<syntax_node> m_clone;
@@ -77,7 +77,7 @@ namespace darcel {
         }
       }
     };
-    return instantiate_visitor()(node, t);
+    return InstantiateVisitor()(node, t);
   }
 }
 

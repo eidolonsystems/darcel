@@ -2,27 +2,27 @@
 #define DARCEL_REACTORS_HPP
 
 namespace darcel {
-  class base_proxy_reactor;
-  class base_reactor;
-  template<typename T> class chain_reactor;
-  class commit_reactor;
-  template<typename T> class constant_reactor;
-  template<typename T> class fold_reactor;
-  template<typename T> class fold_parameter_reactor;
-  template<typename F, typename... P> class function_reactor;
-  template<typename T> class none_reactor;
-  class perpetual_reactor;
-  template<typename T> class proxy_reactor;
-  template<typename T> class queue_reactor;
-  template<typename T> class reactor;
-  class reactor_builder;
-  class reactor_error;
-  class reactor_exception;
-  class reactor_executor;
-  class reactor_translator;
-  class reactor_unavailable_exception;
-  class trigger;
-  class update_reactor;
+  class BaseProxyReactor;
+  class BaseReactor;
+  template<typename T> class ChainReactor;
+  class CommitReactor;
+  template<typename T> class ConstantReactor;
+  template<typename T> class FoldReactor;
+  template<typename T> class FoldParameterReactor;
+  template<typename F, typename... P> class FunctionReactor;
+  template<typename T> class NoneReactor;
+  class PerpetualReactor;
+  template<typename T> class ProxyReactor;
+  template<typename T> class QueueReactor;
+  template<typename T> class Reactor;
+  class ReactorBuilder;
+  class ReactorError;
+  class ReactorException;
+  class ReactorExecutor;
+  class ReactorTranslator;
+  class ReactorUnavailableException;
+  class Trigger;
+  class UpdateReactor;
 }
 
 #endif

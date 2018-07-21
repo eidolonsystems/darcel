@@ -16,7 +16,7 @@ namespace darcel {
   */
   template<typename T>
   auto make_ostream_reactor(std::ostream& out,
-      std::shared_ptr<reactor<T>> source) {
+      std::shared_ptr<Reactor<T>> source) {
     return make_function_reactor(
       [out = &out] (const T& value) -> decltype(auto) {
         *out << value << "\n";
@@ -30,7 +30,7 @@ namespace darcel {
     \param source The reactor producing the values to print.
   */
   inline auto make_ostream_reactor(std::ostream& out,
-      std::shared_ptr<reactor<bool>> source) {
+      std::shared_ptr<Reactor<bool>> source) {
     return make_function_reactor(
       [out = &out] (bool value) {
         if(value) {
@@ -45,10 +45,10 @@ namespace darcel {
   //! Builds an ostream reactor.
   template<typename T>
   auto make_ostream_reactor_builder(std::ostream& out) {
-    return std::make_unique<function_reactor_builder>(
+    return std::make_unique<FunctionReactorBuilder>(
       [out = &out] (auto& parameters, auto& t) {
         return make_ostream_reactor(*out,
-          std::static_pointer_cast<reactor<T>>(parameters.front()->build(t)));
+          std::static_pointer_cast<Reactor<T>>(parameters.front()->build(t)));
       });
   }
 }

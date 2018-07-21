@@ -6,22 +6,22 @@
 namespace darcel {
 
   //! Signals that a reactor is unavailable.
-  class reactor_unavailable_exception : public reactor_exception {
+  class ReactorUnavailableException : public ReactorException {
     public:
 
       //! Constructs a reactor unavailable exception with a default message.
-      reactor_unavailable_exception() = default;
+      ReactorUnavailableException() = default;
 
       //! Constructs a reactor unavailable exception with a message.
       /*!
         \param message A message describing the exception.
       */
-      reactor_unavailable_exception(const std::string& message);
+      ReactorUnavailableException(const std::string& message);
   };
 
-  inline reactor_unavailable_exception::reactor_unavailable_exception(
+  inline ReactorUnavailableException::ReactorUnavailableException(
       const std::string& message)
-      : reactor_exception(message) {}
+      : ReactorException(message) {}
 }
 
 #endif

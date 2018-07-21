@@ -7,21 +7,21 @@
 namespace darcel {
 
   //! Signals an error that can not be recovered from.
-  class reactor_error : public reactor_exception {
+  class ReactorError : public ReactorException {
     public:
 
       //! Constructs a reactor error with a default error message.
-      reactor_error() = default;
+      ReactorError() = default;
 
       //! Constructs a reactor error with a message.
       /*!
         \param message A message describing the error.
       */
-      reactor_error(const std::string& message);
+      ReactorError(const std::string& message);
   };
 
-  inline reactor_error::reactor_error(const std::string& message)
-      : reactor_exception(message) {}
+  inline ReactorError::ReactorError(const std::string& message)
+      : ReactorException(message) {}
 }
 
 #endif

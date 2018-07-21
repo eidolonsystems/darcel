@@ -6,23 +6,23 @@
 namespace darcel {
 
   //! Signals an exception in the evaluation of a reactor.
-  class reactor_exception : public std::runtime_error {
+  class ReactorException : public std::runtime_error {
     public:
 
       //! Constructs a reactor exception.
-      reactor_exception();
+      ReactorException();
 
       //! Constructs a reactor exception.
       /*!
         \param message A message describing the exception.
       */
-      reactor_exception(const std::string& message);
+      ReactorException(const std::string& message);
   };
 
-  inline reactor_exception::reactor_exception()
+  inline ReactorException::ReactorException()
       : std::runtime_error("Reactor failed.") {}
 
-  inline reactor_exception::reactor_exception(const std::string& message)
+  inline ReactorException::ReactorException(const std::string& message)
       : std::runtime_error(message) {}
 }
 

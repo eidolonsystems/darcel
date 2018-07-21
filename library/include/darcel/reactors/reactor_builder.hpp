@@ -8,9 +8,9 @@
 namespace darcel {
 
   //! Builds a reactor composed of a list of sub-reactors.
-  class reactor_builder {
+  class ReactorBuilder {
     public:
-      virtual ~reactor_builder() = default;
+      virtual ~ReactorBuilder() = default;
 
       //! Builds a reactor with no sub-reactors.
       /*!
@@ -18,7 +18,7 @@ namespace darcel {
         \return The reactor represented by this builder composed of the
                 specified parameters.
       */
-      std::shared_ptr<base_reactor> build(trigger& t) const;
+      std::shared_ptr<BaseReactor> build(Trigger& t) const;
 
       //! Builds a reactor from a list of sub-reactors.
       /*!
@@ -27,22 +27,22 @@ namespace darcel {
         \return The reactor represented by this builder composed of the
                 specified parameters.
       */
-      virtual std::shared_ptr<base_reactor> build(
-        const std::vector<std::shared_ptr<reactor_builder>>& parameters,
-        trigger& t) const = 0;
+      virtual std::shared_ptr<BaseReactor> build(
+        const std::vector<std::shared_ptr<ReactorBuilder>>& parameters,
+        Trigger& t) const = 0;
 
     protected:
 
-      //! Constructs an empty reactor_builder.
-      reactor_builder() = default;
+      //! Constructs an empty ReactorBuilder.
+      ReactorBuilder() = default;
 
     private:
-      reactor_builder(const reactor_builder&) = delete;
-      reactor_builder& operator =(const reactor_builder&) = delete;
+      ReactorBuilder(const ReactorBuilder&) = delete;
+      ReactorBuilder& operator =(const ReactorBuilder&) = delete;
   };
 
   //! Implements a reactor builder using a function.
-  class function_reactor_builder final : public reactor_builder {
+  class FunctionReactorBuilder final : public ReactorBuilder {
     public:
 
       //! Constructs a function reactor builder.
@@ -50,15 +50,15 @@ namespace darcel {
         \param f The function used to build the reactor.
       */
       template<typename F>
-      function_reactor_builder(F&& f);
+      FunctionReactorBuilder(F&& f);
 
-      std::shared_ptr<base_reactor> build(
-        const std::vector<std::shared_ptr<reactor_builder>>& parameters,
-        trigger& t) const override;
+      std::shared_ptr<BaseReactor> build(
+        const std::vector<std::shared_ptr<ReactorBuilder>>& parameters,
+        Trigger& t) const override;
 
     private:
-      std::function<std::shared_ptr<base_reactor> (
-        const std::vector<std::shared_ptr<reactor_builder>>&, trigger&)>
+      std::function<std::shared_ptr<BaseReactor> (
+        const std::vector<std::shared_ptr<ReactorBuilder>>&, Trigger&)>
         m_function;
   };
 
@@ -67,25 +67,25 @@ namespace darcel {
     \param r The reactor to pass through.
   */
   inline auto make_passthrough_reactor_builder(
-      std::shared_ptr<base_reactor> r) {
-    return std::make_unique<function_reactor_builder>(
+      std::shared_ptr<BaseReactor> r) {
+    return std::make_unique<FunctionReactorBuilder>(
       [=] (auto& parameters, auto& t) {
         return r;
       });
   }
 
   template<typename F>
-  function_reactor_builder::function_reactor_builder(F&& f)
+  FunctionReactorBuilder::FunctionReactorBuilder(F&& f)
       : m_function(std::forward<F>(f)) {}
 
-  inline std::shared_ptr<base_reactor> function_reactor_builder::build(
-      const std::vector<std::shared_ptr<reactor_builder>>& parameters,
-      trigger& t) const {
+  inline std::shared_ptr<BaseReactor> FunctionReactorBuilder::build(
+      const std::vector<std::shared_ptr<ReactorBuilder>>& parameters,
+      Trigger& t) const {
     return m_function(parameters, t);
   }
 
-  inline std::shared_ptr<base_reactor> reactor_builder::build(
-      trigger& t) const {
+  inline std::shared_ptr<BaseReactor> ReactorBuilder::build(
+      Trigger& t) const {
     return build({}, t);
   }
 }

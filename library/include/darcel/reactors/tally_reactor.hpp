@@ -10,32 +10,32 @@
 namespace darcel {
 
   //! Countes the number of evaluations produced by a reactor.
-  class tally_reactor final : public reactor<int> {
+  class TallyReactor final : public Reactor<int> {
     public:
 
       //! Constructs a tally reactor.
       /*!
         \param source The reactor to tally.
       */
-      tally_reactor(std::shared_ptr<base_reactor> source);
+      TallyReactor(std::shared_ptr<BaseReactor> source);
 
-      update commit(int sequence) override;
+      Update commit(int sequence) override;
 
-      type eval() const override;
+      Type eval() const override;
 
     private:
-      std::shared_ptr<base_reactor> m_source;
+      std::shared_ptr<BaseReactor> m_source;
       int m_value;
       int m_sequence;
-      update m_update;
+      Update m_update;
   };
 
   //! Makes a tally.
   /*!
     \param source The reactor to tally.
   */
-  inline auto make_tally_reactor(std::shared_ptr<base_reactor> source) {
-    return std::make_shared<tally_reactor>(std::move(source));
+  inline auto make_tally_reactor(std::shared_ptr<BaseReactor> source) {
+    return std::make_shared<TallyReactor>(std::move(source));
   }
 
   //! Makes a tally.
@@ -49,43 +49,43 @@ namespace darcel {
 
   //! Makes a tally reactor builder.
   inline auto make_tally_reactor_builder() {
-    return std::make_unique<function_reactor_builder>(
+    return std::make_unique<FunctionReactorBuilder>(
       [] (auto& parameters, auto& t) {
         return make_tally_reactor(parameters.front()->build(t));
       });
   }
 
-  inline tally_reactor::tally_reactor(std::shared_ptr<base_reactor> source)
+  inline TallyReactor::TallyReactor(std::shared_ptr<BaseReactor> source)
       : m_source(std::move(source)),
         m_value(0),
         m_sequence(-1),
-        m_update(update::NONE) {}
+        m_update(Update::NONE) {}
 
-  inline base_reactor::update tally_reactor::commit(int sequence) {
+  inline BaseReactor::Update TallyReactor::commit(int sequence) {
     if(sequence == m_sequence || is_complete(m_update)) {
       return m_update;
     }
     auto update = m_source->commit(sequence);
     if(is_complete(update)) {
       if(m_sequence == -1) {
-        m_update = update::COMPLETE_EVAL;
+        m_update = Update::COMPLETE_EVAL;
       } else {
-        m_update = update::COMPLETE;
+        m_update = Update::COMPLETE;
       }
     } else {
-      m_update = update::EMPTY;
+      m_update = Update::EMPTY;
     }
     if(has_eval(update)) {
       ++m_value;
-      combine(m_update, update::EVAL);
+      combine(m_update, Update::EVAL);
     } else if(!is_complete(m_update)) {
-      m_update = update::NONE;
+      m_update = Update::NONE;
     }
     m_sequence = sequence;
     return m_update;
   }
 
-  inline int tally_reactor::eval() const {
+  inline int TallyReactor::eval() const {
     return m_value;
   }
 }

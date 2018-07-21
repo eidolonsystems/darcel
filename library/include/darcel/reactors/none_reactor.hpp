@@ -9,22 +9,22 @@ namespace darcel {
 
   //! A reactor that never produces an evaluation.
   template<typename T>
-  class none_reactor final : public reactor<T> {
+  class NoneReactor final : public Reactor<T> {
     public:
-      using type = typename reactor<T>::type;
+      using Type = typename Reactor<T>::Type;
 
       //! Constructs a none reactor.
-      none_reactor() = default;
+      NoneReactor() = default;
 
-      base_reactor::update commit(int sequence) override;
+      BaseReactor::Update commit(int sequence) override;
 
-      type eval() const override;
+      Type eval() const override;
   };
 
   //! Makes a none reactor.
   template<typename T>
   auto make_none_reactor() {
-    return std::make_shared<none_reactor<T>>();
+    return std::make_shared<NoneReactor<T>>();
   };
 
   //! Makes a none reactor.
@@ -34,13 +34,13 @@ namespace darcel {
   }
 
   template<typename T>
-  base_reactor::update none_reactor<T>::commit(int sequence) {
-    return base_reactor::update::COMPLETE_EMPTY;
+  BaseReactor::Update NoneReactor<T>::commit(int sequence) {
+    return BaseReactor::Update::COMPLETE_EMPTY;
   }
 
   template<typename T>
-  typename none_reactor<T>::type none_reactor<T>::eval() const {
-    throw reactor_unavailable_exception();
+  typename NoneReactor<T>::Type NoneReactor<T>::eval() const {
+    throw ReactorUnavailableException();
   }
 }
 

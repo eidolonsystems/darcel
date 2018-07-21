@@ -15,7 +15,7 @@ namespace darcel {
     \param source The reactor producing the values to convert.
   */
   inline auto make_enum_to_string_reactor(std::shared_ptr<EnumDataType> e,
-      std::shared_ptr<reactor<int>> source) {
+      std::shared_ptr<Reactor<int>> source) {
     return make_function_reactor(
       [=] (auto value) {
         for(auto& symbol : e->get_symbols()) {
@@ -33,10 +33,10 @@ namespace darcel {
   */
   inline auto make_enum_to_string_reactor_builder(
       std::shared_ptr<EnumDataType> e) {
-    return std::make_unique<function_reactor_builder>(
+    return std::make_unique<FunctionReactorBuilder>(
       [=] (auto& parameters, auto& t) {
         return make_enum_to_string_reactor(std::move(e),
-          std::static_pointer_cast<reactor<int>>(parameters.front()->build(t)));
+          std::static_pointer_cast<Reactor<int>>(parameters.front()->build(t)));
       });
   }
 }

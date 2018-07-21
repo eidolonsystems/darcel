@@ -10,21 +10,21 @@ namespace darcel {
       \tparam T The type this reactor evaluates to.
    */
   template<typename T>
-  class reactor : public base_reactor {
+  class Reactor : public BaseReactor {
     public:
 
       //! The type this reactor evaluates to.
-      using type = T;
+      using Type = T;
 
       const std::type_info& get_type() const override final;
 
       //! Evaluates this reactor.
-      virtual type eval() const = 0;
+      virtual Type eval() const = 0;
 
     protected:
 
       //! Default constructor.
-      reactor() = default;
+      Reactor() = default;
   };
 
   /*! \brief Returns a reactor's evaluation type.
@@ -32,7 +32,7 @@ namespace darcel {
    */
   template<typename T>
   struct reactor_type {
-    using type = typename T::type;
+    using type = typename T::Type;
   };
 
   template<typename T>
@@ -44,8 +44,8 @@ namespace darcel {
   using reactor_type_t = typename reactor_type<T>::type;
 
   template<typename T>
-  const std::type_info& reactor<T>::get_type() const {
-    return typeid(type);
+  const std::type_info& Reactor<T>::get_type() const {
+    return typeid(Type);
   }
 }
 

@@ -7,58 +7,58 @@
 namespace darcel {
 
   //! Helper class used to determine the aggregate state of a list of reactors.
-  class commit_reactor final : public reactor<base_reactor::update> {
+  class CommitReactor final : public Reactor<BaseReactor::Update> {
     public:
 
       //! Constructs a commit reactor.
       /*!
         \param children The reactors to aggregate.
       */
-      commit_reactor(const std::vector<base_reactor*>& children);
+      CommitReactor(const std::vector<BaseReactor*>& children);
 
-      base_reactor::update commit(int sequence) override;
+      BaseReactor::Update commit(int sequence) override;
 
-      type eval() const override;
+      Type eval() const override;
 
     private:
-      struct child {
-        base_reactor* m_reactor;
-        base_reactor::update m_state;
+      struct Child {
+        BaseReactor* m_reactor;
+        BaseReactor::Update m_state;
 
-        child(base_reactor& reactor);
+        Child(BaseReactor& reactor);
       };
-      enum class state {
+      enum class State {
         INITIALIZING,
         EVALUATING
       };
-      std::vector<child> m_children;
-      state m_state;
+      std::vector<Child> m_children;
+      State m_state;
       int m_sequence;
-      base_reactor::update m_update;
+      BaseReactor::Update m_update;
   };
 
-  inline commit_reactor::child::child(base_reactor& reactor)
+  inline CommitReactor::Child::Child(BaseReactor& reactor)
       : m_reactor(&reactor),
-        m_state(base_reactor::update::NONE) {}
+        m_state(BaseReactor::Update::NONE) {}
 
-  inline commit_reactor::commit_reactor(
-      const std::vector<base_reactor*>& children)
-      : m_state(state::INITIALIZING),
+  inline CommitReactor::CommitReactor(
+      const std::vector<BaseReactor*>& children)
+      : m_state(State::INITIALIZING),
         m_sequence(-1) {
     for(auto& child : children) {
       m_children.emplace_back(*child);
     }
   }
 
-  inline base_reactor::update commit_reactor::commit(int sequence) {
+  inline BaseReactor::Update CommitReactor::commit(int sequence) {
     if(is_complete(m_update) || sequence == m_sequence) {
       return m_update;
     }
-    if(m_state == state::INITIALIZING) {
+    if(m_state == State::INITIALIZING) {
       std::size_t initialization_count = 0;
       std::size_t completion_count = 0;
       for(auto& child : m_children) {
-        if(child.m_state == update::NONE) {
+        if(child.m_state == Update::NONE) {
           child.m_state = child.m_reactor->commit(sequence);
           if(is_complete(child.m_state)) {
             ++completion_count;
@@ -66,7 +66,7 @@ namespace darcel {
           if(has_eval(child.m_state)) {
             ++initialization_count;
           } else if(is_complete(child.m_state)) {
-            m_update = update::COMPLETE_EMPTY;
+            m_update = Update::COMPLETE_EMPTY;
             break;
           }
         } else {
@@ -79,15 +79,15 @@ namespace darcel {
         }
       }
       if(initialization_count == m_children.size()) {
-        m_update = update::EVAL;
+        m_update = Update::EVAL;
         if(completion_count == m_children.size()) {
-          combine(m_update, update::COMPLETE);
+          combine(m_update, Update::COMPLETE);
         } else {
-          m_state = state::EVALUATING;
+          m_state = State::EVALUATING;
         }
       }
-    } else if(m_state == state::EVALUATING) {
-      m_update = update::NONE;
+    } else if(m_state == State::EVALUATING) {
+      m_update = Update::NONE;
       std::size_t completion_count = 0;
       for(auto& child : m_children) {
         if(is_complete(child.m_state)) {
@@ -95,7 +95,7 @@ namespace darcel {
         } else {
           child.m_state = child.m_reactor->commit(sequence);
           if(has_eval(child.m_state)) {
-            m_update = update::EVAL;
+            m_update = Update::EVAL;
           }
           if(is_complete(child.m_state)) {
             ++completion_count;
@@ -103,14 +103,14 @@ namespace darcel {
         }
       }
       if(completion_count == m_children.size()) {
-        m_update = update::COMPLETE_EVAL;
+        m_update = Update::COMPLETE_EVAL;
       }
     }
     m_sequence = sequence;
     return m_update;
   }
 
-  inline commit_reactor::type commit_reactor::eval() const {
+  inline CommitReactor::Type CommitReactor::eval() const {
     return m_update;
   }
 }

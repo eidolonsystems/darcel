@@ -8,31 +8,31 @@ namespace darcel {
 
   //! A reactor that always evaluates to nothing, useful for building up
   //! reactors that need to iterate.
-  class perpetual_reactor : public reactor<void> {
+  class PerpetualReactor : public Reactor<void> {
     public:
-      update commit(int sequence) override;
+      Update commit(int sequence) override;
 
       void eval() const override;
   };
 
   //! Makes a perpetual reactor.
   inline auto make_perpetual() {
-    return std::make_shared<perpetual_reactor>();
+    return std::make_shared<PerpetualReactor>();
   }
 
   //! Builds a perpetual reactor.
   inline auto make_perpetual_builder() {
-    return std::make_unique<function_reactor_builder>(
+    return std::make_unique<FunctionReactorBuilder>(
       [] (auto& parameters, auto& t) {
         return make_perpetual();
       });
   }
 
-  inline base_reactor::update perpetual_reactor::commit(int sequence) {
-    return update::EVAL;
+  inline BaseReactor::Update PerpetualReactor::commit(int sequence) {
+    return Update::EVAL;
   }
 
-  inline void perpetual_reactor::eval() const {}
+  inline void PerpetualReactor::eval() const {}
 }
 
 #endif

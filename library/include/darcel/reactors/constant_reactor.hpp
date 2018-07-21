@@ -11,23 +11,23 @@ namespace darcel {
 
   //! Evaluates to a constant.
   template<typename T>
-  class constant_reactor final : public reactor<T> {
+  class ConstantReactor final : public Reactor<T> {
     public:
-      using type = typename reactor<T>::type;
+      using Type = typename Reactor<T>::Type;
 
       //! Constructs a constant.
       /*!
         \param value The constant to evaluate to.
       */
       template<typename V>
-      constant_reactor(V&& value);
+      ConstantReactor(V&& value);
 
-      base_reactor::update commit(int sequence) override;
+      BaseReactor::Update commit(int sequence) override;
 
-      type eval() const override;
+      Type eval() const override;
 
     private:
-      type m_value;
+      Type m_value;
   };
 
   //! Makes a constant.
@@ -36,7 +36,7 @@ namespace darcel {
   */
   template<typename T>
   auto make_constant_reactor(T&& value) {
-    return std::make_shared<constant_reactor<std::decay_t<T>>>(
+    return std::make_shared<ConstantReactor<std::decay_t<T>>>(
       std::forward<T>(value));
   }
 
@@ -46,7 +46,7 @@ namespace darcel {
   */
   template<typename T>
   auto make_constant_reactor_builder(T&& value) {
-    return std::make_unique<function_reactor_builder>(
+    return std::make_unique<FunctionReactorBuilder>(
       [value = std::forward<T>(value)] (auto& parameters, auto& t) {
         return make_constant_reactor(value);
       });
@@ -54,16 +54,16 @@ namespace darcel {
 
   template<typename T>
   template<typename V>
-  constant_reactor<T>::constant_reactor(V&& value)
+  ConstantReactor<T>::ConstantReactor(V&& value)
       : m_value(std::forward<V>(value)) {}
 
   template<typename T>
-  base_reactor::update constant_reactor<T>::commit(int sequence) {
-    return base_reactor::update::COMPLETE_EVAL;
+  BaseReactor::Update ConstantReactor<T>::commit(int sequence) {
+    return BaseReactor::Update::COMPLETE_EVAL;
   }
 
   template<typename T>
-  typename constant_reactor<T>::type constant_reactor<T>::eval() const {
+  typename ConstantReactor<T>::Type ConstantReactor<T>::eval() const {
     return m_value;
   }
 
@@ -72,7 +72,7 @@ namespace details {
   struct lift_helper {
     template<typename U>
     auto operator ()(U&& value) const {
-      return std::static_pointer_cast<reactor<T>>(
+      return std::static_pointer_cast<Reactor<T>>(
         make_constant_reactor(std::forward<U>(value)));
     }
   };
@@ -81,7 +81,7 @@ namespace details {
   struct lift_helper<std::shared_ptr<T>> {
     template<typename U>
     auto operator ()(U&& value) const {
-      return std::static_pointer_cast<reactor<reactor_type_t<T>>>(
+      return std::static_pointer_cast<Reactor<reactor_type_t<T>>>(
         std::forward<U>(value));
     }
   };

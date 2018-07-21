@@ -5,12 +5,12 @@
 using namespace darcel;
 using namespace darcel::tests;
 
-TEST_CASE("test_perpetual", "[perpetual_reactor]") {
+TEST_CASE("test_perpetual", "[PerpetualReactor]") {
   auto r = make_perpetual();
-  REQUIRE(r->commit(0) == base_reactor::update::EVAL);
-  REQUIRE(r->commit(0) == base_reactor::update::EVAL);
-  REQUIRE(r->commit(1) == base_reactor::update::EVAL);
-  REQUIRE(r->commit(1) == base_reactor::update::EVAL);
-  REQUIRE(r->commit(2) == base_reactor::update::EVAL);
-  REQUIRE(r->commit(100) == base_reactor::update::EVAL);
+  REQUIRE(r->commit(0) == BaseReactor::Update::EVAL);
+  REQUIRE(r->commit(0) == BaseReactor::Update::EVAL);
+  REQUIRE(r->commit(1) == BaseReactor::Update::EVAL);
+  REQUIRE(r->commit(1) == BaseReactor::Update::EVAL);
+  REQUIRE(r->commit(2) == BaseReactor::Update::EVAL);
+  REQUIRE(r->commit(100) == BaseReactor::Update::EVAL);
 }
