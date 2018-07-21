@@ -18,11 +18,11 @@ namespace darcel {
         \param v The variable to bind.
         \param e The expression to bind to the variable.
       */
-      bind_variable_statement(Location l, std::shared_ptr<variable> v,
+      bind_variable_statement(Location l, std::shared_ptr<Variable> v,
         std::unique_ptr<expression> e);
 
       //! Returns the variable.
-      const std::shared_ptr<variable>& get_variable() const;
+      const std::shared_ptr<Variable>& get_variable() const;
 
       //! Returns the expression that was bound.
       const expression& get_expression() const;
@@ -30,17 +30,17 @@ namespace darcel {
       void apply(syntax_node_visitor& visitor) const override;
 
     private:
-      std::shared_ptr<variable> m_variable;
+      std::shared_ptr<Variable> m_variable;
       std::unique_ptr<expression> m_expression;
   };
 
   inline bind_variable_statement::bind_variable_statement(Location l,
-      std::shared_ptr<variable> v, std::unique_ptr<expression> e)
+      std::shared_ptr<Variable> v, std::unique_ptr<expression> e)
       : statement(std::move(l)),
         m_variable(std::move(v)),
         m_expression(std::move(e)) {}
 
-  inline const std::shared_ptr<variable>&
+  inline const std::shared_ptr<Variable>&
       bind_variable_statement::get_variable() const {
     return m_variable;
   }

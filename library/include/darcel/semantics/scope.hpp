@@ -12,20 +12,20 @@ namespace darcel {
 
   //! Scopes are used to store and look-up named language constructs such as
   //! variables, data types, functions, etc...
-  class scope {
+  class Scope {
     public:
 
       //! Constructs an empty global scope.
-      scope();
+      Scope();
 
       //! Constructs a child scope.
       /*!
         \param parent The parent scope.
       */
-      explicit scope(const scope* parent);
+      explicit Scope(const Scope* parent);
 
       //! Returns the parent scope (potentially null).
-      const scope* get_parent() const;
+      const Scope* get_parent() const;
 
       //! Tests if an element with a specified name is contained within this
       //! scope (that is directly within this scope, not a parent scope).
@@ -34,11 +34,11 @@ namespace darcel {
       //! Finds an element accessible from within this scope (ie. contained
       //! within this scope or a parent scope).
       template<typename F>
-      std::shared_ptr<element> find(F&& predicate) const;
+      std::shared_ptr<Element> find(F&& predicate) const;
 
       //! Finds an element accessible from within this scope (ie. contained
       //! within this scope or a parent scope).
-      std::shared_ptr<element> find(const std::string& name) const;
+      std::shared_ptr<Element> find(const std::string& name) const;
 
       //! Finds an element of a particular type within this scope.
       template<typename T>
@@ -46,11 +46,11 @@ namespace darcel {
 
       //! Finds an element within this scope (ie. contained strictly within this
       //! scope, not a parent scope).
-      std::shared_ptr<element> find_within(const std::string& name) const;
+      std::shared_ptr<Element> find_within(const std::string& name) const;
 
       //! Returns a function's definitions contained strictly within this scope.
-      const std::vector<std::shared_ptr<function_definition>>&
-        get_definitions(const function& f) const;
+      const std::vector<std::shared_ptr<FunctionDefinition>>&
+        get_definitions(const Function& f) const;
 
       //! Finds a definition matching a predicate.
       /*!
@@ -59,7 +59,7 @@ namespace darcel {
         \return The function definition matching the predicate.
       */
       template<typename F>
-      const std::shared_ptr<function_definition>& find(const function& f,
+      const std::shared_ptr<FunctionDefinition>& find(const Function& f,
         F&& predicate) const;
 
       //! Adds an element to this scope.
@@ -68,35 +68,35 @@ namespace darcel {
         \return <code>true</code> iff the element was added, otherwise an
                 element with the same name already exists.
       */
-      bool add(std::shared_ptr<element> e);
+      bool add(std::shared_ptr<Element> e);
 
     private:
-      const scope* m_parent;
-      std::unordered_map<std::string, std::shared_ptr<element>> m_elements;
-      std::unordered_map<const function*,
-        std::vector<std::shared_ptr<function_definition>>>
+      const Scope* m_parent;
+      std::unordered_map<std::string, std::shared_ptr<Element>> m_elements;
+      std::unordered_map<const Function*,
+        std::vector<std::shared_ptr<FunctionDefinition>>>
         m_function_definitions;
 
-      scope(const scope&) = delete;
-      scope& operator =(const scope&) = delete;
+      Scope(const Scope&) = delete;
+      Scope& operator =(const Scope&) = delete;
   };
 
-  inline scope::scope()
-      : scope(nullptr) {}
+  inline Scope::Scope()
+      : Scope(nullptr) {}
 
-  inline scope::scope(const scope* parent)
+  inline Scope::Scope(const Scope* parent)
       : m_parent(parent) {}
 
-  inline const scope* scope::get_parent() const {
+  inline const Scope* Scope::get_parent() const {
     return m_parent;
   }
 
-  inline bool scope::contains(const std::string& name) const {
+  inline bool Scope::contains(const std::string& name) const {
     return m_elements.count(name) == 1;
   }
 
   template<typename F>
-  std::shared_ptr<element> scope::find(F&& predicate) const {
+  std::shared_ptr<Element> Scope::find(F&& predicate) const {
     for(auto& element : m_elements) {
       if(predicate(element.second)) {
         return element.second;
@@ -110,13 +110,13 @@ namespace darcel {
       }
     }
     if(m_parent == nullptr) {
-      static const std::shared_ptr<element> NONE;
+      static const std::shared_ptr<Element> NONE;
       return NONE;
     }
     return m_parent->find(std::move(predicate));
   }
 
-  inline std::shared_ptr<element> scope::find(const std::string& name) const {
+  inline std::shared_ptr<Element> Scope::find(const std::string& name) const {
     auto e = m_elements.find(name);
     if(e == m_elements.end()) {
       if(m_parent == nullptr) {
@@ -128,12 +128,12 @@ namespace darcel {
   }
 
   template<typename T>
-  std::shared_ptr<T> scope::find(const std::string& name) const {
+  std::shared_ptr<T> Scope::find(const std::string& name) const {
     auto e = find(name);
     return std::dynamic_pointer_cast<T>(e);
   }
 
-  inline std::shared_ptr<element> scope::find_within(
+  inline std::shared_ptr<Element> Scope::find_within(
       const std::string& name) const {
     auto e = m_elements.find(name);
     if(e == m_elements.end()) {
@@ -142,9 +142,9 @@ namespace darcel {
     return e->second;
   }
 
-  inline const std::vector<std::shared_ptr<function_definition>>&
-      scope::get_definitions(const function& f) const {
-    static std::vector<std::shared_ptr<function_definition>> EMPTY;
+  inline const std::vector<std::shared_ptr<FunctionDefinition>>&
+      Scope::get_definitions(const Function& f) const {
+    static std::vector<std::shared_ptr<FunctionDefinition>> EMPTY;
     auto i = m_function_definitions.find(&f);
     if(i == m_function_definitions.end()) {
       return EMPTY;
@@ -153,7 +153,7 @@ namespace darcel {
   }
 
   template<typename F>
-  const std::shared_ptr<function_definition>& scope::find(const function& f,
+  const std::shared_ptr<FunctionDefinition>& Scope::find(const Function& f,
       F&& predicate) const {
     for(auto& definition : get_definitions(f)) {
       if(predicate(*definition)) {
@@ -161,15 +161,15 @@ namespace darcel {
       }
     }
     if(m_parent == nullptr) {
-      static const std::shared_ptr<function_definition> NONE;
+      static const std::shared_ptr<FunctionDefinition> NONE;
       return NONE;
     }
     return m_parent->find(f, std::move(predicate));
   }
 
-  inline bool scope::add(std::shared_ptr<element> e) {
-    if(auto definition = std::dynamic_pointer_cast<function_definition>(e)) {
-      auto f = find<function>(e->get_name());
+  inline bool Scope::add(std::shared_ptr<Element> e) {
+    if(auto definition = std::dynamic_pointer_cast<FunctionDefinition>(e)) {
+      auto f = find<Function>(e->get_name());
       if(f == nullptr) {
         return false;
       }

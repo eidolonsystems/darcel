@@ -26,7 +26,7 @@ namespace darcel {
         \return <code>true</code> if all requirements are satisfied using
                 <i>t</i>.
       */
-      bool is_satisfied(const type_map& t, const scope& s) const;
+      bool is_satisfied(const type_map& t, const Scope& s) const;
 
       //! Adds a requirement that an expression must evaluate to a particular
       //! data type.
@@ -45,7 +45,7 @@ namespace darcel {
   };
 
   inline bool conjunctive_set::is_satisfied(const type_map& t,
-      const scope& s) const {
+      const Scope& s) const {
     DataTypeMap<std::shared_ptr<GenericDataType>,
       std::shared_ptr<DataType>> substitutions;
     for(auto& term : m_terms) {

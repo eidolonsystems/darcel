@@ -20,27 +20,27 @@ namespace darcel {
         \param name The name of the invalid member.
       */
       invalid_member_syntax_error(Location error_location,
-        std::shared_ptr<element> e, std::string name);
+        std::shared_ptr<Element> e, std::string name);
 
       //! Returns the element being accessed.
-      const std::shared_ptr<element>& get_element() const;
+      const std::shared_ptr<Element>& get_element() const;
 
       //! Returns the name of the invalid member.
       const std::string& get_name() const;
 
     private:
-      std::shared_ptr<element> m_element;
+      std::shared_ptr<Element> m_element;
       std::string m_name;
   };
 
   inline invalid_member_syntax_error::invalid_member_syntax_error(
-      Location error_location, std::shared_ptr<element> e, std::string name)
+      Location error_location, std::shared_ptr<Element> e, std::string name)
       : syntax_error(syntax_error_code::INVALID_MEMBER,
           std::move(error_location)),
         m_element(std::move(e)),
         m_name(std::move(name)) {}
 
-  inline const std::shared_ptr<element>&
+  inline const std::shared_ptr<Element>&
       invalid_member_syntax_error::get_element() const {
     return m_element;
   }

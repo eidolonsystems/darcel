@@ -18,23 +18,23 @@ namespace darcel {
         \param l The location of the identifier token.
         \param v The variable to evaluate.
       */
-      variable_expression(Location l, std::shared_ptr<variable> v);
+      variable_expression(Location l, std::shared_ptr<Variable> v);
 
       //! Returns the variable to evaluate.
-      const std::shared_ptr<variable>& get_variable() const;
+      const std::shared_ptr<Variable>& get_variable() const;
 
       void apply(syntax_node_visitor& visitor) const override;
 
     private:
-      std::shared_ptr<variable> m_variable;
+      std::shared_ptr<Variable> m_variable;
   };
 
   inline variable_expression::variable_expression(Location l,
-      std::shared_ptr<variable> v)
+      std::shared_ptr<Variable> v)
       : expression(std::move(l)),
         m_variable(std::move(v)) {}
 
-  inline const std::shared_ptr<variable>& variable_expression::
+  inline const std::shared_ptr<Variable>& variable_expression::
       get_variable() const {
     return m_variable;
   }

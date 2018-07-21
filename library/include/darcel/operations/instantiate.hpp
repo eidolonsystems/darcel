@@ -16,7 +16,7 @@ namespace darcel {
   inline std::unique_ptr<bind_function_statement> instantiate(
       const bind_function_statement& node, const FunctionDataType& t) {
     struct InstantiateVisitor final : syntax_node_visitor {
-      std::unordered_map<std::shared_ptr<variable>, std::shared_ptr<variable>>
+      std::unordered_map<std::shared_ptr<Variable>, std::shared_ptr<Variable>>
         m_substitutions;
       std::unique_ptr<syntax_node> m_clone;
 
@@ -25,7 +25,7 @@ namespace darcel {
         std::vector<bind_function_statement::parameter> parameters;
         for(std::size_t i = 0; i < node.get_parameters().size(); ++i) {
           auto& p = node.get_parameters()[i];
-          auto substitution = std::make_shared<variable>(
+          auto substitution = std::make_shared<Variable>(
             p.m_variable->get_location(), p.m_variable->get_name());
           parameters.emplace_back(substitution, t.get_parameters()[i].m_type);
           m_substitutions.insert(std::make_pair(p.m_variable,
@@ -40,7 +40,7 @@ namespace darcel {
       }
 
       void visit(const bind_variable_statement& node) override {
-        auto v = std::make_shared<variable>(node.get_variable()->get_location(),
+        auto v = std::make_shared<Variable>(node.get_variable()->get_location(),
           node.get_variable()->get_name());
         m_substitutions.insert(std::make_pair(node.get_variable(), v));
         node.get_expression().apply(*this);

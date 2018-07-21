@@ -21,7 +21,7 @@
 
 
 namespace darcel {
-  std::unique_ptr<expression> find_term(Location l, const scope& s,
+  std::unique_ptr<expression> find_term(Location l, const Scope& s,
     const std::string& name);
 
   //! Function used to build a sub-expression.
@@ -29,7 +29,7 @@ namespace darcel {
     \param s The scope of the sub-expression.
   */
   using expression_builder = std::function<
-    std::unique_ptr<expression> (scope& s)>;
+    std::unique_ptr<expression> (Scope& s)>;
 
   //! Binds a new enum.
   /*!
@@ -38,7 +38,7 @@ namespace darcel {
     \param name The name of the enum to bind.
     \param symbols The symbols belonging to the enum.
   */
-  inline std::unique_ptr<bind_enum_statement> bind_enum(Location l, scope& s,
+  inline std::unique_ptr<bind_enum_statement> bind_enum(Location l, Scope& s,
       std::string name, std::vector<EnumDataType::Symbol> symbols) {
     auto type = std::make_shared<EnumDataType>(std::move(l), std::move(name),
       std::move(symbols));
@@ -55,31 +55,31 @@ namespace darcel {
     \param body The function called to build the body of the function.
   */
   inline std::unique_ptr<bind_function_statement> bind_function(Location l,
-      scope& s, std::string name,
+      Scope& s, std::string name,
       std::vector<bind_function_statement::parameter> parameters,
       const expression_builder& body) {
     auto f = [&] {
       auto existing_element = s.find_within(name);
       if(existing_element == nullptr) {
-        auto parent = s.find<function>(name);
+        auto parent = s.find<Function>(name);
         auto f = [&] {
           if(parent == nullptr) {
-            return std::make_shared<function>(l, name);
+            return std::make_shared<Function>(l, name);
           } else {
-            return std::make_shared<function>(l, std::move(parent));
+            return std::make_shared<Function>(l, std::move(parent));
           }
         }();
         s.add(f);
         return f;
       }
-      auto f = std::dynamic_pointer_cast<function>(existing_element);
+      auto f = std::dynamic_pointer_cast<Function>(existing_element);
       if(f == nullptr) {
         throw redefinition_syntax_error(l, name,
           existing_element->get_location());
       }
       return f;
     }();
-    scope body_scope(&s);
+    Scope body_scope(&s);
     for(auto& parameter : parameters) {
       if(auto generic = std::dynamic_pointer_cast<GenericDataType>(
           parameter.m_type)) {
@@ -90,7 +90,7 @@ namespace darcel {
       }
       body_scope.add(parameter.m_variable);
     }
-    scope expression_scope(&body_scope);
+    Scope expression_scope(&body_scope);
     auto e = body(expression_scope);
     return std::make_unique<bind_function_statement>(std::move(l), std::move(f),
       std::move(parameters), std::move(e));
@@ -103,7 +103,7 @@ namespace darcel {
     \param parameters The list of function parameters.
     \param body The function called to build the body of the function.
   */
-  inline std::unique_ptr<bind_function_statement> bind_function(scope& s,
+  inline std::unique_ptr<bind_function_statement> bind_function(Scope& s,
       std::string name,
       std::vector<bind_function_statement::parameter> parameters,
       const expression_builder& body) {
@@ -118,12 +118,12 @@ namespace darcel {
     \param parameters The list of function parameters.
     \param body The function called to build the body of the function.
   */
-  inline std::unique_ptr<bind_function_statement> bind_function(scope& s,
+  inline std::unique_ptr<bind_function_statement> bind_function(Scope& s,
       std::string name, std::vector<FunctionDataType::Parameter> parameters,
       const expression_builder& body) {
     std::vector<bind_function_statement::parameter> p;
     for(auto& parameter : parameters) {
-      p.emplace_back(std::make_shared<variable>(Location::global(),
+      p.emplace_back(std::make_shared<Variable>(Location::global(),
         parameter.m_name), parameter.m_type);
     }
     return bind_function(Location::global(), s, std::move(name), std::move(p),
@@ -136,7 +136,7 @@ namespace darcel {
     \param name The name of the function to bind.
     \param body The function called to build the body of the function.
   */
-  inline std::unique_ptr<bind_function_statement> bind_function(scope& s,
+  inline std::unique_ptr<bind_function_statement> bind_function(Scope& s,
       std::string name, const expression_builder& body) {
     std::vector<bind_function_statement::parameter> p;
     return bind_function(Location::global(), s, std::move(name), std::move(p),
@@ -151,13 +151,13 @@ namespace darcel {
     \param e The expression to bind to the variable.
   */
   inline std::unique_ptr<bind_variable_statement> bind_variable(Location l,
-      scope& s, std::string name, std::unique_ptr<expression> e) {
+      Scope& s, std::string name, std::unique_ptr<expression> e) {
     auto existing_element = s.find_within(name);
     if(existing_element != nullptr) {
       throw redefinition_syntax_error(l, name,
         existing_element->get_location());
     }
-    auto v = std::make_shared<variable>(l, std::move(name));
+    auto v = std::make_shared<Variable>(l, std::move(name));
     s.add(v);
     return std::make_unique<bind_variable_statement>(std::move(l), std::move(v),
       std::move(e));
@@ -169,7 +169,7 @@ namespace darcel {
     \param name The name of the variable to bind.
     \param e The expression to bind to the variable.
   */
-  inline std::unique_ptr<bind_variable_statement> bind_variable(scope& s,
+  inline std::unique_ptr<bind_variable_statement> bind_variable(Scope& s,
       std::string name, std::unique_ptr<expression> e) {
     return bind_variable(Location::global(), s, std::move(name), std::move(e));
   }
@@ -195,7 +195,7 @@ namespace darcel {
     \param arguments The list of arguments to pass to the function.
     \param s The scope to find the function in.
   */
-  inline std::unique_ptr<call_expression> call(Location l, const scope& s,
+  inline std::unique_ptr<call_expression> call(Location l, const Scope& s,
       std::string name, std::vector<std::unique_ptr<expression>> arguments) {
     auto callable = find_term(l, s, name);
     return call(std::move(l), std::move(callable), std::move(arguments));
@@ -207,7 +207,7 @@ namespace darcel {
     \param name The name of the function to call.
     \param arguments The list of arguments to pass to the function.
   */
-  inline std::unique_ptr<call_expression> call(const scope& s, std::string name,
+  inline std::unique_ptr<call_expression> call(const Scope& s, std::string name,
       std::vector<std::unique_ptr<expression>> arguments) {
     return call(Location::global(), s, std::move(name), std::move(arguments));
   }
@@ -217,7 +217,7 @@ namespace darcel {
     \param name The name of the function to call.
     \param s The scope to find the function in.
   */
-  inline std::unique_ptr<call_expression> call(const scope& s,
+  inline std::unique_ptr<call_expression> call(const Scope& s,
       std::string name) {
     return call(Location::global(), s, std::move(name), {});
   }
@@ -228,7 +228,7 @@ namespace darcel {
     \param name The name of the function to call.
     \param arg1 The argument to pass to the function.
   */
-  inline std::unique_ptr<call_expression> call(const scope& s, std::string name,
+  inline std::unique_ptr<call_expression> call(const Scope& s, std::string name,
       std::unique_ptr<expression> arg1) {
     std::vector<std::unique_ptr<expression>> arguments;
     arguments.push_back(std::move(arg1));
@@ -242,7 +242,7 @@ namespace darcel {
     \param arg1 The first argument to pass to the function.
     \param arg2 The second argument to pass to the function.
   */
-  inline std::unique_ptr<call_expression> call(const scope& s, std::string name,
+  inline std::unique_ptr<call_expression> call(const Scope& s, std::string name,
       std::unique_ptr<expression> arg1, std::unique_ptr<expression> arg2) {
     std::vector<std::unique_ptr<expression>> arguments;
     arguments.push_back(std::move(arg1));
@@ -321,8 +321,8 @@ namespace darcel {
     \param name The name of the variable.
   */
   inline std::unique_ptr<variable_expression> make_variable_expression(
-      Location l, const scope& s, const std::string& name) {
-    auto v = s.find<variable>(name);
+      Location l, const Scope& s, const std::string& name) {
+    auto v = s.find<Variable>(name);
     if(v == nullptr) {
       throw variable_not_found_error(l, name);
     }
@@ -335,7 +335,7 @@ namespace darcel {
     \param name The name of the variable.
   */
   inline std::unique_ptr<variable_expression> make_variable_expression(
-      const scope& s, const std::string& name) {
+      const Scope& s, const std::string& name) {
     return make_variable_expression(Location::global(), s, name);
   }
 
@@ -345,12 +345,12 @@ namespace darcel {
     \param s The scope to find the term in.
     \param name The name of the term.
   */
-  inline std::unique_ptr<expression> find_term(Location l, const scope& s,
+  inline std::unique_ptr<expression> find_term(Location l, const Scope& s,
       const std::string& name) {
     auto e = s.find(name);
-    if(auto f = std::dynamic_pointer_cast<function>(e)) {
+    if(auto f = std::dynamic_pointer_cast<Function>(e)) {
       return std::make_unique<function_expression>(std::move(l), std::move(f));
-    } else if(auto v = std::dynamic_pointer_cast<variable>(e)) {
+    } else if(auto v = std::dynamic_pointer_cast<Variable>(e)) {
       return std::make_unique<variable_expression>(std::move(l), std::move(v));
     }
     throw variable_not_found_error(l, name);
@@ -362,7 +362,7 @@ namespace darcel {
     \param s The scope to find the term in.
   */
   inline std::unique_ptr<expression> find_term(const std::string& name,
-      const scope& s) {
+      const Scope& s) {
     return find_term(Location::global(), s, name);
   }
 }

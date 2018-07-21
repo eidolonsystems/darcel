@@ -7,7 +7,7 @@
 using namespace darcel;
 
 TEST_CASE("test_translating_literal", "[ReactorTranslator]") {
-  scope s;
+  Scope s;
   auto node = bind_variable(s, "main", make_literal(123));
   ReactorTranslator rt(s);
   REQUIRE_NOTHROW(rt.translate(*node));
@@ -18,7 +18,7 @@ TEST_CASE("test_translating_literal", "[ReactorTranslator]") {
 }
 
 TEST_CASE("test_translating_identity_function", "[ReactorTranslator]") {
-  scope s;
+  Scope s;
   auto f = bind_function(s, "f", {{"x", IntegerDataType::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
@@ -34,7 +34,7 @@ TEST_CASE("test_translating_identity_function", "[ReactorTranslator]") {
 }
 
 TEST_CASE("test_translating_function_variable", "[ReactorTranslator]") {
-  scope s;
+  Scope s;
   auto f = bind_function(s, "f", {{"x", IntegerDataType::get_instance()}},
     [&] (auto& s) {
       return find_term("x", s);
@@ -52,7 +52,7 @@ TEST_CASE("test_translating_function_variable", "[ReactorTranslator]") {
 }
 
 TEST_CASE("test_translating_identity_generic", "[ReactorTranslator]") {
-  scope s;
+  Scope s;
   auto f = bind_function(s, "f", {{"x", make_generic_data_type("`T", 0)}},
     [&] (auto& s) {
       return find_term("x", s);
@@ -68,7 +68,7 @@ TEST_CASE("test_translating_identity_generic", "[ReactorTranslator]") {
 }
 
 TEST_CASE("test_translating_generic_series", "[ReactorTranslator]") {
-  scope s;
+  Scope s;
   auto f = bind_function(s, "f", {{"x", make_generic_data_type("`T", 0)}},
     [&] (auto& s) {
       return find_term("x", s);

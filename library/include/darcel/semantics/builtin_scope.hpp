@@ -18,7 +18,7 @@ namespace darcel {
   /*!
     \param scope The scope to populate.
   */
-  inline void populate_data_types(scope& scope) {
+  inline void populate_data_types(Scope& scope) {
     scope.add(BoolDataType::get_instance());
     scope.add(FloatDataType::get_instance());
     scope.add(IntegerDataType::get_instance());
@@ -29,9 +29,9 @@ namespace darcel {
   /*!
     \param s The scope to populate.
   */
-  inline void populate_arithmetic(scope& s) {
+  inline void populate_arithmetic(Scope& s) {
     for(auto& o : {op::ADD, op::SUBTRACT, op::MULTIPLY, op::DIVIDE}) {
-      auto f = std::make_shared<function>(Location::global(),
+      auto f = std::make_shared<Function>(Location::global(),
         get_function_name(o));
       s.add(f);
       s.add(std::make_shared<CallableDataType>(f));
@@ -40,7 +40,7 @@ namespace darcel {
         std::vector<FunctionDataType::Parameter> parameters;
         parameters.emplace_back("left", t);
         parameters.emplace_back("right", t);
-        auto d = std::make_shared<function_definition>(Location::global(), f,
+        auto d = std::make_shared<FunctionDefinition>(Location::global(), f,
           std::make_shared<FunctionDataType>(parameters, t));
         s.add(d);
       }
@@ -50,8 +50,8 @@ namespace darcel {
       parameters.emplace_back("left", TextDataType::get_instance());
       parameters.emplace_back("right", TextDataType::get_instance());
       auto name = get_function_name(op::ADD);
-      auto f = s.find<function>(name);
-      auto d = std::make_shared<function_definition>(Location::global(), f,
+      auto f = s.find<Function>(name);
+      auto d = std::make_shared<FunctionDefinition>(Location::global(), f,
         std::make_shared<FunctionDataType>(parameters,
         TextDataType::get_instance()));
       s.add(d);
@@ -62,14 +62,14 @@ namespace darcel {
   /*!
     \param s The scope to populate.
   */
-  inline void populate_chain(scope& s) {
-    auto f = std::make_shared<function>(Location::global(), "chain");
+  inline void populate_chain(Scope& s) {
+    auto f = std::make_shared<Function>(Location::global(), "chain");
     s.add(f);
     std::vector<FunctionDataType::Parameter> parameters;
     auto t = std::make_shared<GenericDataType>(Location::global(), "`T", 0);
     parameters.emplace_back("initial", t);
     parameters.emplace_back("continuation", t);
-    auto d = std::make_shared<function_definition>(Location::global(), f,
+    auto d = std::make_shared<FunctionDefinition>(Location::global(), f,
       std::make_shared<FunctionDataType>(parameters, t));
     s.add(d);
   }
@@ -78,13 +78,13 @@ namespace darcel {
   /*!
     \param s The scope to populate.
   */
-  inline void populate_count(scope& s) {
-    auto f = std::make_shared<function>(Location::global(), "count");
+  inline void populate_count(Scope& s) {
+    auto f = std::make_shared<Function>(Location::global(), "count");
     s.add(f);
     std::vector<FunctionDataType::Parameter> parameters;
     parameters.emplace_back("start", IntegerDataType::get_instance());
     parameters.emplace_back("end", IntegerDataType::get_instance());
-    auto d = std::make_shared<function_definition>(Location::global(), f,
+    auto d = std::make_shared<FunctionDefinition>(Location::global(), f,
       std::make_shared<FunctionDataType>(parameters,
       IntegerDataType::get_instance()));
     s.add(d);
@@ -94,13 +94,13 @@ namespace darcel {
   /*!
     \param s The scope to populate.
   */
-  inline void populate_first(scope& s) {
-    auto f = std::make_shared<function>(Location::global(), "first");
+  inline void populate_first(Scope& s) {
+    auto f = std::make_shared<Function>(Location::global(), "first");
     s.add(f);
     std::vector<FunctionDataType::Parameter> parameters;
     auto t = std::make_shared<GenericDataType>(Location::global(), "`T", 0);
     parameters.emplace_back("source", t);
-    auto d = std::make_shared<function_definition>(Location::global(), f,
+    auto d = std::make_shared<FunctionDefinition>(Location::global(), f,
       std::make_shared<FunctionDataType>(parameters, t));
     s.add(d);
   }
@@ -109,8 +109,8 @@ namespace darcel {
   /*!
     \param s The scope to populate.
   */
-  inline void populate_fold(scope& s) {
-    auto f = std::make_shared<function>(Location::global(), "fold");
+  inline void populate_fold(Scope& s) {
+    auto f = std::make_shared<Function>(Location::global(), "fold");
     s.add(f);
     auto t = std::make_shared<GenericDataType>(Location::global(), "`T", 0);
     std::vector<FunctionDataType::Parameter> parameters;
@@ -122,7 +122,7 @@ namespace darcel {
     }();
     parameters.emplace_back("f", std::move(r));
     parameters.emplace_back("r", t);
-    auto d = std::make_shared<function_definition>(Location::global(), f,
+    auto d = std::make_shared<FunctionDefinition>(Location::global(), f,
       std::make_shared<FunctionDataType>(parameters, t));
     s.add(d);
   }
@@ -131,13 +131,13 @@ namespace darcel {
   /*!
     \param s The scope to populate.
   */
-  inline void populate_last(scope& s) {
-    auto f = std::make_shared<function>(Location::global(), "last");
+  inline void populate_last(Scope& s) {
+    auto f = std::make_shared<Function>(Location::global(), "last");
     s.add(f);
     std::vector<FunctionDataType::Parameter> parameters;
     auto t = std::make_shared<GenericDataType>(Location::global(), "`T", 0);
     parameters.emplace_back("source", t);
-    auto d = std::make_shared<function_definition>(Location::global(), f,
+    auto d = std::make_shared<FunctionDefinition>(Location::global(), f,
       std::make_shared<FunctionDataType>(parameters, t));
     s.add(d);
   }
@@ -146,13 +146,13 @@ namespace darcel {
   /*!
     \param s The scope to populate.
   */
-  inline void populate_print(scope& s) {
-    auto f = std::make_shared<function>(Location::global(), "print");
+  inline void populate_print(Scope& s) {
+    auto f = std::make_shared<Function>(Location::global(), "print");
     s.add(f);
     std::vector<FunctionDataType::Parameter> parameters;
     auto t = std::make_shared<GenericDataType>(Location::global(), "`T", 0);
     parameters.emplace_back("source", t);
-    auto d = std::make_shared<function_definition>(Location::global(), f,
+    auto d = std::make_shared<FunctionDefinition>(Location::global(), f,
       std::make_shared<FunctionDataType>(parameters, t));
     s.add(d);
   }
@@ -161,13 +161,13 @@ namespace darcel {
   /*!
     \param s The scope to populate.
   */
-  inline void populate_tally(scope& s) {
-    auto f = std::make_shared<function>(Location::global(), "tally");
+  inline void populate_tally(Scope& s) {
+    auto f = std::make_shared<Function>(Location::global(), "tally");
     s.add(f);
     std::vector<FunctionDataType::Parameter> parameters;
     auto t = std::make_shared<GenericDataType>(Location::global(), "`T", 0);
     parameters.emplace_back("source", t);
-    auto d = std::make_shared<function_definition>(Location::global(), f,
+    auto d = std::make_shared<FunctionDefinition>(Location::global(), f,
       std::make_shared<FunctionDataType>(parameters,
       IntegerDataType::get_instance()));
     s.add(d);
@@ -177,7 +177,7 @@ namespace darcel {
   /*!
     \param s The scope to populate.
   */
-  inline void populate_builtins(scope& s) {
+  inline void populate_builtins(Scope& s) {
     populate_data_types(s);
     populate_arithmetic(s);
     populate_chain(s);
@@ -190,8 +190,8 @@ namespace darcel {
   }
 
   //! Constructs a scope with all builtins populated.
-  inline std::unique_ptr<scope> make_builtin_scope() {
-    auto s = std::make_unique<scope>();
+  inline std::unique_ptr<Scope> make_builtin_scope() {
+    auto s = std::make_unique<Scope>();
     populate_builtins(*s);
     return s;
   }

@@ -183,7 +183,7 @@ namespace details {
         F, const maybe<reactor_type_t<P>>&...>>::type>::Type;
 
       //! The type of function to apply.
-      using function = F;
+      using Function = F;
 
       //! Constructs a function reactor.
       /*!
@@ -198,7 +198,7 @@ namespace details {
       type eval() const override;
 
     private:
-      function m_function;
+      Function m_function;
       std::tuple<P...> m_parameters;
       std::optional<CommitReactor> m_commit_reactor;
       maybe<type> m_value;

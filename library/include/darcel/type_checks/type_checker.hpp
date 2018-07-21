@@ -26,32 +26,32 @@ namespace darcel {
       /*!
         \param s The top level scope.
       */
-      type_checker(const scope& s);
+      type_checker(const Scope& s);
 
       //! Returns the type map used to track data types.
       const type_map& get_types() const;
 
       //! Returns a statement's definition.
-      const std::shared_ptr<function_definition>& get_definition(
+      const std::shared_ptr<FunctionDefinition>& get_definition(
         const bind_function_statement& s) const;
 
       //! Returns an expression's particular overload.
-      const std::shared_ptr<function_definition>& get_definition(
+      const std::shared_ptr<FunctionDefinition>& get_definition(
         const expression& e) const;
 
       //! Type checks a syntax node.
       void check(const syntax_node& node);
 
     private:
-      std::deque<std::unique_ptr<scope>> m_scopes;
+      std::deque<std::unique_ptr<Scope>> m_scopes;
       type_map m_types;
       std::unordered_map<const bind_function_statement*,
-        std::shared_ptr<function_definition>> m_definitions;
+        std::shared_ptr<FunctionDefinition>> m_definitions;
       std::unordered_map<const expression*,
-        std::shared_ptr<function_definition>> m_call_definitions;
+        std::shared_ptr<FunctionDefinition>> m_call_definitions;
 
-      scope& get_scope();
-      scope& push_scope();
+      Scope& get_scope();
+      Scope& push_scope();
       void pop_scope();
   };
 
@@ -63,7 +63,7 @@ namespace darcel {
     \param s The scope used to get function definitions.
   */
   std::vector<std::shared_ptr<DataType>> determine_expression_types(
-    const expression& e, const type_map& t, const scope& s);
+    const expression& e, const type_map& t, const Scope& s);
 
   //! Returns a map of all possible generic substitutions in a function call.
   /*!
@@ -74,7 +74,7 @@ namespace darcel {
       std::vector<std::shared_ptr<DataType>>> resolve_generics(
       const std::shared_ptr<FunctionDataType>& generic,
       const std::vector<std::unique_ptr<expression>>& arguments,
-      const type_map& types, const scope& s) {
+      const type_map& types, const Scope& s) {
     DataTypeMap<std::shared_ptr<GenericDataType>,
       std::vector<std::shared_ptr<DataType>>> substitutions;
     for(std::size_t i = 0; i != arguments.size(); ++i) {
@@ -99,14 +99,14 @@ namespace darcel {
   }
 
   inline std::vector<std::shared_ptr<DataType>> determine_expression_types(
-      const expression& e, const type_map& t, const scope& s) {
+      const expression& e, const type_map& t, const Scope& s) {
     struct expression_visitor final : syntax_node_visitor {
       const type_map* m_types;
-      const scope* m_scope;
+      const Scope* m_scope;
       std::vector<std::shared_ptr<DataType>> m_result;
 
       std::vector<std::shared_ptr<DataType>> operator ()(
-          const expression& e, const type_map& t, const scope& s) {
+          const expression& e, const type_map& t, const Scope& s) {
         m_types = &t;
         m_scope = &s;
         e.apply(*this);
@@ -174,16 +174,16 @@ namespace darcel {
     \param s The scope used to get function definitions.
   */
   inline type_map infer_types(const expression& e, const type_map& t,
-      const scope& s) {
+      const Scope& s) {
     struct constraints_visitor final : syntax_node_visitor {
       const type_map* m_types;
-      const scope* m_scope;
+      const Scope* m_scope;
       constraints m_constraints;
-      std::unordered_map<std::shared_ptr<variable>,
+      std::unordered_map<std::shared_ptr<Variable>,
         std::vector<std::shared_ptr<DataType>>> m_candidates;
 
       constraints_visitor(const expression& e, const type_map& t,
-          const scope& s)
+          const Scope& s)
           : m_types(&t),
             m_scope(&s) {
         e.apply(*this);
@@ -242,7 +242,7 @@ namespace darcel {
       }
     };
     struct candidate_entry {
-      std::shared_ptr<variable> m_variable;
+      std::shared_ptr<Variable> m_variable;
       std::vector<std::shared_ptr<DataType>> m_candidates;
       std::size_t m_cycle_length;
     };
@@ -279,17 +279,17 @@ namespace darcel {
   }
 
   inline type_checker::type_checker() {
-    m_scopes.push_back(std::make_unique<scope>());
+    m_scopes.push_back(std::make_unique<Scope>());
   }
 
-  inline type_checker::type_checker(const scope& s) {
-    m_scopes.push_back(std::make_unique<scope>(&s));
+  inline type_checker::type_checker(const Scope& s) {
+    m_scopes.push_back(std::make_unique<Scope>(&s));
     get_scope().find(
       [&] (auto& e) {
         if(auto definition =
-            std::dynamic_pointer_cast<function_definition>(e)) {
+            std::dynamic_pointer_cast<FunctionDefinition>(e)) {
           m_types.add(std::move(definition));
-        } else if(auto f = std::dynamic_pointer_cast<function>(e)) {
+        } else if(auto f = std::dynamic_pointer_cast<Function>(e)) {
           auto callable = std::static_pointer_cast<CallableDataType>(
             get_scope().find(
             [&] (auto& t) {
@@ -309,21 +309,21 @@ namespace darcel {
     return m_types;
   }
 
-  inline const std::shared_ptr<function_definition>&
+  inline const std::shared_ptr<FunctionDefinition>&
       type_checker::get_definition(const bind_function_statement& s) const {
     auto i = m_definitions.find(&s);
     if(i == m_definitions.end()) {
-      static const std::shared_ptr<function_definition> NONE;
+      static const std::shared_ptr<FunctionDefinition> NONE;
       return NONE;
     }
     return i->second;
   }
 
-  inline const std::shared_ptr<function_definition>&
+  inline const std::shared_ptr<FunctionDefinition>&
       type_checker::get_definition(const expression& e) const {
     auto i = m_call_definitions.find(&e);
     if(i == m_call_definitions.end()) {
-      static const std::shared_ptr<function_definition> NONE;
+      static const std::shared_ptr<FunctionDefinition> NONE;
       return NONE;
     }
     return i->second;
@@ -380,7 +380,7 @@ namespace darcel {
         }
         auto t = std::make_shared<FunctionDataType>(std::move(parameters),
           std::move(m_last));
-        auto definition = std::make_shared<function_definition>(
+        auto definition = std::make_shared<FunctionDefinition>(
           node.get_location(), node.get_function(), std::move(t));
         m_checker->get_scope().add(definition);
         m_checker->m_types.add(definition);
@@ -447,12 +447,12 @@ namespace darcel {
     type_check_visitor()(*this, node);
   }
 
-  inline scope& type_checker::get_scope() {
+  inline Scope& type_checker::get_scope() {
     return *m_scopes.back();
   }
 
-  inline scope& type_checker::push_scope() {
-    m_scopes.push_back(std::make_unique<scope>(&get_scope()));
+  inline Scope& type_checker::push_scope() {
+    m_scopes.push_back(std::make_unique<Scope>(&get_scope()));
   }
 
   inline void type_checker::pop_scope() {

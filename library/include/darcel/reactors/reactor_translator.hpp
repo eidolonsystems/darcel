@@ -36,14 +36,14 @@ namespace darcel {
       /*!
         \param s The global scope.
       */
-      ReactorTranslator(const scope& s);
+      ReactorTranslator(const Scope& s);
 
       //! Adds a definition to the translator.
       /*!
         \param v The variable to define.
         \param definition The definition of the variable.
       */
-      void add(std::shared_ptr<variable> v,
+      void add(std::shared_ptr<Variable> v,
         std::shared_ptr<ReactorBuilder> definition);
 
       //! Adds a definition to the translator.
@@ -51,7 +51,7 @@ namespace darcel {
         \param f The function to define.
         \param definition The definition of the variable.
       */
-      void add(std::shared_ptr<function_definition> v,
+      void add(std::shared_ptr<FunctionDefinition> v,
         std::shared_ptr<ReactorBuilder> definition);
 
       //! Adds a generic definition to the translator.
@@ -59,7 +59,7 @@ namespace darcel {
         \param f The generic function being defined.
         \param definition The definition of the variable.
       */
-      void add(std::shared_ptr<function_definition> f,
+      void add(std::shared_ptr<FunctionDefinition> f,
         generic_builder definition);
 
       //! Builds a reactor from a syntax node.
@@ -91,25 +91,25 @@ namespace darcel {
     private:
       struct generic_definition_builder {
         std::shared_ptr<bind_function_statement> m_node;
-        std::shared_ptr<function_definition> m_definition;
+        std::shared_ptr<FunctionDefinition> m_definition;
         ReactorTranslator* m_translator;
         std::shared_ptr<DataTypeMap<std::shared_ptr<FunctionDataType>,
           std::unique_ptr<bind_function_statement>>> m_instantiations;
 
         generic_definition_builder(const bind_function_statement& node,
-          std::shared_ptr<function_definition> definition,
+          std::shared_ptr<FunctionDefinition> definition,
           ReactorTranslator& translator);
 
         std::unique_ptr<ReactorBuilder> operator ()(
           const std::shared_ptr<FunctionDataType>& t) const;
       };
       type_checker m_checker;
-      std::shared_ptr<variable> m_main;
-      std::unordered_map<std::shared_ptr<variable>,
+      std::shared_ptr<Variable> m_main;
+      std::unordered_map<std::shared_ptr<Variable>,
         std::shared_ptr<ReactorBuilder>> m_variables;
-      std::unordered_map<std::shared_ptr<function_definition>,
+      std::unordered_map<std::shared_ptr<FunctionDefinition>,
         std::shared_ptr<ReactorBuilder>> m_functions;
-      std::unordered_map<std::shared_ptr<function_definition>, generic_builder>
+      std::unordered_map<std::shared_ptr<FunctionDefinition>, generic_builder>
         m_generic_builders;
       std::shared_ptr<ReactorBuilder> m_evaluation;
 
@@ -118,7 +118,7 @@ namespace darcel {
 
   inline ReactorTranslator::generic_definition_builder::
       generic_definition_builder(const bind_function_statement& node,
-      std::shared_ptr<function_definition> definition,
+      std::shared_ptr<FunctionDefinition> definition,
       ReactorTranslator& translator)
       : m_node(clone_structure(node)),
         m_definition(std::move(definition)),
@@ -147,20 +147,20 @@ namespace darcel {
       });
   }
 
-  inline ReactorTranslator::ReactorTranslator(const scope& s)
+  inline ReactorTranslator::ReactorTranslator(const Scope& s)
       : m_checker(s) {}
 
-  inline void ReactorTranslator::add(std::shared_ptr<variable> v,
+  inline void ReactorTranslator::add(std::shared_ptr<Variable> v,
       std::shared_ptr<ReactorBuilder> definition) {
     m_variables.insert(std::make_pair(std::move(v), std::move(definition)));
   }
 
-  inline void ReactorTranslator::add(std::shared_ptr<function_definition> f,
+  inline void ReactorTranslator::add(std::shared_ptr<FunctionDefinition> f,
       std::shared_ptr<ReactorBuilder> definition) {
     m_functions.insert(std::make_pair(std::move(f), std::move(definition)));
   }
 
-  inline void ReactorTranslator::add(std::shared_ptr<function_definition> f,
+  inline void ReactorTranslator::add(std::shared_ptr<FunctionDefinition> f,
       generic_builder definition) {
     m_generic_builders.insert(
       std::make_pair(std::move(f), std::move(definition)));

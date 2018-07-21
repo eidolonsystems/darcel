@@ -6,7 +6,7 @@
 namespace darcel {
 
   //! Represents a variable.
-  class variable final : public element {
+  class Variable final : public Element {
     public:
 
       //! Constructs a variable.
@@ -14,7 +14,7 @@ namespace darcel {
         \param l The location where the variable was declared.
         \param name The name of the variable.
       */
-      variable(Location l, std::string name);
+      Variable(Location l, std::string name);
 
       const Location& get_location() const override;
 
@@ -25,15 +25,15 @@ namespace darcel {
       std::string m_name;
   };
 
-  inline variable::variable(Location l, std::string name)
+  inline Variable::Variable(Location l, std::string name)
       : m_location(std::move(l)),
         m_name(std::move(name)) {}
 
-  inline const Location& variable::get_location() const {
+  inline const Location& Variable::get_location() const {
     return m_location;
   }
 
-  inline const std::string& variable::get_name() const {
+  inline const std::string& Variable::get_name() const {
     return m_name;
   }
 }

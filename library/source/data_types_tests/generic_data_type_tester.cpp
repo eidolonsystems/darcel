@@ -25,7 +25,7 @@ TEST_CASE("test_is_generic", "[GenericDataType]") {
     REQUIRE(is_generic(GenericDataType(Location::global(), "`T", 0)));
     REQUIRE(!is_generic(IntegerDataType()));
     REQUIRE(!is_generic(CallableDataType(
-      std::make_shared<function>(Location::global(), "f"))));
+      std::make_shared<Function>(Location::global(), "f"))));
     REQUIRE(!is_generic(EnumDataType(Location::global(), "e", {})));
   }
   SECTION("Compound generics.") {

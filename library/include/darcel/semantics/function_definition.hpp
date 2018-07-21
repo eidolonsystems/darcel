@@ -8,7 +8,7 @@
 namespace darcel {
 
   //! Represents a single function definition.
-  class function_definition final : public element {
+  class FunctionDefinition final : public Element {
     public:
 
       //! Constructs a function_definition.
@@ -17,11 +17,11 @@ namespace darcel {
         \param f The function being defined.
         \param t The function definition's data type.
       */
-      function_definition(Location l, std::shared_ptr<function> f,
+      FunctionDefinition(Location l, std::shared_ptr<Function> f,
         std::shared_ptr<FunctionDataType> t);
 
       //! Returns the function being defined.
-      const std::shared_ptr<function>& get_function() const;
+      const std::shared_ptr<Function>& get_function() const;
 
       //! Returns the function definition's data type.
       const std::shared_ptr<FunctionDataType>& get_type() const;
@@ -32,31 +32,31 @@ namespace darcel {
 
     private:
       Location m_location;
-      std::shared_ptr<function> m_function;
+      std::shared_ptr<Function> m_function;
       std::shared_ptr<FunctionDataType> m_type;
   };
 
-  inline function_definition::function_definition(Location l,
-      std::shared_ptr<function> f, std::shared_ptr<FunctionDataType> t)
+  inline FunctionDefinition::FunctionDefinition(Location l,
+      std::shared_ptr<Function> f, std::shared_ptr<FunctionDataType> t)
       : m_location(std::move(l)),
         m_function(std::move(f)),
         m_type(std::move(t)) {}
 
-  inline const std::shared_ptr<function>&
-      function_definition::get_function() const {
+  inline const std::shared_ptr<Function>&
+      FunctionDefinition::get_function() const {
     return m_function;
   }
 
   inline const std::shared_ptr<FunctionDataType>&
-      function_definition::get_type() const {
+      FunctionDefinition::get_type() const {
     return m_type;
   }
 
-  inline const Location& function_definition::get_location() const {
+  inline const Location& FunctionDefinition::get_location() const {
     return m_location;
   }
 
-  inline const std::string& function_definition::get_name() const {
+  inline const std::string& FunctionDefinition::get_name() const {
     return m_function->get_name();
   }
 }

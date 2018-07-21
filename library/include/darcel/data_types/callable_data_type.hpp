@@ -15,10 +15,10 @@ namespace darcel {
       /*!
         \param f The function this data type represents.
       */
-      CallableDataType(std::shared_ptr<function> f);
+      CallableDataType(std::shared_ptr<Function> f);
 
       //! Returns the function represented.
-      const std::shared_ptr<function> get_function() const;
+      const std::shared_ptr<Function> get_function() const;
 
       const Location& get_location() const override;
 
@@ -31,14 +31,14 @@ namespace darcel {
 
     private:
       std::string m_name;
-      std::shared_ptr<function> m_function;
+      std::shared_ptr<Function> m_function;
   };
 
-  inline CallableDataType::CallableDataType(std::shared_ptr<function> f)
+  inline CallableDataType::CallableDataType(std::shared_ptr<Function> f)
       : m_name("@" + f->get_name()),
         m_function(std::move(f)) {}
 
-  inline const std::shared_ptr<function>
+  inline const std::shared_ptr<Function>
       CallableDataType::get_function() const {
     return m_function;
   }

@@ -3,11 +3,11 @@
 #include "darcel/darcel/darcel.hpp"
 
 namespace darcel {
-  class element;
-  class function;
-  class function_definition;
-  class scope;
-  class variable;
+  class Element;
+  class Function;
+  class FunctionDefinition;
+  class Scope;
+  class Variable;
 }
 
 #endif

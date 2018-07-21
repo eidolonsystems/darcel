@@ -19,8 +19,8 @@ namespace darcel {
     \param translator The translator to add the definitions to.
     \param s The scope to find the function in.
   */
-  inline void translate_add(ReactorTranslator& translator, const scope& s) {
-    auto f = s.find<function>("add");
+  inline void translate_add(ReactorTranslator& translator, const Scope& s) {
+    auto f = s.find<Function>("add");
     if(f != nullptr) {
       for(auto& overload : s.get_definitions(*f)) {
         auto signature = std::static_pointer_cast<FunctionDataType>(
@@ -50,7 +50,7 @@ namespace darcel {
     \param translator The translator to add the definitions to.
     \param s The scope to find the function in.
   */
-  inline void translate_chain(ReactorTranslator& translator, const scope& s) {
+  inline void translate_chain(ReactorTranslator& translator, const Scope& s) {
     struct Builder {
       std::unique_ptr<ReactorBuilder> operator ()(
           const std::shared_ptr<FunctionDataType>& t) const {
@@ -71,7 +71,7 @@ namespace darcel {
         return nullptr;
       }
     };
-    auto f = s.find<function>("chain");
+    auto f = s.find<Function>("chain");
     if(f != nullptr) {
       translator.add(s.get_definitions(*f).front(), Builder());
     }
@@ -82,8 +82,8 @@ namespace darcel {
     \param translator The translator to add the definitions to.
     \param s The scope to find the function in.
   */
-  inline void translate_count(ReactorTranslator& translator, const scope& s) {
-    auto f = s.find<function>("count");
+  inline void translate_count(ReactorTranslator& translator, const Scope& s) {
+    auto f = s.find<Function>("count");
     translator.add(s.get_definitions(*f).front(), make_count_builder());
   }
 
@@ -93,8 +93,8 @@ namespace darcel {
     \param s The scope to find the function in.
   */
   inline void translate_divide(ReactorTranslator& translator,
-      const scope& s) {
-    auto f = s.find<function>("divide");
+      const Scope& s) {
+    auto f = s.find<Function>("divide");
     if(f != nullptr) {
       for(auto& overload : s.get_definitions(*f)) {
         auto signature = std::static_pointer_cast<FunctionDataType>(
@@ -119,7 +119,7 @@ namespace darcel {
     \param translator The translator to add the definitions to.
     \param s The scope to find the function in.
   */
-  inline void translate_first(ReactorTranslator& translator, const scope& s) {
+  inline void translate_first(ReactorTranslator& translator, const Scope& s) {
     struct Builder {
       std::unique_ptr<ReactorBuilder> operator ()(
           const std::shared_ptr<FunctionDataType>& t) const {
@@ -140,7 +140,7 @@ namespace darcel {
         return nullptr;
       }
     };
-    auto f = s.find<function>("first");
+    auto f = s.find<Function>("first");
     if(f != nullptr) {
       translator.add(s.get_definitions(*f).front(), Builder());
     }
@@ -151,7 +151,7 @@ namespace darcel {
     \param translator The translator to add the definitions to.
     \param s The scope to find the function in.
   */
-  inline void translate_fold(ReactorTranslator& translator, const scope& s) {
+  inline void translate_fold(ReactorTranslator& translator, const Scope& s) {
     struct Builder {
       std::unique_ptr<ReactorBuilder> operator ()(
           const std::shared_ptr<FunctionDataType>& t) const {
@@ -172,7 +172,7 @@ namespace darcel {
         return nullptr;
       }
     };
-    auto f = s.find<function>("fold");
+    auto f = s.find<Function>("fold");
     if(f != nullptr) {
       translator.add(s.get_definitions(*f).front(), Builder());
     }
@@ -183,7 +183,7 @@ namespace darcel {
     \param translator The translator to add the definitions to.
     \param s The scope to find the function in.
   */
-  inline void translate_last(ReactorTranslator& translator, const scope& s) {
+  inline void translate_last(ReactorTranslator& translator, const Scope& s) {
     struct Builder {
       std::unique_ptr<ReactorBuilder> operator ()(
           const std::shared_ptr<FunctionDataType>& t) const {
@@ -204,7 +204,7 @@ namespace darcel {
         return nullptr;
       }
     };
-    auto f = s.find<function>("last");
+    auto f = s.find<Function>("last");
     if(f != nullptr) {
       translator.add(s.get_definitions(*f).front(), Builder());
     }
@@ -216,8 +216,8 @@ namespace darcel {
     \param s The scope to find the function in.
   */
   inline void translate_multiply(ReactorTranslator& translator,
-      const scope& s) {
-    auto f = s.find<function>("multiply");
+      const Scope& s) {
+    auto f = s.find<Function>("multiply");
     if(f != nullptr) {
       for(auto& overload : s.get_definitions(*f)) {
         auto signature = std::static_pointer_cast<FunctionDataType>(
@@ -242,7 +242,7 @@ namespace darcel {
     \param translator The translator to add the definitions to.
     \param s The scope to find the function in.
   */
-  inline void translate_print(ReactorTranslator& translator, const scope& s) {
+  inline void translate_print(ReactorTranslator& translator, const Scope& s) {
     struct Builder {
       std::unique_ptr<ReactorBuilder> operator ()(
           const std::shared_ptr<FunctionDataType>& t) const {
@@ -270,7 +270,7 @@ namespace darcel {
         return nullptr;
       }
     };
-    auto f = s.find<function>("print");
+    auto f = s.find<Function>("print");
     if(f != nullptr) {
       translator.add(s.get_definitions(*f).front(), Builder());
     }
@@ -282,8 +282,8 @@ namespace darcel {
     \param s The scope to find the function in.
   */
   inline void translate_subtract(ReactorTranslator& translator,
-      const scope& s) {
-    auto f = s.find<function>("subtract");
+      const Scope& s) {
+    auto f = s.find<Function>("subtract");
     if(f != nullptr) {
       for(auto& overload : s.get_definitions(*f)) {
         auto signature = std::static_pointer_cast<FunctionDataType>(
@@ -308,14 +308,14 @@ namespace darcel {
     \param translator The translator to add the definitions to.
     \param s The scope to find the function in.
   */
-  inline void translate_tally(ReactorTranslator& translator, const scope& s) {
+  inline void translate_tally(ReactorTranslator& translator, const Scope& s) {
     struct Builder {
       std::unique_ptr<ReactorBuilder> operator ()(
           const std::shared_ptr<FunctionDataType>& t) const {
         return make_tally_reactor_builder();
       }
     };
-    auto f = s.find<function>("tally");
+    auto f = s.find<Function>("tally");
     if(f != nullptr) {
       translator.add(s.get_definitions(*f).front(), Builder());
     }
@@ -327,7 +327,7 @@ namespace darcel {
     \param s The scope to find the functions in.
   */
   inline void translate_builtins(ReactorTranslator& translator,
-      const scope& s) {
+      const Scope& s) {
     translate_add(translator, s);
     translate_chain(translator, s);
     translate_count(translator, s);

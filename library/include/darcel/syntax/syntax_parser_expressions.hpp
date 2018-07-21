@@ -54,7 +54,7 @@ namespace darcel {
     if(!name.has_value()) {
       return nullptr;
     }
-    auto f = get_current_scope().find<function>(*name);
+    auto f = get_current_scope().find<Function>(*name);
     if(f == nullptr) {
       return nullptr;
     }
@@ -135,7 +135,7 @@ namespace darcel {
           --arity;
         }
         auto& function_name = get_function_name(o.m_op);
-        auto f = get_current_scope().find<function>(function_name);
+        auto f = get_current_scope().find<Function>(function_name);
         if(f == nullptr) {
           throw syntax_error(syntax_error_code::FUNCTION_NOT_FOUND,
             o.m_location);

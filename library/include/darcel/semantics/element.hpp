@@ -9,13 +9,13 @@ namespace darcel {
 
   //! Base class for a named element of the language that can be placed in a
   //! scope.
-  class element {
+  class Element {
     public:
 
       //! Constructs an element.
-      element() = default;
+      Element() = default;
 
-      virtual ~element() = default;
+      virtual ~Element() = default;
 
       //! Returns the location where the element was declared.
       virtual const Location& get_location() const = 0;
@@ -24,8 +24,8 @@ namespace darcel {
       virtual const std::string& get_name() const = 0;
 
     private:
-      element(const element&) = delete;
-      element& operator =(const element&) = delete;
+      Element(const Element&) = delete;
+      Element& operator =(const Element&) = delete;
   };
 }
 

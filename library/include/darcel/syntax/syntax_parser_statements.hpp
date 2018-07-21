@@ -107,7 +107,7 @@ namespace darcel {
             syntax_error_code::FUNCTION_PARAMETER_ALREADY_DEFINED,
             name_location);
         }
-        auto v = std::make_shared<variable>(name_location, parameter_name);
+        auto v = std::make_shared<Variable>(name_location, parameter_name);
         if(match(*c, Punctuation::Mark::COLON)) {
           ++c;
           auto t = expect_data_type(c);
@@ -133,18 +133,18 @@ namespace darcel {
     auto f = [&] {
       auto existing_element = get_current_scope().find_within(name);
       if(existing_element == nullptr) {
-        auto parent = get_current_scope().find<function>(name);
+        auto parent = get_current_scope().find<Function>(name);
         auto f = [&] {
           if(parent == nullptr) {
-            return std::make_shared<function>(name_location, name);
+            return std::make_shared<Function>(name_location, name);
           } else {
-            return std::make_shared<function>(name_location, std::move(parent));
+            return std::make_shared<Function>(name_location, std::move(parent));
           }
         }();
         get_current_scope().add(f);
         return f;
       }
-      auto f = std::dynamic_pointer_cast<function>(existing_element);
+      auto f = std::dynamic_pointer_cast<Function>(existing_element);
       if(f == nullptr) {
         throw redefinition_syntax_error(name_location, name,
           existing_element->get_location());

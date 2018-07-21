@@ -9,8 +9,8 @@ using namespace darcel;
 using namespace std;
 
 TEST_CASE("test_bind_function_statement", "[bind_function_statement]") {
-  auto f = std::make_shared<function>(Location::global(), "f");
-  auto p1 = std::make_shared<variable>(Location::global(), "a");
+  auto f = std::make_shared<Function>(Location::global(), "f");
+  auto p1 = std::make_shared<Variable>(Location::global(), "a");
   auto p = std::vector<bind_function_statement::parameter>{
     {p1, IntegerDataType::get_instance()}};
   auto e = std::make_unique<literal_expression>(Location::global(),

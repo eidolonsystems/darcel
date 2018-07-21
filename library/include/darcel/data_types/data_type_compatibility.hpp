@@ -32,14 +32,14 @@ namespace darcel {
     \return The type of compatibility from the source to the target.
   */
   inline DataTypeCompatibility get_compatibility(const DataType& source,
-      const DataType& target, const scope& s) {
+      const DataType& target, const Scope& s) {
     struct data_type_compatibility_visitor final : DataTypeVisitor {
       const DataType* m_source;
-      const scope* m_scope;
+      const Scope* m_scope;
       DataTypeCompatibility m_compatibility;
 
       DataTypeCompatibility operator ()(const DataType& source,
-          const DataType& target, const scope& s) {
+          const DataType& target, const Scope& s) {
         m_source = &source;
         m_scope = &s;
         target.apply(*this);

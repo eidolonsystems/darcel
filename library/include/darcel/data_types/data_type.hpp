@@ -9,9 +9,9 @@
 namespace darcel {
 
   //! The base class for a data type.
-  class DataType : public element {
+  class DataType : public Element {
     public:
-      using element::element;
+      using Element::Element;
 
       //! Tests if two data types are identical.
       /*!

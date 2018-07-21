@@ -4,8 +4,8 @@
 using namespace darcel;
 using namespace std;
 
-TEST_CASE("test_variable", "[variable]") {
-  variable v(Location::global(), "abc");
+TEST_CASE("test_variable", "[Variable]") {
+  Variable v(Location::global(), "abc");
   REQUIRE(v.get_location() == Location::global());
   REQUIRE(v.get_name() == "abc");
 }

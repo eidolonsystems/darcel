@@ -23,7 +23,7 @@ namespace darcel {
   */
   inline std::shared_ptr<DataType> substitute_generic(
       const std::shared_ptr<DataType>& generic,
-      const std::shared_ptr<DataType>& concrete, const scope& s,
+      const std::shared_ptr<DataType>& concrete, const Scope& s,
       DataTypeMap<std::shared_ptr<GenericDataType>,
         std::shared_ptr<DataType>>& substitutions) {
     if(!is_generic(*generic)) {
@@ -135,9 +135,9 @@ namespace darcel {
     \return The function definition representing the matching overload or
             nullptr if no such match exists.
   */
-  inline std::shared_ptr<function_definition> find_overload(const function& f,
+  inline std::shared_ptr<FunctionDefinition> find_overload(const Function& f,
       const std::vector<FunctionDataType::Parameter>& parameters,
-      const scope& s) {
+      const Scope& s) {
     auto& definitions = s.get_definitions(f);
     for(auto& definition : definitions) {
       auto type = std::static_pointer_cast<FunctionDataType>(
@@ -191,8 +191,8 @@ namespace darcel {
     \param s The scope to search through.
     \return The function definition matching the specific function overload.
   */
-  inline std::shared_ptr<function_definition> find_overload(const function& f,
-      const FunctionDataType& signature, const scope& s) {
+  inline std::shared_ptr<FunctionDefinition> find_overload(const Function& f,
+      const FunctionDataType& signature, const Scope& s) {
     auto overload = find_overload(f, signature.get_parameters(), s);
     if(overload == nullptr) {
       return nullptr;
@@ -216,8 +216,8 @@ namespace darcel {
             parameters p.
   */
   inline std::shared_ptr<FunctionDataType> instantiate(
-      const function_definition& f,
-      const std::vector<FunctionDataType::Parameter>& p, const scope& s) {
+      const FunctionDefinition& f,
+      const std::vector<FunctionDataType::Parameter>& p, const Scope& s) {
     if(is_generic(*f.get_type())) {
       DataTypeMap<std::shared_ptr<GenericDataType>,
         std::shared_ptr<DataType>> substitutions;

@@ -23,32 +23,32 @@ namespace darcel {
       std::shared_ptr<DataType> get_type(const expression& e) const;
 
       //! Returns a function's data type.
-      std::shared_ptr<DataType> get_type(const function& f) const;
+      std::shared_ptr<DataType> get_type(const Function& f) const;
 
       //! Returns a variable's data type.
-      std::shared_ptr<DataType> get_type(const variable& v) const;
+      std::shared_ptr<DataType> get_type(const Variable& v) const;
 
       //! Records a function's data type.
-      void add(const function& f, std::shared_ptr<DataType> t);
+      void add(const Function& f, std::shared_ptr<DataType> t);
 
       //! Adds a function definition.
-      void add(std::shared_ptr<function_definition> definition);
+      void add(std::shared_ptr<FunctionDefinition> definition);
 
       //! Records a variable's data type.
-      void add(const variable& v, std::shared_ptr<DataType> t);
+      void add(const Variable& v, std::shared_ptr<DataType> t);
 
       //! Records an expression's data type.
       void add(const expression& e, std::shared_ptr<DataType> t);
 
     private:
-      std::unordered_map<const element*, std::shared_ptr<DataType>> m_types;
-      std::unordered_map<const function*,
-        std::vector<std::shared_ptr<function_definition>>> m_definitions;
+      std::unordered_map<const Element*, std::shared_ptr<DataType>> m_types;
+      std::unordered_map<const Function*,
+        std::vector<std::shared_ptr<FunctionDefinition>>> m_definitions;
       std::unordered_map<const expression*, std::shared_ptr<DataType>>
         m_expressions;
 
-      std::deque<std::unique_ptr<scope>> build_scope(
-        std::shared_ptr<function> f) const;
+      std::deque<std::unique_ptr<Scope>> build_scope(
+        std::shared_ptr<Function> f) const;
   };
 
   inline std::shared_ptr<DataType> type_map::get_type(
@@ -131,7 +131,7 @@ namespace darcel {
   }
 
   inline std::shared_ptr<DataType> type_map::get_type(
-      const function& f) const {
+      const Function& f) const {
     auto i = m_types.find(&f);
     if(i == m_types.end()) {
       return nullptr;
@@ -140,7 +140,7 @@ namespace darcel {
   }
 
   inline std::shared_ptr<DataType> type_map::get_type(
-      const variable& v) const {
+      const Variable& v) const {
     auto i = m_types.find(&v);
     if(i == m_types.end()) {
       return nullptr;
@@ -148,16 +148,16 @@ namespace darcel {
     return i->second;
   }
 
-  inline void type_map::add(const function& f, std::shared_ptr<DataType> t) {
+  inline void type_map::add(const Function& f, std::shared_ptr<DataType> t) {
     m_types[&f] = std::move(t);
   }
 
-  inline void type_map::add(std::shared_ptr<function_definition> definition) {
+  inline void type_map::add(std::shared_ptr<FunctionDefinition> definition) {
     m_definitions[definition->get_function().get()].push_back(
       std::move(definition));
   }
 
-  inline void type_map::add(const variable& v, std::shared_ptr<DataType> t) {
+  inline void type_map::add(const Variable& v, std::shared_ptr<DataType> t) {
     m_types[&v] = std::move(t);
   }
 
@@ -165,20 +165,20 @@ namespace darcel {
     m_expressions[&e] = std::move(t);
   }
 
-  inline std::deque<std::unique_ptr<scope>> type_map::build_scope(
-      std::shared_ptr<function> f) const {
-    std::deque<std::unique_ptr<scope>> s;
-    std::deque<std::shared_ptr<function>> hierarchy;
+  inline std::deque<std::unique_ptr<Scope>> type_map::build_scope(
+      std::shared_ptr<Function> f) const {
+    std::deque<std::unique_ptr<Scope>> s;
+    std::deque<std::shared_ptr<Function>> hierarchy;
     while(f != nullptr) {
       hierarchy.push_back(f);
       f = f->get_parent();
     }
-    std::unique_ptr<scope> level;
+    std::unique_ptr<Scope> level;
     while(!hierarchy.empty()) {
       if(s.empty()) {
-        level = std::make_unique<scope>();
+        level = std::make_unique<Scope>();
       } else {
-        level = std::make_unique<scope>(s.back().get());
+        level = std::make_unique<Scope>(s.back().get());
       }
       level->add(hierarchy.back());
       auto definitions = m_definitions.find(hierarchy.back().get());
