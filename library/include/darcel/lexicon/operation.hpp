@@ -10,11 +10,11 @@
 namespace darcel {
 
   //! Stores an operation symbol.
-  class operation {
+  class Operation {
     public:
 
       //! The list of operation symbols.
-      enum class symbol {
+      enum class Symbol {
 
         //! '+'
         PLUS,
@@ -60,13 +60,13 @@ namespace darcel {
       /*!
         \param symbol The symbol representing the operation.
       */
-      operation(symbol symbol);
+      Operation(Symbol symbol);
 
       //! Returns the symbol represented.
-      symbol get_symbol() const;
+      Symbol get_symbol() const;
 
     private:
-      symbol m_symbol;
+      Symbol m_symbol;
   };
 
   //! Returns <code>true</code> iff a character is a symbolic delimiter that
@@ -85,31 +85,31 @@ namespace darcel {
            will be adjusted to one past the last character that was parsed.
     \return The operation that was parsed.
   */
-  inline std::optional<operation> parse_operation(LexicalIterator& cursor) {
+  inline std::optional<Operation> parse_operation(LexicalIterator& cursor) {
     if(prefix_match(cursor, "and")) {
-      return operation::symbol::AND;
+      return Operation::Symbol::AND;
     }
     if(prefix_match(cursor, "or")) {
-      return operation::symbol::OR;
+      return Operation::Symbol::OR;
     }
     if(prefix_match(cursor, "not")) {
-      return operation::symbol::NOT;
+      return Operation::Symbol::NOT;
     }
     if(cursor.get_size_remaining() >= 2) {
       auto symbol =
         [&] {
           if(std::equal(&*cursor, &*cursor + 2, "<=")) {
-            return operation::symbol::LESS_OR_EQUAL;
+            return Operation::Symbol::LESS_OR_EQUAL;
           }
           if(std::equal(&*cursor, &*cursor + 2, "==")) {
-            return operation::symbol::EQUAL;
+            return Operation::Symbol::EQUAL;
           }
           if(std::equal(&*cursor, &*cursor + 2, ">=")) {
-            return operation::symbol::GREATER_OR_EQUAL;
+            return Operation::Symbol::GREATER_OR_EQUAL;
           }
-          return static_cast<operation::symbol>(-1);
+          return static_cast<Operation::Symbol>(-1);
         }();
-      if(symbol != static_cast<operation::symbol>(-1)) {
+      if(symbol != static_cast<Operation::Symbol>(-1)) {
         cursor += 2;
         return symbol;
       }
@@ -118,29 +118,29 @@ namespace darcel {
       auto symbol =
         [&] {
           if(*cursor == '+') {
-            return operation::symbol::PLUS;
+            return Operation::Symbol::PLUS;
           }
           if(*cursor == '-') {
-            return operation::symbol::MINUS;
+            return Operation::Symbol::MINUS;
           }
           if(*cursor == '*') {
-            return operation::symbol::TIMES;
+            return Operation::Symbol::TIMES;
           }
           if(*cursor == '/') {
-            return operation::symbol::DIVIDE;
+            return Operation::Symbol::DIVIDE;
           }
           if(*cursor == '<') {
-            return operation::symbol::LESS;
+            return Operation::Symbol::LESS;
           }
           if(*cursor == '>') {
-            return operation::symbol::GREATER;
+            return Operation::Symbol::GREATER;
           }
           if(*cursor == '=') {
-            return operation::symbol::ASSIGN;
+            return Operation::Symbol::ASSIGN;
           }
-          return static_cast<operation::symbol>(-1);
+          return static_cast<Operation::Symbol>(-1);
         }();
-      if(symbol != static_cast<operation::symbol>(-1)) {
+      if(symbol != static_cast<Operation::Symbol>(-1)) {
         ++cursor;
         return symbol;
       }
@@ -158,51 +158,51 @@ namespace darcel {
       LexicalIterator(source.data(), source.size() + 1));
   }
 
-  inline std::ostream& operator <<(std::ostream& out, const operation& value) {
+  inline std::ostream& operator <<(std::ostream& out, const Operation& value) {
     switch(value.get_symbol()) {
-      case operation::symbol::PLUS:
+      case Operation::Symbol::PLUS:
         return out << '+';
-      case operation::symbol::MINUS:
+      case Operation::Symbol::MINUS:
         return out << '-';
-      case operation::symbol::TIMES:
+      case Operation::Symbol::TIMES:
         return out << '*';
-      case operation::symbol::DIVIDE:
+      case Operation::Symbol::DIVIDE:
         return out << '/';
-      case operation::symbol::LESS:
+      case Operation::Symbol::LESS:
         return out << '<';
-      case operation::symbol::LESS_OR_EQUAL:
+      case Operation::Symbol::LESS_OR_EQUAL:
         return out << "<=";
-      case operation::symbol::EQUAL:
+      case Operation::Symbol::EQUAL:
         return out << "==";
-      case operation::symbol::GREATER_OR_EQUAL:
+      case Operation::Symbol::GREATER_OR_EQUAL:
         return out << ">=";
-      case operation::symbol::GREATER:
+      case Operation::Symbol::GREATER:
         return out << '>';
-      case operation::symbol::AND:
+      case Operation::Symbol::AND:
         return out << "and";
-      case operation::symbol::OR:
+      case Operation::Symbol::OR:
         return out << "or";
-      case operation::symbol::NOT:
+      case Operation::Symbol::NOT:
         return out << "not";
-      case operation::symbol::ASSIGN:
+      case Operation::Symbol::ASSIGN:
         return out << "=";
       default:
         throw std::runtime_error("Invalid operation.");
     }
   }
 
-  inline bool operator ==(const operation& lhs, const operation& rhs) {
+  inline bool operator ==(const Operation& lhs, const Operation& rhs) {
     return lhs.get_symbol() == rhs.get_symbol();
   }
 
-  inline bool operator !=(const operation& lhs, const operation& rhs) {
+  inline bool operator !=(const Operation& lhs, const Operation& rhs) {
     return !(lhs == rhs);
   }
 
-  inline operation::operation(symbol symbol)
+  inline Operation::Operation(Symbol symbol)
       : m_symbol(symbol) {}
 
-  inline operation::symbol operation::get_symbol() const {
+  inline Operation::Symbol Operation::get_symbol() const {
     return m_symbol;
   }
 }

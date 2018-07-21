@@ -30,7 +30,7 @@ namespace darcel {
     if(e == nullptr) {
       return nullptr;
     }
-    if(!match(*c, punctuation::mark::DOT)) {
+    if(!match(*c, Punctuation::Mark::DOT)) {
       return nullptr;
     }
     ++c;
@@ -179,7 +179,7 @@ namespace darcel {
               if(match(*c, Bracket::Type::ROUND_CLOSE)) {
                 break;
               }
-              expect(c, punctuation::mark::COMMA);
+              expect(c, Punctuation::Mark::COMMA);
             }
           }
           auto callable = std::move(expressions.back());
@@ -188,8 +188,8 @@ namespace darcel {
             std::move(arguments));
           expressions.push_back(std::move(call_expression));
           ++c;
-        } else if(c->get_type() == token::type::OPERATION) {
-          auto& instance = std::get<operation>(c->get_instance());
+        } else if(c->get_type() == Token::Type::OPERATION) {
+          auto& instance = std::get<Operation>(c->get_instance());
           auto o = get_binary_op(instance);
           while(!operators.empty() &&
               (operators.top().m_op != op::OPEN_BRACKET &&

@@ -9,10 +9,10 @@ namespace darcel {
   class LexicalIterator;
   class Literal;
   class Location;
-  class operation;
-  class punctuation;
-  class terminal;
-  class token;
+  class Operation;
+  class Punctuation;
+  class Terminal;
+  class Token;
 }
 
 #endif

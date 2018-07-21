@@ -5,76 +5,76 @@
 using namespace darcel;
 using namespace std;
 
-TEST_CASE("test_punctuation_stream", "[punctuation]") {
+TEST_CASE("test_punctuation_stream", "[Punctuation]") {
   SECTION("Colon") {
-    punctuation p(punctuation::mark::COLON);
+    Punctuation p(Punctuation::Mark::COLON);
     stringstream ss;
     ss << p;
     REQUIRE(ss.str() == ":");
   }
   SECTION("Path") {
-    punctuation p(punctuation::mark::PATH);
+    Punctuation p(Punctuation::Mark::PATH);
     stringstream ss;
     ss << p;
     REQUIRE(ss.str() == "::");
   }
   SECTION("Comma") {
-    punctuation p(punctuation::mark::COMMA);
+    Punctuation p(Punctuation::Mark::COMMA);
     stringstream ss;
     ss << p;
     REQUIRE(ss.str() == ",");
   }
   SECTION("Dot") {
-    punctuation p(punctuation::mark::DOT);
+    Punctuation p(Punctuation::Mark::DOT);
     stringstream ss;
     ss << p;
     REQUIRE(ss.str() == ".");
   }
   SECTION("Bar") {
-    punctuation p(punctuation::mark::BAR);
+    Punctuation p(Punctuation::Mark::BAR);
     stringstream ss;
     ss << p;
     REQUIRE(ss.str() == "|");
   }
   SECTION("Backtick") {
-    punctuation p(punctuation::mark::BACKTICK);
+    Punctuation p(Punctuation::Mark::BACKTICK);
     stringstream ss;
     ss << p;
     REQUIRE(ss.str() == "`");
   }
   SECTION("Arrow") {
-    punctuation p(punctuation::mark::ARROW);
+    Punctuation p(Punctuation::Mark::ARROW);
     stringstream ss;
     ss << p;
     REQUIRE(ss.str() == "->");
   }
 }
 
-TEST_CASE("test_punctuation_equality", "[punctuation]") {
-  punctuation p1(punctuation::mark::COLON);
-  punctuation p2(punctuation::mark::BAR);
+TEST_CASE("test_punctuation_equality", "[Punctuation]") {
+  Punctuation p1(Punctuation::Mark::COLON);
+  Punctuation p2(Punctuation::Mark::BAR);
   REQUIRE(p1 == p1);
   REQUIRE(p1 != p2);
-  REQUIRE(p1 == punctuation::mark::COLON);
-  REQUIRE(p2 != punctuation::mark::COLON);
+  REQUIRE(p1 == Punctuation::Mark::COLON);
+  REQUIRE(p2 != Punctuation::Mark::COLON);
 }
 
-TEST_CASE("test_parse_punctuation", "[punctuation]") {
+TEST_CASE("test_parse_punctuation", "[Punctuation]") {
   SECTION("Valid Punctuation") {
-    REQUIRE(parse_punctuation(":") == punctuation::mark::COLON);
-    REQUIRE(parse_punctuation("::") == punctuation::mark::PATH);
-    REQUIRE(parse_punctuation(",") == punctuation::mark::COMMA);
-    REQUIRE(parse_punctuation(".") == punctuation::mark::DOT);
-    REQUIRE(parse_punctuation("|") == punctuation::mark::BAR);
-    REQUIRE(parse_punctuation("`") == punctuation::mark::BACKTICK);
-    REQUIRE(parse_punctuation("->") == punctuation::mark::ARROW);
+    REQUIRE(parse_punctuation(":") == Punctuation::Mark::COLON);
+    REQUIRE(parse_punctuation("::") == Punctuation::Mark::PATH);
+    REQUIRE(parse_punctuation(",") == Punctuation::Mark::COMMA);
+    REQUIRE(parse_punctuation(".") == Punctuation::Mark::DOT);
+    REQUIRE(parse_punctuation("|") == Punctuation::Mark::BAR);
+    REQUIRE(parse_punctuation("`") == Punctuation::Mark::BACKTICK);
+    REQUIRE(parse_punctuation("->") == Punctuation::Mark::ARROW);
   }
   SECTION("Delimiters") {
-    REQUIRE(parse_punctuation(":5") == punctuation::mark::COLON);
-    REQUIRE(parse_punctuation(":+") == punctuation::mark::COLON);
-    REQUIRE(parse_punctuation(":::") == punctuation::mark::PATH);
-    REQUIRE(parse_punctuation(":,") == punctuation::mark::COLON);
-    REQUIRE(parse_punctuation(":a") == punctuation::mark::COLON);
+    REQUIRE(parse_punctuation(":5") == Punctuation::Mark::COLON);
+    REQUIRE(parse_punctuation(":+") == Punctuation::Mark::COLON);
+    REQUIRE(parse_punctuation(":::") == Punctuation::Mark::PATH);
+    REQUIRE(parse_punctuation(":,") == Punctuation::Mark::COLON);
+    REQUIRE(parse_punctuation(":a") == Punctuation::Mark::COLON);
   }
   SECTION("Invalid Punctuation") {
     REQUIRE(parse_punctuation("abc") == std::nullopt);

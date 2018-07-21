@@ -11,7 +11,7 @@ namespace darcel {
     public:
 
       //! The type of data to parse.
-      using value_type = token;
+      using value_type = Token;
 
       //! Constructs an empty token iterator.
       token_iterator();
@@ -21,7 +21,7 @@ namespace darcel {
         \param first A pointer to the first object to parse.
         \param size_remaining The number of objects left to parse.
       */
-      token_iterator(const token* first, std::size_t size_remaining);
+      token_iterator(const Token* first, std::size_t size_remaining);
 
       //! Constructs a token iterator from a raw pointer.
       /*!
@@ -29,7 +29,7 @@ namespace darcel {
         \param size_remaining The number of objects left to parse.
         \param l The location of the first character being parsed.
       */
-      token_iterator(const token* first, std::size_t size_remaining,
+      token_iterator(const Token* first, std::size_t size_remaining,
         const Location& l);
 
       //! Returns <code>true</code> iff the size remaining is 0.
@@ -46,7 +46,7 @@ namespace darcel {
         \param t The updated location to point to.
         \param s The size remaining.
       */
-      void adjust(const token* c, std::size_t s);
+      void adjust(const Token* c, std::size_t s);
 
       //! Increments this iterator.
       token_iterator& operator ++();
@@ -69,13 +69,13 @@ namespace darcel {
       token_iterator& operator +=(std::size_t rhs);
 
       //! Returns the current object.
-      const token& operator *() const;
+      const Token& operator *() const;
 
       //! Returns the current object.
-      const token* operator ->() const;
+      const Token* operator ->() const;
 
     private:
-      const token* m_position;
+      const Token* m_position;
       std::size_t m_size_remaining;
       std::string m_path;
   };
@@ -122,11 +122,11 @@ namespace darcel {
   inline token_iterator::token_iterator()
       : token_iterator(nullptr, 0) {}
 
-  inline token_iterator::token_iterator(const token* first,
+  inline token_iterator::token_iterator(const Token* first,
       std::size_t size_remaining)
       : token_iterator(first, size_remaining, Location({}, 0, 0)) {}
 
-  inline token_iterator::token_iterator(const token* first,
+  inline token_iterator::token_iterator(const Token* first,
       std::size_t size_remaining, const Location& l)
       : m_position(first),
         m_size_remaining(size_remaining),
@@ -146,7 +146,7 @@ namespace darcel {
     return l;
   }
 
-  inline void token_iterator::adjust(const token* c, std::size_t s) {
+  inline void token_iterator::adjust(const Token* c, std::size_t s) {
     m_position = c;
     m_size_remaining = s;
   }
@@ -176,11 +176,11 @@ namespace darcel {
     return *this;
   }
 
-  inline const token& token_iterator::operator *() const {
+  inline const Token& token_iterator::operator *() const {
     return *m_position;
   }
 
-  inline const token* token_iterator::operator ->() const {
+  inline const Token* token_iterator::operator ->() const {
     return m_position;
   }
 }

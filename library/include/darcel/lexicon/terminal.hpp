@@ -8,30 +8,30 @@
 namespace darcel {
 
   //! A token that represents the end of a statement.
-  class terminal {
+  class Terminal {
     public:
 
       // Enumerates the types of terminal tokens.
-      enum class type {
+      enum class Type {
 
         //! The token represents a new line.
-        new_line,
+        NEW_LINE,
 
         //! The token marks the end of the file.
-        end_of_file
+        END_OF_FILE
       };
 
       //! Constructs a terminal.
       /*!
         \param type The type of terminal.
       */
-      terminal(type type);
+      Terminal(Type type);
 
       //! Returns the type of terminal.
-      type get_type() const;
+      Type get_type() const;
 
     private:
-      type m_type;
+      Type m_type;
   };
 
   //! Parses a terminal token.
@@ -40,14 +40,14 @@ namespace darcel {
            will be adjusted to one past the last character that was parsed.
     \return The terminal token that was parsed.
   */
-  inline std::optional<terminal> parse_terminal(LexicalIterator& cursor) {
+  inline std::optional<Terminal> parse_terminal(LexicalIterator& cursor) {
     if(!cursor.is_empty()) {
       if(*cursor == '\0') {
         ++cursor;
-        return terminal(terminal::type::end_of_file);
+        return Terminal(Terminal::Type::END_OF_FILE);
       } else if(*cursor == '\n') {
         ++cursor;
-        return terminal(terminal::type::new_line);
+        return Terminal(Terminal::Type::NEW_LINE);
       }
     }
     return std::nullopt;
@@ -63,25 +63,25 @@ namespace darcel {
       LexicalIterator(source.data(), source.size()));
   }
 
-  inline std::ostream& operator <<(std::ostream& out, const terminal& value) {
-    if(value.get_type() == terminal::type::new_line) {
+  inline std::ostream& operator <<(std::ostream& out, const Terminal& value) {
+    if(value.get_type() == Terminal::Type::NEW_LINE) {
       return out << '\n';
     }
     return out;
   }
 
-  inline bool operator ==(const terminal& lhs, const terminal& rhs) {
+  inline bool operator ==(const Terminal& lhs, const Terminal& rhs) {
     return lhs.get_type() == rhs.get_type();
   }
 
-  inline bool operator !=(const terminal& lhs, const terminal& rhs) {
+  inline bool operator !=(const Terminal& lhs, const Terminal& rhs) {
     return !(lhs == rhs);
   }
 
-  inline terminal::terminal(type type)
+  inline Terminal::Terminal(Type type)
       : m_type(type) {}
 
-  inline terminal::type terminal::get_type() const {
+  inline Terminal::Type Terminal::get_type() const {
     return m_type;
   }
 }

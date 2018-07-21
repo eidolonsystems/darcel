@@ -22,7 +22,7 @@ namespace darcel {
     ++c;
     auto name_location = c.get_location();
     auto& name = parse_identifier(c);
-    expect(c, operation::symbol::ASSIGN);
+    expect(c, Operation::Symbol::ASSIGN);
     if(!match(*c, Keyword::Word::ENUM)) {
       return nullptr;
     }
@@ -40,7 +40,7 @@ namespace darcel {
           existing_symbol->second);
       }
       auto value = [&] {
-        if(match(*c, operation::symbol::ASSIGN)) {
+        if(match(*c, Operation::Symbol::ASSIGN)) {
           ++c;
           auto expression_token = c.get_location();
           auto value_expression = dynamic_pointer_cast<literal_expression>(
@@ -69,7 +69,7 @@ namespace darcel {
       if(match(*c, Bracket::Type::ROUND_CLOSE)) {
         break;
       }
-      expect(c, punctuation::mark::COMMA);
+      expect(c, Punctuation::Mark::COMMA);
     }
     ++c;
     auto statement = bind_enum(cursor.get_location(), get_current_scope(), name,
@@ -108,7 +108,7 @@ namespace darcel {
             name_location);
         }
         auto v = std::make_shared<variable>(name_location, parameter_name);
-        if(match(*c, punctuation::mark::COLON)) {
+        if(match(*c, Punctuation::Mark::COLON)) {
           ++c;
           auto t = expect_data_type(c);
           parameters.emplace_back(std::move(v), std::move(t));
@@ -118,11 +118,11 @@ namespace darcel {
         if(match(*c, Bracket::Type::ROUND_CLOSE)) {
           break;
         }
-        expect(c, punctuation::mark::COMMA);
+        expect(c, Punctuation::Mark::COMMA);
       }
     }
     ++c;
-    expect(c, operation::symbol::ASSIGN);
+    expect(c, Operation::Symbol::ASSIGN);
     for(auto& parameter : parameters) {
       get_current_scope().add(parameter.m_variable);
     }
@@ -167,7 +167,7 @@ namespace darcel {
     ++c;
     auto name_location = c.get_location();
     auto& name = parse_identifier(c);
-    expect(c, operation::symbol::ASSIGN);
+    expect(c, Operation::Symbol::ASSIGN);
     auto initializer = expect_expression(c);
     auto statement = bind_variable(cursor.get_location(), get_current_scope(),
       name, std::move(initializer));
@@ -177,7 +177,7 @@ namespace darcel {
 
   inline std::unique_ptr<terminal_node> syntax_parser::parse_terminal_node(
       token_iterator& cursor) {
-    if(!cursor.is_empty() && match(*cursor, terminal::type::end_of_file)) {
+    if(!cursor.is_empty() && match(*cursor, Terminal::Type::END_OF_FILE)) {
       auto t = std::make_unique<terminal_node>(cursor.get_location());
       ++cursor;
       return t;
@@ -188,7 +188,7 @@ namespace darcel {
   inline std::unique_ptr<statement> syntax_parser::parse_statement(
       token_iterator& cursor) {
     auto c = cursor;
-    while(!c.is_empty() && match(*c, terminal::type::new_line)) {
+    while(!c.is_empty() && match(*c, Terminal::Type::NEW_LINE)) {
       ++c;
     }
     std::unique_ptr<statement> node;
@@ -199,7 +199,7 @@ namespace darcel {
         throw syntax_error(syntax_error_code::NEW_LINE_EXPECTED,
           c.get_location());
       }
-      while(!c.is_empty() && match(*c, terminal::type::new_line)) {
+      while(!c.is_empty() && match(*c, Terminal::Type::NEW_LINE)) {
         ++c;
       }
       cursor = c;
@@ -214,7 +214,7 @@ namespace darcel {
         throw syntax_error(syntax_error_code::NEW_LINE_EXPECTED,
           c.get_location());
       }
-      while(!c.is_empty() && match(*c, terminal::type::new_line)) {
+      while(!c.is_empty() && match(*c, Terminal::Type::NEW_LINE)) {
         ++c;
       }
       cursor = c;

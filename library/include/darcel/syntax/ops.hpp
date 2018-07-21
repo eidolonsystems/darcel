@@ -132,11 +132,11 @@ namespace darcel {
     \param o The token representing the operation.
     \return The operation represented by the token.
   */
-  inline op get_unary_op(operation o) {
+  inline op get_unary_op(Operation o) {
     switch(o.get_symbol()) {
-      case operation::symbol::PLUS:
+      case Operation::Symbol::PLUS:
         return op::PLUS;
-      case operation::symbol::MINUS:
+      case Operation::Symbol::MINUS:
         return op::MINUS;
     }
     throw std::runtime_error("Invalid operation specified.");
@@ -147,15 +147,15 @@ namespace darcel {
     \param o The token representing the operation.
     \return The operation represented by the token.
   */
-  inline op get_binary_op(operation o) {
+  inline op get_binary_op(Operation o) {
     switch(o.get_symbol()) {
-      case operation::symbol::PLUS:
+      case Operation::Symbol::PLUS:
         return op::ADD;
-      case operation::symbol::MINUS:
+      case Operation::Symbol::MINUS:
         return op::SUBTRACT;
-      case operation::symbol::TIMES:
+      case Operation::Symbol::TIMES:
         return op::MULTIPLY;
-      case operation::symbol::DIVIDE:
+      case Operation::Symbol::DIVIDE:
         return op::DIVIDE;
     }
     throw std::runtime_error("Invalid operation specified.");

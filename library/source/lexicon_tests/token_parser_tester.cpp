@@ -4,8 +4,8 @@
 using namespace darcel;
 using namespace std;
 
-TEST_CASE("test_keyword_token_parser", "[token_parser]") {
-  token_parser parser;
+TEST_CASE("test_keyword_token_parser", "[TokenParser]") {
+  TokenParser parser;
   parser.feed("return");
   {
     auto t = parser.parse_token();
@@ -18,8 +18,8 @@ TEST_CASE("test_keyword_token_parser", "[token_parser]") {
   }
 }
 
-TEST_CASE("test_identifier_token_parser", "[token_parser]") {
-  token_parser parser;
+TEST_CASE("test_identifier_token_parser", "[TokenParser]") {
+  TokenParser parser;
   parser.feed("abc ");
   {
     auto t = parser.parse_token();
@@ -27,8 +27,8 @@ TEST_CASE("test_identifier_token_parser", "[token_parser]") {
   }
 }
 
-TEST_CASE("test_spaces_token_parser", "[token_parser]") {
-  token_parser parser;
+TEST_CASE("test_spaces_token_parser", "[TokenParser]") {
+  TokenParser parser;
   parser.feed("   \nlet  \n  \r\n   let ");
   {
     auto t = parser.parse_token();
@@ -40,7 +40,7 @@ TEST_CASE("test_spaces_token_parser", "[token_parser]") {
   {
     auto t = parser.parse_token();
     REQUIRE(t.has_value());
-    REQUIRE(match(*t, terminal::type::new_line));
+    REQUIRE(match(*t, Terminal::Type::NEW_LINE));
     REQUIRE(t->get_line_number() == 2);
     REQUIRE(t->get_column_number() == 6);
   }
@@ -53,9 +53,9 @@ TEST_CASE("test_spaces_token_parser", "[token_parser]") {
   }
 }
 
-TEST_CASE("test_line_continuations", "[token_parser]") {
+TEST_CASE("test_line_continuations", "[TokenParser]") {
   SECTION("Operator continuation.") {
-    token_parser parser;
+    TokenParser parser;
     parser.feed("5 +\n5\0");
     {
       auto t = parser.parse_token();
@@ -65,7 +65,7 @@ TEST_CASE("test_line_continuations", "[token_parser]") {
     {
       auto t = parser.parse_token();
       REQUIRE(t.has_value());
-      REQUIRE(std::get_if<operation>(&t->get_instance()) != nullptr);
+      REQUIRE(std::get_if<Operation>(&t->get_instance()) != nullptr);
     }
     {
       auto t = parser.parse_token();
@@ -74,7 +74,7 @@ TEST_CASE("test_line_continuations", "[token_parser]") {
     }
   }
   SECTION("Round bracket continuation.") {
-    token_parser parser;
+    TokenParser parser;
     parser.feed("5 +(\n6\n)7\0");
     {
       auto t = parser.parse_token();
@@ -84,7 +84,7 @@ TEST_CASE("test_line_continuations", "[token_parser]") {
     {
       auto t = parser.parse_token();
       REQUIRE(t.has_value());
-      REQUIRE(std::get_if<operation>(&t->get_instance()) != nullptr);
+      REQUIRE(std::get_if<Operation>(&t->get_instance()) != nullptr);
     }
     {
       auto t = parser.parse_token();

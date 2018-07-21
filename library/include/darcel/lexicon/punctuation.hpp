@@ -9,11 +9,11 @@
 namespace darcel {
 
   //! Stores a punctuation mark.
-  class punctuation {
+  class Punctuation {
     public:
 
       //! The list of punctuation marks.
-      enum class mark {
+      enum class Mark {
 
         //! ':'
         COLON,
@@ -41,13 +41,13 @@ namespace darcel {
       /*!
         \param mark The mark to represent.
       */
-      punctuation(mark mark);
+      Punctuation(Mark mark);
 
       //! Returns the punctuation mark represented.
-      mark get_mark() const;
+      Mark get_mark() const;
 
     private:
-      mark m_mark;
+      Mark m_mark;
   };
 
   //! Returns <code>true</code> iff a character represents a punctuation.
@@ -64,7 +64,7 @@ namespace darcel {
            will be adjusted to one past the last character that was parsed.
     \return The punctuation that was parsed.
   */
-  inline std::optional<punctuation> parse_punctuation(
+  inline std::optional<Punctuation> parse_punctuation(
       LexicalIterator& cursor) {
     if(!cursor.is_empty()) {
       if(*cursor == ':') {
@@ -74,22 +74,22 @@ namespace darcel {
         } else if(*c == ':') {
           ++c;
           cursor = c;
-          return punctuation::mark::PATH;
+          return Punctuation::Mark::PATH;
         }
         cursor = c;
-        return punctuation::mark::COLON;
+        return Punctuation::Mark::COLON;
       } else if(*cursor == ',') {
         ++cursor;
-        return punctuation::mark::COMMA;
+        return Punctuation::Mark::COMMA;
       } else if(*cursor == '.') {
         ++cursor;
-        return punctuation::mark::DOT;
+        return Punctuation::Mark::DOT;
       } else if(*cursor == '|') {
         ++cursor;
-        return punctuation::mark::BAR;
+        return Punctuation::Mark::BAR;
       } else if(*cursor == '`') {
         ++cursor;
-        return punctuation::mark::BACKTICK;
+        return Punctuation::Mark::BACKTICK;
       } else if(*cursor == '-') {
         auto c = cursor + 1;
         if(c.is_empty()) {
@@ -97,7 +97,7 @@ namespace darcel {
         } else if(*c == '>') {
           ++c;
           cursor = c;
-          return punctuation::mark::ARROW;
+          return Punctuation::Mark::ARROW;
         }
       }
     }
@@ -115,39 +115,39 @@ namespace darcel {
   }
 
   inline std::ostream& operator <<(std::ostream& out,
-      const punctuation& value) {
+      const Punctuation& value) {
     switch(value.get_mark()) {
-      case punctuation::mark::COLON:
+      case Punctuation::Mark::COLON:
         return out << ':';
-      case punctuation::mark::PATH:
+      case Punctuation::Mark::PATH:
         return out << "::";
-      case punctuation::mark::COMMA:
+      case Punctuation::Mark::COMMA:
         return out << ',';
-      case punctuation::mark::DOT:
+      case Punctuation::Mark::DOT:
         return out << '.';
-      case punctuation::mark::BAR:
+      case Punctuation::Mark::BAR:
         return out << '|';
-      case punctuation::mark::BACKTICK:
+      case Punctuation::Mark::BACKTICK:
         return out << '`';
-      case punctuation::mark::ARROW:
+      case Punctuation::Mark::ARROW:
         return out << "->";
       default:
         throw std::runtime_error("Invalid punctuation mark.");
     }
   }
 
-  inline bool operator ==(const punctuation& lhs, const punctuation& rhs) {
+  inline bool operator ==(const Punctuation& lhs, const Punctuation& rhs) {
     return lhs.get_mark() == rhs.get_mark();
   }
 
-  inline bool operator !=(const punctuation& lhs, const punctuation& rhs) {
+  inline bool operator !=(const Punctuation& lhs, const Punctuation& rhs) {
     return !(lhs == rhs);
   }
 
-  inline punctuation::punctuation(mark mark)
+  inline Punctuation::Punctuation(Mark mark)
       : m_mark(mark) {}
 
-  inline punctuation::mark punctuation::get_mark() const {
+  inline Punctuation::Mark Punctuation::get_mark() const {
     return m_mark;
   }
 }

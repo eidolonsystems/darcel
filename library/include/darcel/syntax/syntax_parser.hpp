@@ -38,7 +38,7 @@ namespace darcel {
       /*!
         \param t The token to feed.
       */
-      void feed(token t);
+      void feed(Token t);
 
       //! Returns an iterator to the next terminal token.
       token_iterator get_next_terminal() const;
@@ -52,7 +52,7 @@ namespace darcel {
 
     private:
       std::deque<std::unique_ptr<scope>> m_scopes;
-      std::vector<token> m_tokens;
+      std::vector<Token> m_tokens;
       token_iterator m_cursor;
       int m_generic_index;
 
@@ -134,7 +134,7 @@ namespace darcel {
     \param t The token to test.
     \return <code>true</code> iff <i>t</i> ends a syntax node.
   */
-  inline bool is_syntax_node_end(const token& t) {
+  inline bool is_syntax_node_end(const Token& t) {
     return is_terminal(t);
   }
 
@@ -145,17 +145,17 @@ namespace darcel {
            the location where the expected token is located.
     \param t The token to expect.
   */
-  inline void expect(token_iterator& cursor, const token::instance& t) {
+  inline void expect(token_iterator& cursor, const Token::Instance& t) {
     auto c = cursor;
-    while(!c.is_empty() && match(*c, terminal::type::new_line)) {
+    while(!c.is_empty() && match(*c, Terminal::Type::NEW_LINE)) {
       ++c;
     }
     if(c.is_empty() || c->get_instance() != t) {
       std::visit(
         [&] (auto&& instance) {
           using T = std::decay_t<decltype(instance)>;
-          if constexpr(std::is_same_v<T, punctuation>) {
-            if(instance == punctuation::mark::COMMA) {
+          if constexpr(std::is_same_v<T, Punctuation>) {
+            if(instance == Punctuation::Mark::COMMA) {
               throw syntax_error(syntax_error_code::COMMA_EXPECTED,
                 cursor.get_location());
             }
@@ -164,8 +164,8 @@ namespace darcel {
               throw syntax_error(syntax_error_code::OPEN_ROUND_BRACKET_EXPECTED,
                 cursor.get_location());
             }
-          } else if constexpr(std::is_same_v<T, operation>) {
-            if(instance == operation::symbol::ASSIGN) {
+          } else if constexpr(std::is_same_v<T, Operation>) {
+            if(instance == Operation::Symbol::ASSIGN) {
               throw syntax_error(syntax_error_code::ASSIGNMENT_EXPECTED,
                 cursor.get_location());
             }
@@ -186,7 +186,7 @@ namespace darcel {
     m_scopes.push_back(std::make_unique<scope>(&s));
   }
 
-  inline void syntax_parser::feed(token t) {
+  inline void syntax_parser::feed(Token t) {
     auto position = &*m_cursor - m_tokens.data();
     m_tokens.push_back(std::move(t));
     m_cursor.adjust(m_tokens.data() + position,
@@ -226,7 +226,7 @@ namespace darcel {
         if constexpr(std::is_same_v<T, Identifier> ||
             std::is_same_v<T, Keyword> ||
             std::is_same_v<T, Literal> ||
-            std::is_same_v<T, punctuation>) {
+            std::is_same_v<T, Punctuation>) {
           return true;
         }
         return false;
@@ -235,12 +235,12 @@ namespace darcel {
       ++c;
       return get_next_terminal(c);
     }
-    if(std::get_if<operation>(&c->get_instance())) {
+    if(std::get_if<Operation>(&c->get_instance())) {
       ++c;
       if(c.is_empty()) {
         return cursor;
       }
-      if(match(*c, terminal::type::new_line)) {
+      if(match(*c, Terminal::Type::NEW_LINE)) {
         ++c;
       }
       return get_next_terminal(c);
@@ -285,17 +285,17 @@ namespace darcel {
             syntax_error_code::FUNCTION_PARAMETER_ALREADY_DEFINED,
             name_location);
         }
-        expect(c, punctuation::mark::COLON);
+        expect(c, Punctuation::Mark::COLON);
         auto parameter_type = expect_data_type(c);
         parameters.emplace_back(parameter_name, std::move(parameter_type));
         if(match(*c, Bracket::Type::ROUND_CLOSE)) {
           break;
         }
-        expect(c, punctuation::mark::COMMA);
+        expect(c, Punctuation::Mark::COMMA);
       }
     }
     ++c;
-    expect(c, punctuation::mark::ARROW);
+    expect(c, Punctuation::Mark::ARROW);
     auto return_type = expect_data_type(c);
     cursor = c;
     return std::make_shared<FunctionDataType>(std::move(parameters),
@@ -305,7 +305,7 @@ namespace darcel {
   inline std::shared_ptr<GenericDataType>
       syntax_parser::parse_generic_data_type(token_iterator& cursor) {
     auto c = cursor;
-    expect(c, punctuation::mark::BACKTICK);
+    expect(c, Punctuation::Mark::BACKTICK);
     auto name_location = c.get_location();
     auto name = '`' + parse_identifier(c);
     auto t = get_current_scope().find<GenericDataType>(name);
@@ -329,7 +329,7 @@ namespace darcel {
     if(match(*cursor, Bracket::Type::ROUND_OPEN)) {
       return parse_function_data_type(cursor);
     }
-    if(match(*cursor, punctuation::mark::BACKTICK)) {
+    if(match(*cursor, Punctuation::Mark::BACKTICK)) {
       return parse_generic_data_type(cursor);
     }
     auto c = cursor;
@@ -356,7 +356,7 @@ namespace darcel {
       return nullptr;
     }
     if(auto node = parse_statement(cursor)) {
-      if(!cursor.is_empty() && match(*cursor, terminal::type::new_line)) {
+      if(!cursor.is_empty() && match(*cursor, Terminal::Type::NEW_LINE)) {
         ++cursor;
       }
       return node;

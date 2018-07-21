@@ -7,10 +7,10 @@ namespace darcel {
 namespace tests {
   template<std::size_t N>
   void incremental_feed(syntax_parser& p, const char (&s)[N]) {
-    token_parser t;
+    TokenParser t;
     t.feed(s);
     while(auto token = t.parse_token()) {
-      if(match(*token, terminal::type::end_of_file)) {
+      if(match(*token, Terminal::Type::END_OF_FILE)) {
         p.feed(std::move(*token));
         break;
       }
