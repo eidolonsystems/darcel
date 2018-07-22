@@ -7,7 +7,7 @@
 namespace darcel {
 
   //! Indicates an identifier already has a definition within the current scope.
-  class redefinition_syntax_error : public syntax_error {
+  class RedefinitionSyntaxError : public SyntaxError {
     public:
 
       //! Constructs a redefinition syntax erorr.
@@ -16,7 +16,7 @@ namespace darcel {
         \param name The name of the identifier being redefined.
         \param original_location The location of the original identifier.
       */
-      redefinition_syntax_error(Location error_location, std::string name,
+      RedefinitionSyntaxError(Location error_location, std::string name,
         Location original_location);
 
       //! Returns the name of the identifier being redefined.
@@ -30,18 +30,18 @@ namespace darcel {
       Location m_original_location;
   };
 
-  inline redefinition_syntax_error::redefinition_syntax_error(
+  inline RedefinitionSyntaxError::RedefinitionSyntaxError(
       Location error_location, std::string name, Location original_location)
-      : syntax_error(syntax_error_code::IDENTIFIER_ALREADY_DEFINED,
+      : SyntaxError(SyntaxErrorCode::IDENTIFIER_ALREADY_DEFINED,
           std::move(error_location)),
         m_name(std::move(name)),
         m_original_location(std::move(original_location)) {}
 
-  inline const std::string& redefinition_syntax_error::get_name() const {
+  inline const std::string& RedefinitionSyntaxError::get_name() const {
     return m_name;
   }
 
-  inline const Location& redefinition_syntax_error::
+  inline const Location& RedefinitionSyntaxError::
       get_original_location() const {
     return m_original_location;
   }

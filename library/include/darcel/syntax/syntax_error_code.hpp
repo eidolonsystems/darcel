@@ -5,7 +5,7 @@
 namespace darcel {
 
   //! Enumerates all syntax errors.
-  enum class syntax_error_code {
+  enum class SyntaxErrorCode {
 
     //! A new line was expected.
     NEW_LINE_EXPECTED,

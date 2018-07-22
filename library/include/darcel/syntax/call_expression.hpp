@@ -11,53 +11,53 @@ namespace darcel {
 
   //! Represents applying a callable expression to its parameters,
   //! ie. a function call.
-  class call_expression final : public expression {
+  class CallExpression final : public Expression {
     public:
 
-      //! Constructs a call_expression.
+      //! Constructs a CallExpression.
       /*!
         \param l The location of the opening bracket.
         \param callable The expression to call.
         \param arguments The arguments to apply to the <i>callable</i>.
       */
-      call_expression(Location l, std::unique_ptr<expression> callable,
-        std::vector<std::unique_ptr<expression>> arguments);
+      CallExpression(Location l, std::unique_ptr<Expression> callable,
+        std::vector<std::unique_ptr<Expression>> arguments);
 
       //! Returns the callable expression.
-      const expression& get_callable() const;
+      const Expression& get_callable() const;
 
       //! Returns the arguments to apply to the callable.
-      const std::vector<std::unique_ptr<expression>>& get_arguments() const;
+      const std::vector<std::unique_ptr<Expression>>& get_arguments() const;
 
-      void apply(syntax_node_visitor& visitor) const override;
+      void apply(SyntaxNodeVisitor& visitor) const override;
 
     private:
-      std::unique_ptr<expression> m_callable;
-      std::vector<std::unique_ptr<expression>> m_arguments;
+      std::unique_ptr<Expression> m_callable;
+      std::vector<std::unique_ptr<Expression>> m_arguments;
   };
 
-  inline call_expression::call_expression(Location l,
-      std::unique_ptr<expression> callable,
-      std::vector<std::unique_ptr<expression>> arguments)
-      : expression(std::move(l)),
+  inline CallExpression::CallExpression(Location l,
+      std::unique_ptr<Expression> callable,
+      std::vector<std::unique_ptr<Expression>> arguments)
+      : Expression(std::move(l)),
         m_callable(std::move(callable)),
         m_arguments(std::move(arguments)) {}
 
-  inline const expression& call_expression::get_callable() const {
+  inline const Expression& CallExpression::get_callable() const {
     return *m_callable;
   }
 
-  inline const std::vector<std::unique_ptr<expression>>&
-      call_expression::get_arguments() const {
+  inline const std::vector<std::unique_ptr<Expression>>&
+      CallExpression::get_arguments() const {
     return m_arguments;
   }
 
-  inline void call_expression::apply(syntax_node_visitor& visitor) const {
+  inline void CallExpression::apply(SyntaxNodeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline void syntax_node_visitor::visit(const call_expression& node) {
-    visit(static_cast<const expression&>(node));
+  inline void SyntaxNodeVisitor::visit(const CallExpression& node) {
+    visit(static_cast<const Expression&>(node));
   }
 }
 

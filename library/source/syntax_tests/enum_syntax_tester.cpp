@@ -6,22 +6,22 @@
 using namespace darcel;
 using namespace darcel::tests;
 
-TEST_CASE("test_declaring_empty_enum", "[syntax_parser]") {
+TEST_CASE("test_declaring_empty_enum", "[SyntaxParser]") {
   auto top_scope = make_builtin_scope();
-  syntax_parser p(*top_scope);
+  SyntaxParser p(*top_scope);
   feed(p, "let e = enum()");
-  auto e = dynamic_pointer_cast<bind_enum_statement>(p.parse_node());
+  auto e = dynamic_pointer_cast<BindEnumStatement>(p.parse_node());
   REQUIRE(e != nullptr);
   REQUIRE(e->get_enum()->get_name() == "e");
   REQUIRE(e->get_enum()->get_symbols().empty());
 }
 
-TEST_CASE("test_singleton_enum", "[syntax_parser]") {
+TEST_CASE("test_singleton_enum", "[SyntaxParser]") {
   SECTION("No explicit value.") {
     auto top_scope = make_builtin_scope();
-    syntax_parser p(*top_scope);
+    SyntaxParser p(*top_scope);
     feed(p, "let e = enum(A)");
-    auto e = dynamic_pointer_cast<bind_enum_statement>(p.parse_node());
+    auto e = dynamic_pointer_cast<BindEnumStatement>(p.parse_node());
     REQUIRE(e != nullptr);
     REQUIRE(e->get_enum()->get_name() == "e");
     REQUIRE(e->get_enum()->get_symbols().size() == 1);
@@ -30,9 +30,9 @@ TEST_CASE("test_singleton_enum", "[syntax_parser]") {
   }
   SECTION("Explicit value.") {
     auto top_scope = make_builtin_scope();
-    syntax_parser p(*top_scope);
+    SyntaxParser p(*top_scope);
     feed(p, "let e = enum(A = 123)");
-    auto e = dynamic_pointer_cast<bind_enum_statement>(p.parse_node());
+    auto e = dynamic_pointer_cast<BindEnumStatement>(p.parse_node());
     REQUIRE(e != nullptr);
     REQUIRE(e->get_enum()->get_name() == "e");
     REQUIRE(e->get_enum()->get_symbols().size() == 1);
@@ -41,12 +41,12 @@ TEST_CASE("test_singleton_enum", "[syntax_parser]") {
   }
 }
 
-TEST_CASE("test_double_enum", "[syntax_parser]") {
+TEST_CASE("test_double_enum", "[SyntaxParser]") {
   SECTION("No explicit values.") {
     auto top_scope = make_builtin_scope();
-    syntax_parser p(*top_scope);
+    SyntaxParser p(*top_scope);
     feed(p, "let e = enum(A, B)");
-    auto e = dynamic_pointer_cast<bind_enum_statement>(p.parse_node());
+    auto e = dynamic_pointer_cast<BindEnumStatement>(p.parse_node());
     REQUIRE(e != nullptr);
     REQUIRE(e->get_enum()->get_name() == "e");
     REQUIRE(e->get_enum()->get_symbols().size() == 2);
@@ -57,9 +57,9 @@ TEST_CASE("test_double_enum", "[syntax_parser]") {
   }
   SECTION("First explicit value.") {
     auto top_scope = make_builtin_scope();
-    syntax_parser p(*top_scope);
+    SyntaxParser p(*top_scope);
     feed(p, "let e = enum(A = 321, B)");
-    auto e = dynamic_pointer_cast<bind_enum_statement>(p.parse_node());
+    auto e = dynamic_pointer_cast<BindEnumStatement>(p.parse_node());
     REQUIRE(e != nullptr);
     REQUIRE(e->get_enum()->get_name() == "e");
     REQUIRE(e->get_enum()->get_symbols().size() == 2);
@@ -70,9 +70,9 @@ TEST_CASE("test_double_enum", "[syntax_parser]") {
   }
   SECTION("Second explicit value.") {
     auto top_scope = make_builtin_scope();
-    syntax_parser p(*top_scope);
+    SyntaxParser p(*top_scope);
     feed(p, "let e = enum(A, B = 911)");
-    auto e = dynamic_pointer_cast<bind_enum_statement>(p.parse_node());
+    auto e = dynamic_pointer_cast<BindEnumStatement>(p.parse_node());
     REQUIRE(e != nullptr);
     REQUIRE(e->get_enum()->get_name() == "e");
     REQUIRE(e->get_enum()->get_symbols().size() == 2);
@@ -83,9 +83,9 @@ TEST_CASE("test_double_enum", "[syntax_parser]") {
   }
   SECTION("Both valid explicit values.") {
     auto top_scope = make_builtin_scope();
-    syntax_parser p(*top_scope);
+    SyntaxParser p(*top_scope);
     feed(p, "let e = enum(A = 100, B = 200)");
-    auto e = dynamic_pointer_cast<bind_enum_statement>(p.parse_node());
+    auto e = dynamic_pointer_cast<BindEnumStatement>(p.parse_node());
     REQUIRE(e != nullptr);
     REQUIRE(e->get_enum()->get_name() == "e");
     REQUIRE(e->get_enum()->get_symbols().size() == 2);
@@ -96,36 +96,36 @@ TEST_CASE("test_double_enum", "[syntax_parser]") {
   }
   SECTION("Invalid explicit values.") {
     auto top_scope = make_builtin_scope();
-    syntax_parser p(*top_scope);
+    SyntaxParser p(*top_scope);
     feed(p, "let e = enum(A = 100, B = 50)");
-    REQUIRE_THROWS_AS(p.parse_node(), invalid_enum_value_syntax_error);
+    REQUIRE_THROWS_AS(p.parse_node(), InvalidEnumValueSyntaxError);
   }
 }
 
-TEST_CASE("test_duplicate_enum_symbols", "[syntax_parser]") {
+TEST_CASE("test_duplicate_enum_symbols", "[SyntaxParser]") {
   auto top_scope = make_builtin_scope();
-  syntax_parser p(*top_scope);
+  SyntaxParser p(*top_scope);
   feed(p, "let e = enum(A, A)");
-  REQUIRE_THROWS_AS(p.parse_node(), redefinition_syntax_error);
+  REQUIRE_THROWS_AS(p.parse_node(), RedefinitionSyntaxError);
 }
 
-TEST_CASE("test_enum_access", "[syntax_parser]") {
+TEST_CASE("test_enum_access", "[SyntaxParser]") {
   auto top_scope = make_builtin_scope();
-  syntax_parser p(*top_scope);
+  SyntaxParser p(*top_scope);
   feed(p, R"(let e = enum(A, B)
              e.B)");
   p.parse_node();
-  auto access = dynamic_pointer_cast<enum_expression>(p.parse_node());
+  auto access = dynamic_pointer_cast<EnumExpression>(p.parse_node());
   REQUIRE(access != nullptr);
   REQUIRE(access->get_index() == 1);
   REQUIRE(access->get_enum()->get_symbols()[1].m_name == "B");
 }
 
-TEST_CASE("test_invalid_enum_access", "[syntax_parser]") {
+TEST_CASE("test_invalid_enum_access", "[SyntaxParser]") {
   auto top_scope = make_builtin_scope();
-  syntax_parser p(*top_scope);
+  SyntaxParser p(*top_scope);
   feed(p, R"(let e = enum(A, B)
              e.C)");
   p.parse_node();
-  REQUIRE_THROWS_AS(p.parse_node(), invalid_member_syntax_error);
+  REQUIRE_THROWS_AS(p.parse_node(), InvalidMemberSyntaxError);
 }

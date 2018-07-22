@@ -30,7 +30,7 @@ namespace darcel {
         \param e The expression to constrain.
         \param t The data type that the expression must evaluate to.
       */
-      void add(const expression& e, std::shared_ptr<DataType> t);
+      void add(const Expression& e, std::shared_ptr<DataType> t);
 
       //! Adds a requirement that must be satisfied.
       /*!
@@ -58,7 +58,7 @@ namespace darcel {
     return true;
   }
 
-  inline void constraints::add(const expression& e,
+  inline void constraints::add(const Expression& e,
       std::shared_ptr<DataType> t) {
     disjunctive_set d;
     d.add(e, std::move(t));

@@ -7,13 +7,13 @@
 namespace darcel {
 
   //! The base class for a syntax node representing an expression.
-  class expression : public statement {
+  class Expression : public Statement {
     public:
-      using statement::statement;
+      using Statement::Statement;
   };
 
-  inline void syntax_node_visitor::visit(const expression& node) {
-    visit(static_cast<const statement&>(node));
+  inline void SyntaxNodeVisitor::visit(const Expression& node) {
+    visit(static_cast<const Statement&>(node));
   }
 }
 

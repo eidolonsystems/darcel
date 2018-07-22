@@ -13,8 +13,8 @@
 #include "darcel/utilities/utilities.hpp"
 
 namespace darcel {
-  inline std::unique_ptr<bind_enum_statement>
-      syntax_parser::parse_bind_enum_statement(token_iterator& cursor) {
+  inline std::unique_ptr<BindEnumStatement>
+      SyntaxParser::parse_bind_enum_statement(TokenIterator& cursor) {
     auto c = cursor;
     if(!match(*c, Keyword::Word::LET)) {
       return nullptr;
@@ -36,27 +36,27 @@ namespace darcel {
       auto name = parse_identifier(c);
       auto existing_symbol = locations.find(name);
       if(existing_symbol != locations.end()) {
-        throw redefinition_syntax_error(symbol_location, name,
+        throw RedefinitionSyntaxError(symbol_location, name,
           existing_symbol->second);
       }
       auto value = [&] {
         if(match(*c, Operation::Symbol::ASSIGN)) {
           ++c;
           auto expression_token = c.get_location();
-          auto value_expression = dynamic_pointer_cast<literal_expression>(
+          auto value_expression = dynamic_pointer_cast<LiteralExpression>(
             expect_expression(c));
           if(value_expression == nullptr) {
-            throw syntax_error(syntax_error_code::EXPRESSION_EXPECTED,
+            throw SyntaxError(SyntaxErrorCode::EXPRESSION_EXPECTED,
               expression_token);
           }
           if(*value_expression->get_literal().get_type() !=
               *IntegerDataType::get_instance()) {
-            throw syntax_error(syntax_error_code::INTEGER_EXPRESSION_EXPECTED,
+            throw SyntaxError(SyntaxErrorCode::INTEGER_EXPRESSION_EXPECTED,
               expression_token);
           }
           auto value = std::stoi(value_expression->get_literal().get_value());
           if(value < next_value) {
-            throw invalid_enum_value_syntax_error(expression_token, next_value);
+            throw InvalidEnumValueSyntaxError(expression_token, next_value);
           }
           return value;
         } else {
@@ -78,8 +78,8 @@ namespace darcel {
     return statement;
   }
 
-  inline std::unique_ptr<bind_function_statement>
-      syntax_parser::parse_bind_function_statement(token_iterator& cursor) {
+  inline std::unique_ptr<BindFunctionStatement>
+      SyntaxParser::parse_bind_function_statement(TokenIterator& cursor) {
     auto c = cursor;
     if(!match(*c, Keyword::Word::LET)) {
       return nullptr;
@@ -91,7 +91,7 @@ namespace darcel {
       return nullptr;
     }
     ++c;
-    std::vector<bind_function_statement::parameter> parameters;
+    std::vector<BindFunctionStatement::parameter> parameters;
     push_scope();
     if(!match(*c, Bracket::Type::ROUND_CLOSE)) {
       while(true) {
@@ -103,8 +103,8 @@ namespace darcel {
             return p.m_variable->get_name() == parameter_name;
           });
         if(existing_parameter != parameters.end()) {
-          throw syntax_error(
-            syntax_error_code::FUNCTION_PARAMETER_ALREADY_DEFINED,
+          throw SyntaxError(
+            SyntaxErrorCode::FUNCTION_PARAMETER_ALREADY_DEFINED,
             name_location);
         }
         auto v = std::make_shared<Variable>(name_location, parameter_name);
@@ -146,20 +146,20 @@ namespace darcel {
       }
       auto f = std::dynamic_pointer_cast<Function>(existing_element);
       if(f == nullptr) {
-        throw redefinition_syntax_error(name_location, name,
+        throw RedefinitionSyntaxError(name_location, name,
           existing_element->get_location());
       }
       return f;
     }();
-    auto statement = std::make_unique<bind_function_statement>(
+    auto statement = std::make_unique<BindFunctionStatement>(
       cursor.get_location(), std::move(f), std::move(parameters),
       std::move(initializer));
     cursor = c;
     return statement;
   }
 
-  inline std::unique_ptr<bind_variable_statement>
-      syntax_parser::parse_bind_variable_statement(token_iterator& cursor) {
+  inline std::unique_ptr<BindVariableStatement>
+      SyntaxParser::parse_bind_variable_statement(TokenIterator& cursor) {
     auto c = cursor;
     if(!match(*c, Keyword::Word::LET)) {
       return nullptr;
@@ -175,28 +175,28 @@ namespace darcel {
     return statement;
   }
 
-  inline std::unique_ptr<terminal_node> syntax_parser::parse_terminal_node(
-      token_iterator& cursor) {
+  inline std::unique_ptr<TerminalNode> SyntaxParser::parse_terminal_node(
+      TokenIterator& cursor) {
     if(!cursor.is_empty() && match(*cursor, Terminal::Type::END_OF_FILE)) {
-      auto t = std::make_unique<terminal_node>(cursor.get_location());
+      auto t = std::make_unique<TerminalNode>(cursor.get_location());
       ++cursor;
       return t;
     }
     return nullptr;
   }
 
-  inline std::unique_ptr<statement> syntax_parser::parse_statement(
-      token_iterator& cursor) {
+  inline std::unique_ptr<Statement> SyntaxParser::parse_statement(
+      TokenIterator& cursor) {
     auto c = cursor;
     while(!c.is_empty() && match(*c, Terminal::Type::NEW_LINE)) {
       ++c;
     }
-    std::unique_ptr<statement> node;
+    std::unique_ptr<Statement> node;
     if((node = parse_bind_function_statement(c)) != nullptr ||
         (node = parse_bind_enum_statement(c)) != nullptr ||
         (node = parse_bind_variable_statement(c)) != nullptr) {
       if(!is_syntax_node_end(*c)) {
-        throw syntax_error(syntax_error_code::NEW_LINE_EXPECTED,
+        throw SyntaxError(SyntaxErrorCode::NEW_LINE_EXPECTED,
           c.get_location());
       }
       while(!c.is_empty() && match(*c, Terminal::Type::NEW_LINE)) {
@@ -211,7 +211,7 @@ namespace darcel {
         node = std::move(expression);
       }
       if(!is_syntax_node_end(*c)) {
-        throw syntax_error(syntax_error_code::NEW_LINE_EXPECTED,
+        throw SyntaxError(SyntaxErrorCode::NEW_LINE_EXPECTED,
           c.get_location());
       }
       while(!c.is_empty() && match(*c, Terminal::Type::NEW_LINE)) {
@@ -223,11 +223,11 @@ namespace darcel {
     return nullptr;
   }
 
-  inline std::unique_ptr<statement> syntax_parser::expect_statement(
-      token_iterator& cursor) {
+  inline std::unique_ptr<Statement> SyntaxParser::expect_statement(
+      TokenIterator& cursor) {
     auto s = parse_statement(cursor);
     if(s == nullptr) {
-      throw syntax_error(syntax_error_code::STATEMENT_EXPECTED,
+      throw SyntaxError(SyntaxErrorCode::STATEMENT_EXPECTED,
         cursor.get_location());
     }
     return s;

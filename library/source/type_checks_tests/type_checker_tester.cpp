@@ -9,7 +9,7 @@ using namespace darcel::tests;
 namespace {
   auto register_function(Scope& s, type_map& t, std::string name,
       std::vector<FunctionDataType::Parameter> parameters,
-      const expression_builder& body) {
+      const ExpressionBuilder& body) {
     auto f = bind_function(s, std::move(name), parameters,
       [&] (auto& s) {
         for(auto& parameter : parameters) {
@@ -208,7 +208,7 @@ TEST_CASE("test_checking_generic_function_parameters", "[type_checker]") {
   REQUIRE_NOTHROW(checker.check(*f));
   REQUIRE_NOTHROW(checker.check(*g));
   REQUIRE_NOTHROW(checker.check(*node));
-  auto& overloaded_argument = static_cast<const call_expression&>(
+  auto& overloaded_argument = static_cast<const CallExpression&>(
     node->get_expression()).get_arguments()[0];
   REQUIRE(*checker.get_types().get_type(*overloaded_argument) ==
     *make_function_data_type({{"x", IntegerDataType::get_instance()}},
@@ -284,7 +284,7 @@ TEST_CASE("test_expression_candidates", "[type_checker]") {
   }
   SECTION("Overloaded function candidates.") {
     auto candidates = determine_expression_types(
-      function_expression(Location::global(), f1->get_function()), m, s);
+      FunctionExpression(Location::global(), f1->get_function()), m, s);
     REQUIRE(candidates.size() == 3);
     REQUIRE(contains(candidates, CallableDataType(f1->get_function())));
     REQUIRE(contains(candidates,

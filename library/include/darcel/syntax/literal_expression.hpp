@@ -9,39 +9,39 @@
 namespace darcel {
 
   //! Represents an expression evaluating to a literal value.
-  class literal_expression final : public expression {
+  class LiteralExpression final : public Expression {
     public:
 
-      //! Constructs a literal_expression.
+      //! Constructs a LiteralExpression.
       /*!
         \param l The location of the token representing the literal value.
         \param literal The literal to evaluate to.
       */
-      literal_expression(Location l, Literal literal);
+      LiteralExpression(Location l, Literal literal);
 
       //! Returns the literal that is evaluated.
       const Literal& get_literal() const;
 
-      void apply(syntax_node_visitor& visitor) const override;
+      void apply(SyntaxNodeVisitor& visitor) const override;
 
     private:
       Literal m_literal;
   };
 
-  inline literal_expression::literal_expression(Location l, Literal literal)
-      : expression(std::move(l)),
+  inline LiteralExpression::LiteralExpression(Location l, Literal literal)
+      : Expression(std::move(l)),
         m_literal(std::move(literal)) {}
 
-  inline const Literal& literal_expression::get_literal() const {
+  inline const Literal& LiteralExpression::get_literal() const {
     return m_literal;
   }
 
-  inline void literal_expression::apply(syntax_node_visitor& visitor) const {
+  inline void LiteralExpression::apply(SyntaxNodeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline void syntax_node_visitor::visit(const literal_expression& node) {
-    visit(static_cast<const expression&>(node));
+  inline void SyntaxNodeVisitor::visit(const LiteralExpression& node) {
+    visit(static_cast<const Expression&>(node));
   }
 }
 

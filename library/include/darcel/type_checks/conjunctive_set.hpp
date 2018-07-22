@@ -34,11 +34,11 @@ namespace darcel {
         \param e The expression to constrain.
         \param t The data type that the expression must evaluate to.
       */
-      void add(const expression& e, std::shared_ptr<DataType> t);
+      void add(const Expression& e, std::shared_ptr<DataType> t);
 
     private:
       struct term {
-        const expression* m_expression;
+        const Expression* m_expression;
         std::shared_ptr<DataType> m_type;
       };
       std::vector<term> m_terms;
@@ -65,14 +65,14 @@ namespace darcel {
             *term_type != *expected_type) {
           return false;
         }
-      } catch(const syntax_error&) {
+      } catch(const SyntaxError&) {
         return false;
       }
     }
     return true;
   }
 
-  inline void conjunctive_set::add(const expression& e,
+  inline void conjunctive_set::add(const Expression& e,
       std::shared_ptr<DataType> t) {
     m_terms.push_back({&e, std::move(t)});
   }

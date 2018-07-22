@@ -5,41 +5,41 @@
 namespace darcel {
 
   //! Implements the visitor pattern for syntax nodes.
-  class syntax_node_visitor {
+  class SyntaxNodeVisitor {
     public:
-      virtual ~syntax_node_visitor() = default;
+      virtual ~SyntaxNodeVisitor() = default;
 
-      virtual void visit(const bind_enum_statement& node);
+      virtual void visit(const BindEnumStatement& node);
 
-      virtual void visit(const bind_function_statement& node);
+      virtual void visit(const BindFunctionStatement& node);
 
-      virtual void visit(const bind_variable_statement& node);
+      virtual void visit(const BindVariableStatement& node);
 
-      virtual void visit(const call_expression& node);
+      virtual void visit(const CallExpression& node);
 
-      virtual void visit(const enum_expression& node);
+      virtual void visit(const EnumExpression& node);
 
-      virtual void visit(const expression& node);
+      virtual void visit(const Expression& node);
 
-      virtual void visit(const function_expression& node);
+      virtual void visit(const FunctionExpression& node);
 
-      virtual void visit(const literal_expression& node);
+      virtual void visit(const LiteralExpression& node);
 
-      virtual void visit(const statement& node);
+      virtual void visit(const Statement& node);
 
-      virtual void visit(const syntax_node& node);
+      virtual void visit(const SyntaxNode& node);
 
-      virtual void visit(const terminal_node& node);
+      virtual void visit(const TerminalNode& node);
 
-      virtual void visit(const variable_expression& node);
+      virtual void visit(const VariableExpression& node);
 
     protected:
 
       //! Constructs a syntax node visitor.
-      syntax_node_visitor() = default;
+      SyntaxNodeVisitor() = default;
   };
 
-  inline void syntax_node_visitor::visit(const syntax_node& node) {}
+  inline void SyntaxNodeVisitor::visit(const SyntaxNode& node) {}
 }
 
 #endif

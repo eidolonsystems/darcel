@@ -22,7 +22,7 @@
 namespace darcel {
 
   //! Implements a syntax visitor to translate a node into a reactor.
-  class ReactorTranslator final : private syntax_node_visitor {
+  class ReactorTranslator final : private SyntaxNodeVisitor {
     public:
 
       //! Function used to instantiate generic functions.
@@ -66,7 +66,7 @@ namespace darcel {
       /*!
         \param node The node to translate into a reactor.
       */
-      void translate(const syntax_node& node);
+      void translate(const SyntaxNode& node);
 
       //! Returns the main reactor.
       /*!
@@ -74,29 +74,29 @@ namespace darcel {
       */
       std::shared_ptr<BaseReactor> get_main(Trigger& t) const;
 
-      void visit(const bind_function_statement& node) override;
+      void visit(const BindFunctionStatement& node) override;
 
-      void visit(const bind_variable_statement& node) override;
+      void visit(const BindVariableStatement& node) override;
 
-      void visit(const call_expression& node) override;
+      void visit(const CallExpression& node) override;
 
-      void visit(const enum_expression& node) override;
+      void visit(const EnumExpression& node) override;
 
-      void visit(const function_expression& node) override;
+      void visit(const FunctionExpression& node) override;
 
-      void visit(const literal_expression& node) override;
+      void visit(const LiteralExpression& node) override;
 
-      void visit(const variable_expression& node) override;
+      void visit(const VariableExpression& node) override;
 
     private:
       struct generic_definition_builder {
-        std::shared_ptr<bind_function_statement> m_node;
+        std::shared_ptr<BindFunctionStatement> m_node;
         std::shared_ptr<FunctionDefinition> m_definition;
         ReactorTranslator* m_translator;
         std::shared_ptr<DataTypeMap<std::shared_ptr<FunctionDataType>,
-          std::unique_ptr<bind_function_statement>>> m_instantiations;
+          std::unique_ptr<BindFunctionStatement>>> m_instantiations;
 
-        generic_definition_builder(const bind_function_statement& node,
+        generic_definition_builder(const BindFunctionStatement& node,
           std::shared_ptr<FunctionDefinition> definition,
           ReactorTranslator& translator);
 
@@ -113,11 +113,11 @@ namespace darcel {
         m_generic_builders;
       std::shared_ptr<ReactorBuilder> m_evaluation;
 
-      std::shared_ptr<ReactorBuilder> evaluate(const expression& e);
+      std::shared_ptr<ReactorBuilder> evaluate(const Expression& e);
   };
 
   inline ReactorTranslator::generic_definition_builder::
-      generic_definition_builder(const bind_function_statement& node,
+      generic_definition_builder(const BindFunctionStatement& node,
       std::shared_ptr<FunctionDefinition> definition,
       ReactorTranslator& translator)
       : m_node(clone_structure(node)),
@@ -125,7 +125,7 @@ namespace darcel {
         m_translator(&translator),
         m_instantiations(std::make_shared<
           DataTypeMap<std::shared_ptr<FunctionDataType>,
-          std::unique_ptr<bind_function_statement>>>()) {}
+          std::unique_ptr<BindFunctionStatement>>>()) {}
 
   inline std::unique_ptr<ReactorBuilder>
       ReactorTranslator::generic_definition_builder::operator ()(
@@ -166,7 +166,7 @@ namespace darcel {
       std::make_pair(std::move(f), std::move(definition)));
   }
 
-  inline void ReactorTranslator::translate(const syntax_node& node) {
+  inline void ReactorTranslator::translate(const SyntaxNode& node) {
     m_checker.check(node);
     node.apply(*this);
   }
@@ -180,7 +180,7 @@ namespace darcel {
     return r->second->build(t);
   }
 
-  inline void ReactorTranslator::visit(const bind_function_statement& node) {
+  inline void ReactorTranslator::visit(const BindFunctionStatement& node) {
     struct parameter_reactor_builder final : ReactorBuilder {
       std::shared_ptr<ReactorBuilder> m_builder;
 
@@ -219,7 +219,7 @@ namespace darcel {
     }
   }
 
-  inline void ReactorTranslator::visit(const bind_variable_statement& node) {
+  inline void ReactorTranslator::visit(const BindVariableStatement& node) {
     auto evaluation = evaluate(node.get_expression());
     if(evaluation != nullptr) {
       m_variables[node.get_variable()] = std::move(evaluation);
@@ -229,7 +229,7 @@ namespace darcel {
     }
   }
 
-  inline void ReactorTranslator::visit(const call_expression& node) {
+  inline void ReactorTranslator::visit(const CallExpression& node) {
     auto builder = evaluate(node.get_callable());
     std::vector<std::shared_ptr<ReactorBuilder>> arguments;
     for(auto& argument : node.get_arguments()) {
@@ -241,12 +241,12 @@ namespace darcel {
       });
   }
 
-  inline void ReactorTranslator::visit(const enum_expression& node) {
+  inline void ReactorTranslator::visit(const EnumExpression& node) {
     auto value = node.get_enum()->get_symbols()[node.get_index()].m_value;
     m_evaluation = make_constant_reactor_builder(value);
   }
 
-  inline void ReactorTranslator::visit(const function_expression& node) {
+  inline void ReactorTranslator::visit(const FunctionExpression& node) {
     auto definition = m_checker.get_definition(node);
     if(definition == nullptr) {
       return;
@@ -261,7 +261,7 @@ namespace darcel {
     }
   }
 
-  inline void ReactorTranslator::visit(const literal_expression& node) {
+  inline void ReactorTranslator::visit(const LiteralExpression& node) {
     struct literal_visitor : DataTypeVisitor {
       Literal m_literal;
       std::unique_ptr<ReactorBuilder> m_builder;
@@ -296,7 +296,7 @@ namespace darcel {
     m_evaluation = std::move(v.m_builder);
   }
 
-  inline void ReactorTranslator::visit(const variable_expression& node) {
+  inline void ReactorTranslator::visit(const VariableExpression& node) {
     if(auto callable_type = std::dynamic_pointer_cast<CallableDataType>(
         m_checker.get_types().get_type(*node.get_variable()))) {
       auto definition = m_checker.get_definition(node);
@@ -307,7 +307,7 @@ namespace darcel {
   }
 
   inline std::shared_ptr<ReactorBuilder> ReactorTranslator::evaluate(
-      const expression& e) {
+      const Expression& e) {
     e.apply(*this);
     auto evaluation = std::move(m_evaluation);
     return evaluation;

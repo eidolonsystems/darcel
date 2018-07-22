@@ -10,7 +10,7 @@
 namespace darcel {
 
   //! Indicates an invalid member is being accessed.
-  class invalid_member_syntax_error : public syntax_error {
+  class InvalidMemberSyntaxError : public SyntaxError {
     public:
 
       //! Constructs an invalid member syntax erorr.
@@ -19,7 +19,7 @@ namespace darcel {
         \param e The element being accessed.
         \param name The name of the invalid member.
       */
-      invalid_member_syntax_error(Location error_location,
+      InvalidMemberSyntaxError(Location error_location,
         std::shared_ptr<Element> e, std::string name);
 
       //! Returns the element being accessed.
@@ -33,19 +33,19 @@ namespace darcel {
       std::string m_name;
   };
 
-  inline invalid_member_syntax_error::invalid_member_syntax_error(
+  inline InvalidMemberSyntaxError::InvalidMemberSyntaxError(
       Location error_location, std::shared_ptr<Element> e, std::string name)
-      : syntax_error(syntax_error_code::INVALID_MEMBER,
+      : SyntaxError(SyntaxErrorCode::INVALID_MEMBER,
           std::move(error_location)),
         m_element(std::move(e)),
         m_name(std::move(name)) {}
 
   inline const std::shared_ptr<Element>&
-      invalid_member_syntax_error::get_element() const {
+      InvalidMemberSyntaxError::get_element() const {
     return m_element;
   }
 
-  inline const std::string& invalid_member_syntax_error::get_name() const {
+  inline const std::string& InvalidMemberSyntaxError::get_name() const {
     return m_name;
   }
 }

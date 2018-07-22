@@ -3,6 +3,6 @@
 
 using namespace darcel;
 
-TEST_CASE("test_token_iterator", "[token_iterator]") {
-  token_iterator t;
+TEST_CASE("test_token_iterator", "[TokenIterator]") {
+  TokenIterator t;
 }

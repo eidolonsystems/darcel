@@ -19,8 +19,8 @@
 #include "darcel/syntax/unmatched_bracket_syntax_error.hpp"
 
 namespace darcel {
-  inline std::unique_ptr<enum_expression> syntax_parser::parse_enum_expression(
-      token_iterator& cursor) {
+  inline std::unique_ptr<EnumExpression> SyntaxParser::parse_enum_expression(
+      TokenIterator& cursor) {
     auto c = cursor;
     auto name = try_parse_identifier(c);
     if(!name.has_value()) {
@@ -38,17 +38,17 @@ namespace darcel {
     auto symbol = parse_identifier(c);
     auto index = get_index(*e, symbol);
     if(index == -1) {
-      throw invalid_member_syntax_error(std::move(symbol_location),
+      throw InvalidMemberSyntaxError(std::move(symbol_location),
         std::move(e), std::move(symbol));
     }
-    auto s = std::make_unique<enum_expression>(cursor.get_location(),
+    auto s = std::make_unique<EnumExpression>(cursor.get_location(),
       std::move(e), index);
     cursor = c;
     return s;
   }
 
-  inline std::unique_ptr<function_expression>
-      syntax_parser::parse_function_expression(token_iterator& cursor) {
+  inline std::unique_ptr<FunctionExpression>
+      SyntaxParser::parse_function_expression(TokenIterator& cursor) {
     auto c = cursor;
     auto name = try_parse_identifier(c);
     if(!name.has_value()) {
@@ -58,19 +58,19 @@ namespace darcel {
     if(f == nullptr) {
       return nullptr;
     }
-    auto node = std::make_unique<function_expression>(cursor.get_location(),
+    auto node = std::make_unique<FunctionExpression>(cursor.get_location(),
       std::move(f));
     cursor = c;
     return node;
   }
 
-  inline std::unique_ptr<literal_expression> syntax_parser::
-      parse_literal_expression(token_iterator& cursor) {
+  inline std::unique_ptr<LiteralExpression> SyntaxParser::
+      parse_literal_expression(TokenIterator& cursor) {
     return std::visit(
-      [&] (auto&& value) -> std::unique_ptr<literal_expression> {
+      [&] (auto&& value) -> std::unique_ptr<LiteralExpression> {
         using T = std::decay_t<decltype(value)>;
         if constexpr(std::is_same_v<T, Literal>) {
-          auto expression = std::make_unique<literal_expression>(
+          auto expression = std::make_unique<LiteralExpression>(
             cursor.get_location(), value);
           ++cursor;
           return expression;
@@ -80,8 +80,8 @@ namespace darcel {
       cursor->get_instance());
   }
 
-  inline std::unique_ptr<variable_expression>
-      syntax_parser::parse_variable_expression(token_iterator& cursor) {
+  inline std::unique_ptr<VariableExpression>
+      SyntaxParser::parse_variable_expression(TokenIterator& cursor) {
     auto c = cursor;
     auto name = try_parse_identifier(c);
     if(!name.has_value()) {
@@ -92,13 +92,13 @@ namespace darcel {
         get_current_scope(), *name);
       cursor = c;
       return node;
-    } catch(const variable_not_found_error&) {
+    } catch(const VariableNotFoundError&) {
       return nullptr;
     }
   }
 
-  inline std::unique_ptr<expression> syntax_parser::parse_expression_term(
-      token_iterator& cursor) {
+  inline std::unique_ptr<Expression> SyntaxParser::parse_expression_term(
+      TokenIterator& cursor) {
     if(auto node = parse_function_expression(cursor)) {
       return node;
     } else if(auto node = parse_literal_expression(cursor)) {
@@ -111,21 +111,21 @@ namespace darcel {
     return nullptr;
   }
 
-  inline std::unique_ptr<expression> syntax_parser::parse_expression(
-      token_iterator& cursor) {
+  inline std::unique_ptr<Expression> SyntaxParser::parse_expression(
+      TokenIterator& cursor) {
     struct op_token {
-      op m_op;
+      Op m_op;
       Location m_location;
     };
-    std::deque<std::unique_ptr<expression>> expressions;
+    std::deque<std::unique_ptr<Expression>> expressions;
     std::stack<op_token> operators;
     auto build_call_expression =
       [&] (const op_token& o) {
         auto arity = get_arity(o.m_op);
         if(static_cast<int>(expressions.size()) < arity) {
-          throw arity_syntax_error(o.m_location, expressions.size(), o.m_op);
+          throw AritySyntaxError(o.m_location, expressions.size(), o.m_op);
         }
-        std::vector<std::unique_ptr<expression>> arguments;
+        std::vector<std::unique_ptr<Expression>> arguments;
         for(auto i = 0; i < arity; ++i) {
           arguments.push_back(nullptr);
         }
@@ -137,10 +137,10 @@ namespace darcel {
         auto& function_name = get_function_name(o.m_op);
         auto f = get_current_scope().find<Function>(function_name);
         if(f == nullptr) {
-          throw syntax_error(syntax_error_code::FUNCTION_NOT_FOUND,
+          throw SyntaxError(SyntaxErrorCode::FUNCTION_NOT_FOUND,
             o.m_location);
         }
-        auto callable = std::make_unique<function_expression>(o.m_location,
+        auto callable = std::make_unique<FunctionExpression>(o.m_location,
           std::move(f));
         auto call_expression = call(o.m_location, std::move(callable),
           std::move(arguments));
@@ -155,7 +155,7 @@ namespace darcel {
     while(true) {
       if(mode == parse_mode::TERM) {
         if(match(*c, Bracket::Type::ROUND_OPEN)) {
-          operators.push({op::OPEN_BRACKET, c.get_location()});
+          operators.push({Op::OPEN_BRACKET, c.get_location()});
           ++c;
         } else if(auto node = parse_expression_term(c)) {
           expressions.push_back(std::move(node));
@@ -167,12 +167,12 @@ namespace darcel {
         if(match(*c, Bracket::Type::ROUND_OPEN)) {
           auto call_location = c.get_location();
           ++c;
-          std::vector<std::unique_ptr<expression>> arguments;
+          std::vector<std::unique_ptr<Expression>> arguments;
           if(!match(*c, Bracket::Type::ROUND_CLOSE)) {
             while(true) {
               auto argument = parse_expression(c);
               if(argument == nullptr) {
-                throw syntax_error(syntax_error_code::EXPRESSION_EXPECTED,
+                throw SyntaxError(SyntaxErrorCode::EXPRESSION_EXPECTED,
                   c.get_location());
               }
               arguments.push_back(std::move(argument));
@@ -192,11 +192,11 @@ namespace darcel {
           auto& instance = std::get<Operation>(c->get_instance());
           auto o = get_binary_op(instance);
           while(!operators.empty() &&
-              (operators.top().m_op != op::OPEN_BRACKET &&
-              operators.top().m_op != op::CLOSE_BRACKET &&
+              (operators.top().m_op != Op::OPEN_BRACKET &&
+              operators.top().m_op != Op::CLOSE_BRACKET &&
               (get_precedence(operators.top().m_op) > get_precedence(o) ||
               get_precedence(operators.top().m_op) == get_precedence(o) &&
-              get_associativity(o) == associativity::LEFT_TO_RIGHT))) {
+              get_associativity(o) == Associativity::LEFT_TO_RIGHT))) {
             build_call_expression(operators.top());
             operators.pop();
           }
@@ -208,7 +208,7 @@ namespace darcel {
           while(!operators.empty()) {
             auto o = operators.top();
             operators.pop();
-            if(o.m_op == op::OPEN_BRACKET) {
+            if(o.m_op == Op::OPEN_BRACKET) {
               found_open_bracket = true;
               break;
             } else {
@@ -227,15 +227,15 @@ namespace darcel {
     while(!operators.empty()) {
       auto o = operators.top();
       operators.pop();
-      if(o.m_op == op::OPEN_BRACKET || o.m_op == op::CLOSE_BRACKET) {
+      if(o.m_op == Op::OPEN_BRACKET || o.m_op == Op::CLOSE_BRACKET) {
         auto bracket =
           [&] {
-            if(o.m_op == op::OPEN_BRACKET) {
+            if(o.m_op == Op::OPEN_BRACKET) {
               return Bracket::Type::ROUND_OPEN;
             }
             return Bracket::Type::ROUND_CLOSE;
           }();
-        throw unmatched_bracket_syntax_error(o.m_location, bracket);
+        throw UnmatchedBracketSyntaxError(o.m_location, bracket);
       }
       build_call_expression(o);
     }
@@ -249,11 +249,11 @@ namespace darcel {
     return e;
   }
 
-  inline std::unique_ptr<expression> syntax_parser::expect_expression(
-      token_iterator& cursor) {
+  inline std::unique_ptr<Expression> SyntaxParser::expect_expression(
+      TokenIterator& cursor) {
     auto e = parse_expression(cursor);
     if(e == nullptr) {
-      throw syntax_error(syntax_error_code::EXPRESSION_EXPECTED,
+      throw SyntaxError(SyntaxErrorCode::EXPRESSION_EXPECTED,
         cursor.get_location());
     }
     return e;

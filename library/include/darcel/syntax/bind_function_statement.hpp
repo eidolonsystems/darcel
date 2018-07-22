@@ -12,7 +12,7 @@
 namespace darcel {
 
   //! Binds a new function to an expression.
-  class bind_function_statement final : public statement {
+  class BindFunctionStatement final : public Statement {
     public:
 
       //! Represents a function parameter.
@@ -45,8 +45,8 @@ namespace darcel {
         \param p The function parameters.
         \param e The expression to bind to the function.
       */
-      bind_function_statement(Location l, std::shared_ptr<Function> f,
-        std::vector<parameter> p, std::unique_ptr<expression> e);
+      BindFunctionStatement(Location l, std::shared_ptr<Function> f,
+        std::vector<parameter> p, std::unique_ptr<Expression> e);
 
       //! Returns the function (potentially overloaded) that the binding belongs
       //! to.
@@ -56,55 +56,55 @@ namespace darcel {
       const std::vector<parameter>& get_parameters() const;
 
       //! Returns the expression that was bound.
-      const expression& get_expression() const;
+      const Expression& get_expression() const;
 
-      void apply(syntax_node_visitor& visitor) const override;
+      void apply(SyntaxNodeVisitor& visitor) const override;
 
     private:
       std::shared_ptr<Function> m_function;
       std::vector<parameter> m_parameters;
-      std::unique_ptr<expression> m_expression;
+      std::unique_ptr<Expression> m_expression;
   };
 
-  inline bind_function_statement::parameter::parameter(
+  inline BindFunctionStatement::parameter::parameter(
       std::shared_ptr<Variable> v)
       : m_variable(std::move(v)) {}
 
-  inline bind_function_statement::parameter::parameter(
+  inline BindFunctionStatement::parameter::parameter(
       std::shared_ptr<Variable> v, std::shared_ptr<DataType> t)
       : m_variable(std::move(v)),
         m_type(std::move(t)) {}
 
-  inline bind_function_statement::bind_function_statement(Location l,
+  inline BindFunctionStatement::BindFunctionStatement(Location l,
       std::shared_ptr<Function> f, std::vector<parameter> p,
-      std::unique_ptr<expression> e)
-      : statement(std::move(l)),
+      std::unique_ptr<Expression> e)
+      : Statement(std::move(l)),
         m_function(std::move(f)),
         m_parameters(std::move(p)),
         m_expression(std::move(e)) {}
 
   inline const std::shared_ptr<Function>&
-      bind_function_statement::get_function() const {
+      BindFunctionStatement::get_function() const {
     return m_function;
   }
 
-  inline const std::vector<bind_function_statement::parameter>&
-      bind_function_statement::get_parameters() const {
+  inline const std::vector<BindFunctionStatement::parameter>&
+      BindFunctionStatement::get_parameters() const {
     return m_parameters;
   }
 
-  inline const expression& bind_function_statement::get_expression() const {
+  inline const Expression& BindFunctionStatement::get_expression() const {
     return *m_expression;
   }
 
-  inline void bind_function_statement::apply(
-      syntax_node_visitor& visitor) const {
+  inline void BindFunctionStatement::apply(
+      SyntaxNodeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline void syntax_node_visitor::visit(
-      const bind_function_statement& node) {
-    visit(static_cast<const statement&>(node));
+  inline void SyntaxNodeVisitor::visit(
+      const BindFunctionStatement& node) {
+    visit(static_cast<const Statement&>(node));
   }
 }
 

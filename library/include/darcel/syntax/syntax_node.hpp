@@ -7,37 +7,37 @@
 namespace darcel {
 
   //! The base class for a syntax node.
-  class syntax_node {
+  class SyntaxNode {
     public:
 
-      //! Constructs a syntax_node.
+      //! Constructs a SyntaxNode.
       /*!
         \param l The location of the syntax node.
       */
-      syntax_node(Location l);
+      SyntaxNode(Location l);
 
-      virtual ~syntax_node() = default;
+      virtual ~SyntaxNode() = default;
 
       //! Returns the location of the syntax node.
       const Location& get_location() const;
 
-      //! Applies a syntax_node_visitor to this instance.
+      //! Applies a SyntaxNodeVisitor to this instance.
       /*!
         \param visitor The visitor to apply.
       */
-      virtual void apply(syntax_node_visitor& visitor) const = 0;
+      virtual void apply(SyntaxNodeVisitor& visitor) const = 0;
 
     private:
       Location m_location;
 
-      syntax_node(const syntax_node&) = delete;
-      syntax_node& operator =(const syntax_node&) = delete;
+      SyntaxNode(const SyntaxNode&) = delete;
+      SyntaxNode& operator =(const SyntaxNode&) = delete;
   };
 
-  inline syntax_node::syntax_node(Location l)
+  inline SyntaxNode::SyntaxNode(Location l)
       : m_location(std::move(l)) {}
 
-  inline const Location& syntax_node::get_location() const {
+  inline const Location& SyntaxNode::get_location() const {
     return m_location;
   }
 }

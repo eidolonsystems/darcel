@@ -7,10 +7,10 @@
 using namespace darcel;
 using namespace std;
 
-TEST_CASE("test_bind_variable_statement", "[bind_variable_statement]") {
+TEST_CASE("test_bind_variable_statement", "[BindVariableStatement]") {
   auto v = std::make_shared<Variable>(Location::global(), "x");
-  auto e = std::make_unique<literal_expression>(Location::global(),
+  auto e = std::make_unique<LiteralExpression>(Location::global(),
     *parse_literal("123"));
-  bind_variable_statement s(Location::global(), v, std::move(e));
+  BindVariableStatement s(Location::global(), v, std::move(e));
   REQUIRE(s.get_variable() == v);
 }

@@ -8,7 +8,7 @@ namespace darcel {
 
   //! Indicates one side of a bracket is missing the opposite side
   //! (ie. an open bracket missing a closing bracket or vice versa).
-  class unmatched_bracket_syntax_error : public syntax_error {
+  class UnmatchedBracketSyntaxError : public SyntaxError {
     public:
 
       //! Constructs an unmatched bracket syntax error.
@@ -16,7 +16,7 @@ namespace darcel {
         \param error_location The location of the unmatched bracket.
         \param bracket The bracket at the error location.
       */
-      unmatched_bracket_syntax_error(Location error_location,
+      UnmatchedBracketSyntaxError(Location error_location,
         Bracket bracket);
 
       //! Returns the unmatched bracket.
@@ -26,13 +26,13 @@ namespace darcel {
       Bracket m_bracket;
   };
 
-  inline unmatched_bracket_syntax_error::unmatched_bracket_syntax_error(
+  inline UnmatchedBracketSyntaxError::UnmatchedBracketSyntaxError(
       Location error_location, Bracket bracket)
-      : syntax_error(syntax_error_code::UNMATCHED_BRACKET,
+      : SyntaxError(SyntaxErrorCode::UNMATCHED_BRACKET,
           std::move(error_location)),
         m_bracket(std::move(bracket)) {}
 
-  inline Bracket unmatched_bracket_syntax_error::get_unmatched_bracket() const {
+  inline Bracket UnmatchedBracketSyntaxError::get_unmatched_bracket() const {
     return m_bracket;
   }
 }

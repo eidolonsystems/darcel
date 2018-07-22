@@ -9,7 +9,7 @@
 namespace darcel {
 
   //! Binds a new variable to an expression.
-  class bind_variable_statement final : public statement {
+  class BindVariableStatement final : public Statement {
     public:
 
       //! Constructs a bind statement.
@@ -18,45 +18,45 @@ namespace darcel {
         \param v The variable to bind.
         \param e The expression to bind to the variable.
       */
-      bind_variable_statement(Location l, std::shared_ptr<Variable> v,
-        std::unique_ptr<expression> e);
+      BindVariableStatement(Location l, std::shared_ptr<Variable> v,
+        std::unique_ptr<Expression> e);
 
       //! Returns the variable.
       const std::shared_ptr<Variable>& get_variable() const;
 
       //! Returns the expression that was bound.
-      const expression& get_expression() const;
+      const Expression& get_expression() const;
 
-      void apply(syntax_node_visitor& visitor) const override;
+      void apply(SyntaxNodeVisitor& visitor) const override;
 
     private:
       std::shared_ptr<Variable> m_variable;
-      std::unique_ptr<expression> m_expression;
+      std::unique_ptr<Expression> m_expression;
   };
 
-  inline bind_variable_statement::bind_variable_statement(Location l,
-      std::shared_ptr<Variable> v, std::unique_ptr<expression> e)
-      : statement(std::move(l)),
+  inline BindVariableStatement::BindVariableStatement(Location l,
+      std::shared_ptr<Variable> v, std::unique_ptr<Expression> e)
+      : Statement(std::move(l)),
         m_variable(std::move(v)),
         m_expression(std::move(e)) {}
 
   inline const std::shared_ptr<Variable>&
-      bind_variable_statement::get_variable() const {
+      BindVariableStatement::get_variable() const {
     return m_variable;
   }
 
-  inline const expression& bind_variable_statement::get_expression() const {
+  inline const Expression& BindVariableStatement::get_expression() const {
     return *m_expression;
   }
 
-  inline void bind_variable_statement::apply(
-      syntax_node_visitor& visitor) const {
+  inline void BindVariableStatement::apply(
+      SyntaxNodeVisitor& visitor) const {
     visitor.visit(*this);
   }
 
-  inline void syntax_node_visitor::visit(
-      const bind_variable_statement& node) {
-    visit(static_cast<const statement&>(node));
+  inline void SyntaxNodeVisitor::visit(
+      const BindVariableStatement& node) {
+    visit(static_cast<const Statement&>(node));
   }
 }
 

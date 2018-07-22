@@ -14,52 +14,52 @@ namespace darcel {
   */
   template<typename T>
   std::unique_ptr<T> clone_structure(const T& node) {
-    struct CloneVisitor final : syntax_node_visitor {
-      std::unique_ptr<syntax_node> m_clone;
+    struct CloneVisitor final : SyntaxNodeVisitor {
+      std::unique_ptr<SyntaxNode> m_clone;
 
       std::unique_ptr<T> operator ()(const T& node) {
         node.apply(*this);
         return static_pointer_cast<T>(std::move(m_clone));
       }
 
-      void visit(const bind_enum_statement& node) override {
-        m_clone = std::make_unique<bind_enum_statement>(node.get_enum());
+      void visit(const BindEnumStatement& node) override {
+        m_clone = std::make_unique<BindEnumStatement>(node.get_enum());
       }
 
-      void visit(const bind_function_statement& node) override {
-        m_clone = std::make_unique<bind_function_statement>(node.get_location(),
+      void visit(const BindFunctionStatement& node) override {
+        m_clone = std::make_unique<BindFunctionStatement>(node.get_location(),
           node.get_function(), node.get_parameters(),
           clone_structure(node.get_expression()));
       }
 
-      void visit(const bind_variable_statement& node) override {
-        m_clone = std::make_unique<bind_variable_statement>(node.get_location(),
+      void visit(const BindVariableStatement& node) override {
+        m_clone = std::make_unique<BindVariableStatement>(node.get_location(),
           node.get_variable(), clone_structure(node.get_expression()));
       }
 
-      void visit(const call_expression& node) override {
-        m_clone = std::make_unique<call_expression>(node.get_location(),
+      void visit(const CallExpression& node) override {
+        m_clone = std::make_unique<CallExpression>(node.get_location(),
           clone_structure(node.get_callable()),
           clone_structure(node.get_arguments()));
       }
 
-      void visit(const enum_expression& node) override {
-        m_clone = std::make_unique<enum_expression>(node.get_location(),
+      void visit(const EnumExpression& node) override {
+        m_clone = std::make_unique<EnumExpression>(node.get_location(),
           node.get_enum(), node.get_index());
       }
 
-      void visit(const function_expression& node) override {
-        m_clone = std::make_unique<function_expression>(node.get_location(),
+      void visit(const FunctionExpression& node) override {
+        m_clone = std::make_unique<FunctionExpression>(node.get_location(),
         node.get_function());
       }
 
-      void visit(const literal_expression& node) override {
-        m_clone = std::make_unique<literal_expression>(node.get_location(),
+      void visit(const LiteralExpression& node) override {
+        m_clone = std::make_unique<LiteralExpression>(node.get_location(),
           node.get_literal());
       }
 
-      void visit(const variable_expression& node) override {
-        m_clone = std::make_unique<variable_expression>(node.get_location(),
+      void visit(const VariableExpression& node) override {
+        m_clone = std::make_unique<VariableExpression>(node.get_location(),
           node.get_variable());
       }
     };

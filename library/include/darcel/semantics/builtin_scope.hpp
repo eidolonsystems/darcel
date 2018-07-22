@@ -30,7 +30,7 @@ namespace darcel {
     \param s The scope to populate.
   */
   inline void populate_arithmetic(Scope& s) {
-    for(auto& o : {op::ADD, op::SUBTRACT, op::MULTIPLY, op::DIVIDE}) {
+    for(auto& o : {Op::ADD, Op::SUBTRACT, Op::MULTIPLY, Op::DIVIDE}) {
       auto f = std::make_shared<Function>(Location::global(),
         get_function_name(o));
       s.add(f);
@@ -49,7 +49,7 @@ namespace darcel {
       std::vector<FunctionDataType::Parameter> parameters;
       parameters.emplace_back("left", TextDataType::get_instance());
       parameters.emplace_back("right", TextDataType::get_instance());
-      auto name = get_function_name(op::ADD);
+      auto name = get_function_name(Op::ADD);
       auto f = s.find<Function>(name);
       auto d = std::make_shared<FunctionDefinition>(Location::global(), f,
         std::make_shared<FunctionDataType>(parameters,

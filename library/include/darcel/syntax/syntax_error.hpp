@@ -9,7 +9,7 @@
 namespace darcel {
 
   //! Indicates a syntax error.
-  class syntax_error : public std::runtime_error {
+  class SyntaxError : public std::runtime_error {
     public:
 
       //! Constructs a syntax error.
@@ -17,29 +17,29 @@ namespace darcel {
         \param code The error code.
         \param location The location in the source code of the error.
       */
-      syntax_error(syntax_error_code code, Location location);
+      SyntaxError(SyntaxErrorCode code, Location location);
 
       //! Returns the error code.
-      syntax_error_code get_code() const;
+      SyntaxErrorCode get_code() const;
 
       //! Returns the location of the error.
       const Location& get_location() const;
 
     private:
-      syntax_error_code m_code;
+      SyntaxErrorCode m_code;
       Location m_location;
   };
 
-  inline syntax_error::syntax_error(syntax_error_code code, Location location)
+  inline SyntaxError::SyntaxError(SyntaxErrorCode code, Location location)
       : std::runtime_error("Syntax error."),
         m_code(code),
         m_location(std::move(location)) {}
 
-  inline syntax_error_code syntax_error::get_code() const {
+  inline SyntaxErrorCode SyntaxError::get_code() const {
     return m_code;
   }
 
-  inline const Location& syntax_error::get_location() const {
+  inline const Location& SyntaxError::get_location() const {
     return m_location;
   }
 }

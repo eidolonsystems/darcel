@@ -93,7 +93,7 @@ namespace darcel {
         if(escape.has_value()) {
           value += *escape;
         } else {
-          throw syntax_error(syntax_error_code::INVALID_ESCAPE_CHARACTER,
+          throw SyntaxError(SyntaxErrorCode::INVALID_ESCAPE_CHARACTER,
             c.get_location());
         }
       } else {
