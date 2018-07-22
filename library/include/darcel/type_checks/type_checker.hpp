@@ -16,20 +16,20 @@
 namespace darcel {
 
   //! Performs type checking on syntax nodes.
-  class type_checker {
+  class TypeChecker {
     public:
 
       //! Constructs a type checker.
-      type_checker();
+      TypeChecker();
 
       //! Constructs a type checker.
       /*!
         \param s The top level scope.
       */
-      type_checker(const Scope& s);
+      TypeChecker(const Scope& s);
 
       //! Returns the type map used to track data types.
-      const type_map& get_types() const;
+      const TypeMap& get_types() const;
 
       //! Returns a statement's definition.
       const std::shared_ptr<FunctionDefinition>& get_definition(
@@ -44,7 +44,7 @@ namespace darcel {
 
     private:
       std::deque<std::unique_ptr<Scope>> m_scopes;
-      type_map m_types;
+      TypeMap m_types;
       std::unordered_map<const BindFunctionStatement*,
         std::shared_ptr<FunctionDefinition>> m_definitions;
       std::unordered_map<const Expression*,
@@ -63,7 +63,7 @@ namespace darcel {
     \param s The scope used to get function definitions.
   */
   std::vector<std::shared_ptr<DataType>> determine_expression_types(
-    const Expression& e, const type_map& t, const Scope& s);
+    const Expression& e, const TypeMap& t, const Scope& s);
 
   //! Returns a map of all possible generic substitutions in a function call.
   /*!
@@ -74,7 +74,7 @@ namespace darcel {
       std::vector<std::shared_ptr<DataType>>> resolve_generics(
       const std::shared_ptr<FunctionDataType>& generic,
       const std::vector<std::unique_ptr<Expression>>& arguments,
-      const type_map& types, const Scope& s) {
+      const TypeMap& types, const Scope& s) {
     DataTypeMap<std::shared_ptr<GenericDataType>,
       std::vector<std::shared_ptr<DataType>>> substitutions;
     for(std::size_t i = 0; i != arguments.size(); ++i) {
@@ -99,14 +99,14 @@ namespace darcel {
   }
 
   inline std::vector<std::shared_ptr<DataType>> determine_expression_types(
-      const Expression& e, const type_map& t, const Scope& s) {
+      const Expression& e, const TypeMap& t, const Scope& s) {
     struct expression_visitor final : SyntaxNodeVisitor {
-      const type_map* m_types;
+      const TypeMap* m_types;
       const Scope* m_scope;
       std::vector<std::shared_ptr<DataType>> m_result;
 
       std::vector<std::shared_ptr<DataType>> operator ()(
-          const Expression& e, const type_map& t, const Scope& s) {
+          const Expression& e, const TypeMap& t, const Scope& s) {
         m_types = &t;
         m_scope = &s;
         e.apply(*this);
@@ -173,16 +173,16 @@ namespace darcel {
     \param t The map of types.
     \param s The scope used to get function definitions.
   */
-  inline type_map infer_types(const Expression& e, const type_map& t,
+  inline TypeMap infer_types(const Expression& e, const TypeMap& t,
       const Scope& s) {
     struct constraints_visitor final : SyntaxNodeVisitor {
-      const type_map* m_types;
+      const TypeMap* m_types;
       const Scope* m_scope;
-      constraints m_constraints;
+      Constraints m_constraints;
       std::unordered_map<std::shared_ptr<Variable>,
         std::vector<std::shared_ptr<DataType>>> m_candidates;
 
-      constraints_visitor(const Expression& e, const type_map& t,
+      constraints_visitor(const Expression& e, const TypeMap& t,
           const Scope& s)
           : m_types(&t),
             m_scope(&s) {
@@ -203,12 +203,12 @@ namespace darcel {
               return false;
             });
         }
-        disjunctive_set d;
+        DisjunctiveSet d;
         for(auto& overload : overloads) {
           if(overload->get_parameters().size() != node.get_arguments().size()) {
             continue;
           }
-          conjunctive_set c;
+          ConjunctiveSet c;
           auto substitutions = resolve_generics(overload, node.get_arguments(),
             *m_types, *m_scope);
           for(std::size_t i = 0; i != node.get_arguments().size(); ++i) {
@@ -264,7 +264,7 @@ namespace darcel {
     }
     std::size_t i = 1;
     while(i <= total_combinations) {
-      type_map candidate_map = t;
+      TypeMap candidate_map = t;
       for(std::size_t j = 0; j < inferred_variables.size(); ++j) {
         auto& entry = inferred_variables[j];
         auto index = (i / entry.m_cycle_length) % entry.m_candidates.size();
@@ -278,11 +278,11 @@ namespace darcel {
     return {};
   }
 
-  inline type_checker::type_checker() {
+  inline TypeChecker::TypeChecker() {
     m_scopes.push_back(std::make_unique<Scope>());
   }
 
-  inline type_checker::type_checker(const Scope& s) {
+  inline TypeChecker::TypeChecker(const Scope& s) {
     m_scopes.push_back(std::make_unique<Scope>(&s));
     get_scope().find(
       [&] (auto& e) {
@@ -305,12 +305,12 @@ namespace darcel {
       });
   }
 
-  inline const type_map& type_checker::get_types() const {
+  inline const TypeMap& TypeChecker::get_types() const {
     return m_types;
   }
 
   inline const std::shared_ptr<FunctionDefinition>&
-      type_checker::get_definition(const BindFunctionStatement& s) const {
+      TypeChecker::get_definition(const BindFunctionStatement& s) const {
     auto i = m_definitions.find(&s);
     if(i == m_definitions.end()) {
       static const std::shared_ptr<FunctionDefinition> NONE;
@@ -320,7 +320,7 @@ namespace darcel {
   }
 
   inline const std::shared_ptr<FunctionDefinition>&
-      type_checker::get_definition(const Expression& e) const {
+      TypeChecker::get_definition(const Expression& e) const {
     auto i = m_call_definitions.find(&e);
     if(i == m_call_definitions.end()) {
       static const std::shared_ptr<FunctionDefinition> NONE;
@@ -329,12 +329,12 @@ namespace darcel {
     return i->second;
   }
 
-  inline void type_checker::check(const SyntaxNode& node) {
+  inline void TypeChecker::check(const SyntaxNode& node) {
     struct type_check_visitor final : SyntaxNodeVisitor {
-      type_checker* m_checker;
+      TypeChecker* m_checker;
       std::shared_ptr<DataType> m_last;
 
-      void operator ()(type_checker& checker, const SyntaxNode& node) {
+      void operator ()(TypeChecker& checker, const SyntaxNode& node) {
         m_checker = &checker;
         node.apply(*this);
       }
@@ -447,15 +447,15 @@ namespace darcel {
     type_check_visitor()(*this, node);
   }
 
-  inline Scope& type_checker::get_scope() {
+  inline Scope& TypeChecker::get_scope() {
     return *m_scopes.back();
   }
 
-  inline Scope& type_checker::push_scope() {
+  inline Scope& TypeChecker::push_scope() {
     m_scopes.push_back(std::make_unique<Scope>(&get_scope()));
   }
 
-  inline void type_checker::pop_scope() {
+  inline void TypeChecker::pop_scope() {
     m_scopes.pop_back();
   }
 }

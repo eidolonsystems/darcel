@@ -4,8 +4,8 @@
 
 using namespace darcel;
 
-TEST_CASE("test_variable_type_map", "[type_map]") {
-  type_map m;
+TEST_CASE("test_variable_type_map", "[TypeMap]") {
+  TypeMap m;
   auto v = std::make_shared<Variable>(Location::global(), "x");
   m.add(*v, std::make_shared<IntegerDataType>());
   REQUIRE(*m.get_type(*v) == IntegerDataType());

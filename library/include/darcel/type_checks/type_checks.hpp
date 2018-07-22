@@ -2,12 +2,11 @@
 #define DARCEL_TYPE_CHECKS_HPP
 
 namespace darcel {
-  class conjunctive_set;
-  struct constraint_result;
-  class constraints;
-  class disjunctive_set;
-  class type_checker;
-  class type_map;
+  class ConjunctiveSet;
+  class Constraints;
+  class DisjunctiveSet;
+  class TypeChecker;
+  class TypeMap;
 }
 
 #endif

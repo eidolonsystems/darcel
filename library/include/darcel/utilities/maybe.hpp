@@ -11,32 +11,32 @@ namespace darcel {
       \tparam T The type of value to store.
    */
   template<typename T>
-  class maybe {
+  class Maybe {
     public:
 
       //! The type of value to store.
       using type = T;
 
-      //! Constructs a maybe.
-      maybe() = default;
+      //! Constructs a Maybe.
+      Maybe() = default;
 
-      //! Constructs a maybe with a normal value.
+      //! Constructs a Maybe with a normal value.
       /*!
         \param value The value to store.
       */
-      maybe(const type& value);
+      Maybe(const type& value);
 
-      //! Constructs a maybe with a normal value.
+      //! Constructs a Maybe with a normal value.
       /*!
         \param value The value to store.
       */
-      maybe(type&& value);
+      Maybe(type&& value);
 
-      //! Constructs a maybe with an exception.
+      //! Constructs a Maybe with an exception.
       /*!
         \param exception The exception to throw.
       */
-      maybe(const std::exception_ptr& exception);
+      Maybe(const std::exception_ptr& exception);
 
       //! Implicitly converts to the underlying value.
       operator const type& () const;
@@ -57,30 +57,30 @@ namespace darcel {
       std::exception_ptr get_exception() const;
 
       template<typename U>
-      maybe& operator =(const maybe<U>& rhs);
+      Maybe& operator =(const Maybe<U>& rhs);
 
       template<typename U>
-      maybe& operator =(maybe<U>&& rhs);
+      Maybe& operator =(Maybe<U>&& rhs);
 
       template<typename U>
-      maybe& operator =(const U& rhs);
+      Maybe& operator =(const U& rhs);
 
       template<typename U>
-      maybe& operator =(U&& rhs);
+      Maybe& operator =(U&& rhs);
 
     private:
-      template<typename> friend class maybe;
+      template<typename> friend class Maybe;
       std::variant<type, std::exception_ptr> m_value;
   };
 
   template<>
-  class maybe<void> {
+  class Maybe<void> {
     public:
       using type = void;
 
-      maybe() = default;
+      Maybe() = default;
 
-      maybe(const std::exception_ptr& exception);
+      Maybe(const std::exception_ptr& exception);
 
       bool has_exception() const;
 
@@ -98,7 +98,7 @@ namespace darcel {
     \return The result of <i>f</i>.
   */
   template<typename F>
-  maybe<std::invoke_result_t<F>> try_call(F&& f) {
+  Maybe<std::invoke_result_t<F>> try_call(F&& f) {
     try {
       if constexpr(std::is_same_v<std::invoke_result_t<F>, void>) {
         f();
@@ -112,34 +112,34 @@ namespace darcel {
   };
 
   template<typename T>
-  maybe<T>::maybe(const type& value)
+  Maybe<T>::Maybe(const type& value)
       : m_value(value) {}
 
   template<typename T>
-  maybe<T>::maybe(type&& value)
+  Maybe<T>::Maybe(type&& value)
       : m_value(std::move(value)) {}
 
   template<typename T>
-  maybe<T>::maybe(const std::exception_ptr& exception)
+  Maybe<T>::Maybe(const std::exception_ptr& exception)
       : m_value(exception) {}
 
   template<typename T>
-  maybe<T>::operator const typename maybe<T>::type& () const {
+  Maybe<T>::operator const typename Maybe<T>::type& () const {
     return get();
   }
 
   template<typename T>
-  bool maybe<T>::has_value() const {
+  bool Maybe<T>::has_value() const {
     return m_value.index() == 0;
   }
 
   template<typename T>
-  bool maybe<T>::has_exception() const {
+  bool Maybe<T>::has_exception() const {
     return m_value.index() == 1;
   }
 
   template<typename T>
-  const typename maybe<T>::type& maybe<T>::get() const {
+  const typename Maybe<T>::type& Maybe<T>::get() const {
     if(has_value()) {
       return std::get<type>(m_value);
     }
@@ -148,7 +148,7 @@ namespace darcel {
   }
 
   template<typename T>
-  typename maybe<T>::type& maybe<T>::get() {
+  typename Maybe<T>::type& Maybe<T>::get() {
     if(has_value()) {
       return std::get<type>(m_value);
     }
@@ -157,7 +157,7 @@ namespace darcel {
   }
 
   template<typename T>
-  std::exception_ptr maybe<T>::get_exception() const {
+  std::exception_ptr Maybe<T>::get_exception() const {
     if(has_exception()) {
       return std::get<std::exception_ptr>(m_value);
     }
@@ -166,46 +166,46 @@ namespace darcel {
 
   template<typename T>
   template<typename U>
-  maybe<T>& maybe<T>::operator =(const maybe<U>& rhs) {
+  Maybe<T>& Maybe<T>::operator =(const Maybe<U>& rhs) {
     m_value = rhs.m_value;
     return *this;
   }
 
   template<typename T>
   template<typename U>
-  maybe<T>& maybe<T>::operator =(maybe<U>&& rhs) {
+  Maybe<T>& Maybe<T>::operator =(Maybe<U>&& rhs) {
     m_value = std::move(rhs.m_value);
     return *this;
   }
 
   template<typename T>
   template<typename U>
-  maybe<T>& maybe<T>::operator =(const U& rhs) {
+  Maybe<T>& Maybe<T>::operator =(const U& rhs) {
     m_value = rhs;
     return *this;
   }
 
   template<typename T>
   template<typename U>
-  maybe<T>& maybe<T>::operator =(U&& rhs) {
+  Maybe<T>& Maybe<T>::operator =(U&& rhs) {
     m_value = std::move(rhs);
     return *this;
   }
 
-  inline maybe<void>::maybe(const std::exception_ptr& exception)
+  inline Maybe<void>::Maybe(const std::exception_ptr& exception)
       : m_exception(exception) {}
 
-  inline bool maybe<void>::has_exception() const {
+  inline bool Maybe<void>::has_exception() const {
     return m_exception != std::exception_ptr();
   }
 
-  inline void maybe<void>::get() const {
+  inline void Maybe<void>::get() const {
     if(m_exception != std::exception_ptr()) {
       std::rethrow_exception(m_exception);
     }
   }
 
-  inline std::exception_ptr maybe<void>::get_exception() const {
+  inline std::exception_ptr Maybe<void>::get_exception() const {
     return m_exception;
   }
 }

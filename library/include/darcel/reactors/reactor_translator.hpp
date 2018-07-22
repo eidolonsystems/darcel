@@ -103,7 +103,7 @@ namespace darcel {
         std::unique_ptr<ReactorBuilder> operator ()(
           const std::shared_ptr<FunctionDataType>& t) const;
       };
-      type_checker m_checker;
+      TypeChecker m_checker;
       std::shared_ptr<Variable> m_main;
       std::unordered_map<std::shared_ptr<Variable>,
         std::shared_ptr<ReactorBuilder>> m_variables;

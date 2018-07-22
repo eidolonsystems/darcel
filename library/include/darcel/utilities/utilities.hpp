@@ -4,7 +4,7 @@
 #include <utility>
 
 namespace darcel {
-  template<typename T> class maybe;
+  template<typename T> class Maybe;
 
   //! Performs a static cast on a unique ptr.
   template<typename T, typename U>

@@ -8,11 +8,11 @@ namespace darcel {
 
   //! Stores a set of data type/expression requirements where all requirements
   //! must be satisfied.
-  class constraints {
+  class Constraints {
     public:
 
       //! Constructs an empty set of constraints.
-      constraints() = default;
+      Constraints() = default;
 
       //! Tests if all requirements are satisfied using a specified mapping
       //! from variables to types.
@@ -22,7 +22,7 @@ namespace darcel {
         \return <code>true</code> if all requirements are satisfied using
                 <i>t</i>.
       */
-      bool is_satisfied(const type_map& t, const Scope& s) const;
+      bool is_satisfied(const TypeMap& t, const Scope& s) const;
 
       //! Adds a requirement that an expression must evaluate to a particular
       //! data type.
@@ -36,19 +36,19 @@ namespace darcel {
       /*!
         \param s The constraint that must be satisfied.
       */
-      void add(conjunctive_set s);
+      void add(ConjunctiveSet s);
 
       //! Adds a requirement that must be satisfied.
       /*!
         \param s The constraint that must be satisfied.
       */
-      void add(disjunctive_set s);
+      void add(DisjunctiveSet s);
 
     private:
-      std::vector<disjunctive_set> m_constraints;
+      std::vector<DisjunctiveSet> m_constraints;
   };
 
-  inline bool constraints::is_satisfied(const type_map& t,
+  inline bool Constraints::is_satisfied(const TypeMap& t,
       const Scope& s) const {
     for(auto& constraint : m_constraints) {
       if(!constraint.is_satisfied(t, s)) {
@@ -58,20 +58,20 @@ namespace darcel {
     return true;
   }
 
-  inline void constraints::add(const Expression& e,
+  inline void Constraints::add(const Expression& e,
       std::shared_ptr<DataType> t) {
-    disjunctive_set d;
+    DisjunctiveSet d;
     d.add(e, std::move(t));
     add(std::move(d));
   }
 
-  inline void constraints::add(conjunctive_set s) {
-    disjunctive_set d;
+  inline void Constraints::add(ConjunctiveSet s) {
+    DisjunctiveSet d;
     d.add(std::move(s));
     add(d);
   }
 
-  inline void constraints::add(disjunctive_set s) {
+  inline void Constraints::add(DisjunctiveSet s) {
     m_constraints.push_back(std::move(s));
   }
 }

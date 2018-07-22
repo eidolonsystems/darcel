@@ -13,11 +13,11 @@
 namespace darcel {
 
   //! Stores a map from expressions/variables to their data type.
-  class type_map {
+  class TypeMap {
     public:
 
-      //! Constructs an empty type_map.
-      type_map() = default;
+      //! Constructs an empty TypeMap.
+      TypeMap() = default;
 
       //! Returns the data type an expression evaluates to.
       std::shared_ptr<DataType> get_type(const Expression& e) const;
@@ -51,13 +51,13 @@ namespace darcel {
         std::shared_ptr<Function> f) const;
   };
 
-  inline std::shared_ptr<DataType> type_map::get_type(
+  inline std::shared_ptr<DataType> TypeMap::get_type(
       const Expression& e) const {
     struct type_deduction_visitor final : SyntaxNodeVisitor {
-      const type_map* m_types;
+      const TypeMap* m_types;
       std::shared_ptr<DataType> m_result;
 
-      std::shared_ptr<DataType> operator ()(const type_map& types,
+      std::shared_ptr<DataType> operator ()(const TypeMap& types,
           const Expression& node) {
         m_types = &types;
         node.apply(*this);
@@ -130,7 +130,7 @@ namespace darcel {
     return type_deduction_visitor()(*this, e);
   }
 
-  inline std::shared_ptr<DataType> type_map::get_type(
+  inline std::shared_ptr<DataType> TypeMap::get_type(
       const Function& f) const {
     auto i = m_types.find(&f);
     if(i == m_types.end()) {
@@ -139,7 +139,7 @@ namespace darcel {
     return i->second;
   }
 
-  inline std::shared_ptr<DataType> type_map::get_type(
+  inline std::shared_ptr<DataType> TypeMap::get_type(
       const Variable& v) const {
     auto i = m_types.find(&v);
     if(i == m_types.end()) {
@@ -148,24 +148,24 @@ namespace darcel {
     return i->second;
   }
 
-  inline void type_map::add(const Function& f, std::shared_ptr<DataType> t) {
+  inline void TypeMap::add(const Function& f, std::shared_ptr<DataType> t) {
     m_types[&f] = std::move(t);
   }
 
-  inline void type_map::add(std::shared_ptr<FunctionDefinition> definition) {
+  inline void TypeMap::add(std::shared_ptr<FunctionDefinition> definition) {
     m_definitions[definition->get_function().get()].push_back(
       std::move(definition));
   }
 
-  inline void type_map::add(const Variable& v, std::shared_ptr<DataType> t) {
+  inline void TypeMap::add(const Variable& v, std::shared_ptr<DataType> t) {
     m_types[&v] = std::move(t);
   }
 
-  inline void type_map::add(const Expression& e, std::shared_ptr<DataType> t) {
+  inline void TypeMap::add(const Expression& e, std::shared_ptr<DataType> t) {
     m_expressions[&e] = std::move(t);
   }
 
-  inline std::deque<std::unique_ptr<Scope>> type_map::build_scope(
+  inline std::deque<std::unique_ptr<Scope>> TypeMap::build_scope(
       std::shared_ptr<Function> f) const {
     std::deque<std::unique_ptr<Scope>> s;
     std::deque<std::shared_ptr<Function>> hierarchy;

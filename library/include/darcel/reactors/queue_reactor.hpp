@@ -56,7 +56,7 @@ namespace darcel {
     private:
       std::mutex m_mutex;
       Trigger* m_trigger;
-      maybe<Type> m_value;
+      Maybe<Type> m_value;
       int m_sequence;
       Update m_state;
       std::deque<Type> m_queue;

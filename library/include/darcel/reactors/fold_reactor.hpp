@@ -39,12 +39,12 @@ namespace details {
 
     private:
       template<typename> friend class FoldReactor;
-      maybe<Type> m_value;
+      Maybe<Type> m_value;
       int m_sequence;
-      maybe<Type> m_next_value;
+      Maybe<Type> m_next_value;
       int m_next_sequence;
 
-      void set(maybe<Type> value, int sequence);
+      void set(Maybe<Type> value, int sequence);
   };
 
   /*! \brief Folds the values produced by a reactor.
@@ -77,8 +77,8 @@ namespace details {
       std::shared_ptr<FoldParameterReactor<Type>> m_left;
       std::shared_ptr<FoldParameterReactor<Type>> m_right;
       std::shared_ptr<Reactor<Type>> m_producer;
-      maybe<Type> m_value;
-      std::optional<maybe<Type>> m_previous_value;
+      Maybe<Type> m_value;
+      std::optional<Maybe<Type>> m_previous_value;
       int m_sequence;
       BaseReactor::Update m_update;
   };
@@ -136,7 +136,7 @@ namespace details {
       });
   }
 
-  //! Invokes a reactor's eval method, wrapping any thrown exception in a maybe.
+  //! Invokes a reactor's eval method, wrapping any thrown exception in a Maybe.
   /*!
     \param r The reactor to eval.
     \return The result of the eval, capturing any thrown exception.
@@ -176,7 +176,7 @@ namespace details {
   }
 
   template<typename T>
-  void FoldParameterReactor<T>::set(maybe<Type> value, int sequence) {
+  void FoldParameterReactor<T>::set(Maybe<Type> value, int sequence) {
     m_next_value = std::move(value);
     m_next_sequence = sequence;
   }

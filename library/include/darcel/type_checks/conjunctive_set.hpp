@@ -4,7 +4,6 @@
 #include <vector>
 #include "darcel/data_types/data_type.hpp"
 #include "darcel/syntax/expression.hpp"
-#include "darcel/type_checks/constraint_result.hpp"
 #include "darcel/type_checks/type_checks.hpp"
 #include "darcel/type_checks/type_map.hpp"
 
@@ -12,11 +11,11 @@ namespace darcel {
 
   //! Stores a set of requirements about an expression's data type where all
   //! requirements must be satisfied.
-  class conjunctive_set {
+  class ConjunctiveSet {
     public:
 
       //! Constructs an empty set.
-      conjunctive_set() = default;
+      ConjunctiveSet() = default;
 
       //! Tests if all requirements are satisfied using a specified mapping
       //! from variables to types.
@@ -26,7 +25,7 @@ namespace darcel {
         \return <code>true</code> if all requirements are satisfied using
                 <i>t</i>.
       */
-      bool is_satisfied(const type_map& t, const Scope& s) const;
+      bool is_satisfied(const TypeMap& t, const Scope& s) const;
 
       //! Adds a requirement that an expression must evaluate to a particular
       //! data type.
@@ -37,14 +36,14 @@ namespace darcel {
       void add(const Expression& e, std::shared_ptr<DataType> t);
 
     private:
-      struct term {
+      struct Term {
         const Expression* m_expression;
         std::shared_ptr<DataType> m_type;
       };
-      std::vector<term> m_terms;
+      std::vector<Term> m_terms;
   };
 
-  inline bool conjunctive_set::is_satisfied(const type_map& t,
+  inline bool ConjunctiveSet::is_satisfied(const TypeMap& t,
       const Scope& s) const {
     DataTypeMap<std::shared_ptr<GenericDataType>,
       std::shared_ptr<DataType>> substitutions;
@@ -72,7 +71,7 @@ namespace darcel {
     return true;
   }
 
-  inline void conjunctive_set::add(const Expression& e,
+  inline void ConjunctiveSet::add(const Expression& e,
       std::shared_ptr<DataType> t) {
     m_terms.push_back({&e, std::move(t)});
   }

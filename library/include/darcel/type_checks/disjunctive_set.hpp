@@ -9,11 +9,11 @@ namespace darcel {
 
   //! Stores a set of disjunctive requirements where only one of the
   //! requirements must be satisfied.
-  class disjunctive_set {
+  class DisjunctiveSet {
     public:
 
       //! Constructs an empty set of requirements.
-      disjunctive_set() = default;
+      DisjunctiveSet() = default;
 
       //! Tests if at least one requirement is satisfied using a specified
       //! variable type mapping.
@@ -23,7 +23,7 @@ namespace darcel {
         \return <code>true</code> if at least one requirement is satisfied using
                 <i>t</i>.
       */
-      bool is_satisfied(const type_map& t, const Scope& s) const;
+      bool is_satisfied(const TypeMap& t, const Scope& s) const;
 
       //! Adds a requirement that an expression must evaluate to a particular
       //! data type.
@@ -37,13 +37,13 @@ namespace darcel {
       /*!
         \param s The conjunctive set that may be satisfied.
       */
-      void add(conjunctive_set s);
+      void add(ConjunctiveSet s);
 
     private:
-      std::vector<conjunctive_set> m_constraints;
+      std::vector<ConjunctiveSet> m_constraints;
   };
 
-  inline bool disjunctive_set::is_satisfied(const type_map& t,
+  inline bool DisjunctiveSet::is_satisfied(const TypeMap& t,
       const Scope& s) const {
     for(auto& constraint : m_constraints) {
       if(constraint.is_satisfied(t, s)) {
@@ -53,14 +53,14 @@ namespace darcel {
     return false;
   }
 
-  inline void disjunctive_set::add(const Expression& e,
+  inline void DisjunctiveSet::add(const Expression& e,
       std::shared_ptr<DataType> t) {
-    conjunctive_set c;
+    ConjunctiveSet c;
     c.add(e, std::move(t));
     add(std::move(c));
   }
 
-  inline void disjunctive_set::add(conjunctive_set s) {
+  inline void DisjunctiveSet::add(ConjunctiveSet s) {
     m_constraints.push_back(std::move(s));
   }
 }

@@ -27,7 +27,7 @@ namespace darcel {
     return make_function_reactor(
       [=, value = 0, is_counting = false](int start,
           BaseReactor::Update start_state, int end,
-          BaseReactor::Update end_state, maybe<void> ignored) mutable {
+          BaseReactor::Update end_state, Maybe<void> ignored) mutable {
         if(!is_counting) {
           value = start - 1;
           is_counting = true;
