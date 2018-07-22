@@ -32,42 +32,42 @@ int main(int argc, const char** argv) {
   }
   string contents((std::istreambuf_iterator<char>(sourceFile)),
     std::istreambuf_iterator<char>());
-  token_parser tp;
+  TokenParser tp;
   tp.feed(contents.c_str(), contents.size());
   auto top_scope = make_builtin_scope();
-  syntax_parser sp(*top_scope);
+  SyntaxParser sp(*top_scope);
   while(auto t = tp.parse_token())  {
     sp.feed(*t);
   }
-  std::vector<std::unique_ptr<syntax_node>> nodes;
+  std::vector<std::unique_ptr<SyntaxNode>> nodes;
   try {
     while(auto s = sp.parse_node()) {
       nodes.push_back(std::move(s));
     }
-  } catch(const syntax_error& e) {
+  } catch(const SyntaxError& e) {
     std::cerr << e.get_location().get_line_number() << ":" <<
       e.get_location().get_column_number() << " - " <<
       e.what() << std::endl;
     return -1;
   }
-  reactor_translator rt(*top_scope);
+  ReactorTranslator rt(*top_scope);
   translate_builtins(rt, *top_scope);
   try {
     for(auto& node : nodes) {
       rt.translate(*node);
     }
-  } catch(const syntax_error& e) {
+  } catch(const SyntaxError& e) {
     std::cerr << e.get_location().get_line_number() << ":" <<
       e.get_location().get_column_number() << " - " <<
       e.what() << std::endl;
     return -1;
   }
-  trigger t;
+  Trigger t;
   auto main_reactor = rt.get_main(t);
   if(main_reactor == nullptr) {
     cerr << "Main reactor undefined." << endl;
     return -1;
   }
-  reactor_executor executor(main_reactor, t);
+  ReactorExecutor executor(main_reactor, t);
   executor.execute();
 }

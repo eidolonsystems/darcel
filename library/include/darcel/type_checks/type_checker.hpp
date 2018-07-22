@@ -100,13 +100,13 @@ namespace darcel {
 
   inline std::vector<std::shared_ptr<DataType>> determine_expression_types(
       const Expression& e, const TypeMap& t, const Scope& s) {
-    struct expression_visitor final : SyntaxNodeVisitor {
+    struct ExpressionVisitor final : SyntaxNodeVisitor {
       const TypeMap* m_types;
       const Scope* m_scope;
       std::vector<std::shared_ptr<DataType>> m_result;
 
-      std::vector<std::shared_ptr<DataType>> operator ()(
-          const Expression& e, const TypeMap& t, const Scope& s) {
+      std::vector<std::shared_ptr<DataType>> operator ()(const Expression& e,
+          const TypeMap& t, const Scope& s) {
         m_types = &t;
         m_scope = &s;
         e.apply(*this);
@@ -164,7 +164,7 @@ namespace darcel {
         }
       }
     };
-    return expression_visitor()(e, t, s);
+    return ExpressionVisitor()(e, t, s);
   }
 
   //! Performs type inference on an expression.
@@ -175,14 +175,14 @@ namespace darcel {
   */
   inline TypeMap infer_types(const Expression& e, const TypeMap& t,
       const Scope& s) {
-    struct constraints_visitor final : SyntaxNodeVisitor {
+    struct ConstraintsVisitor final : SyntaxNodeVisitor {
       const TypeMap* m_types;
       const Scope* m_scope;
       Constraints m_constraints;
       std::unordered_map<std::shared_ptr<Variable>,
         std::vector<std::shared_ptr<DataType>>> m_candidates;
 
-      constraints_visitor(const Expression& e, const TypeMap& t,
+      ConstraintsVisitor(const Expression& e, const TypeMap& t,
           const Scope& s)
           : m_types(&t),
             m_scope(&s) {
@@ -241,15 +241,15 @@ namespace darcel {
         }
       }
     };
-    struct candidate_entry {
+    struct CandidateEntry {
       std::shared_ptr<Variable> m_variable;
       std::vector<std::shared_ptr<DataType>> m_candidates;
       std::size_t m_cycle_length;
     };
-    constraints_visitor v(e, t, s);
+    ConstraintsVisitor v(e, t, s);
     std::size_t total_combinations = 1;
     std::size_t index = 0;
-    std::vector<candidate_entry> inferred_variables;
+    std::vector<CandidateEntry> inferred_variables;
     for(auto& candidate : v.m_candidates) {
       auto cycle = [&] {
         if(inferred_variables.empty()) {
@@ -286,8 +286,7 @@ namespace darcel {
     m_scopes.push_back(std::make_unique<Scope>(&s));
     get_scope().find(
       [&] (auto& e) {
-        if(auto definition =
-            std::dynamic_pointer_cast<FunctionDefinition>(e)) {
+        if(auto definition = std::dynamic_pointer_cast<FunctionDefinition>(e)) {
           m_types.add(std::move(definition));
         } else if(auto f = std::dynamic_pointer_cast<Function>(e)) {
           auto callable = std::static_pointer_cast<CallableDataType>(
