@@ -26,7 +26,7 @@ namespace darcel {
       /*!
         \param s The top level scope.
       */
-      TypeChecker(const Scope& s);
+      explicit TypeChecker(const Scope& s);
 
       //! Returns the type map used to track data types.
       const TypeMap& get_types() const;
@@ -69,7 +69,7 @@ namespace darcel {
   /*!
     \param generic The generic function being called.
     \param arguments The list of arguments being passed to the function.
-  */  
+  */
   inline DataTypeMap<std::shared_ptr<GenericDataType>,
       std::vector<std::shared_ptr<DataType>>> resolve_generics(
       const std::shared_ptr<FunctionDataType>& generic,
@@ -154,7 +154,7 @@ namespace darcel {
             append(definition.get_type());
             return false;
           });
-        append(m_types->get_type(*node.get_function()));
+        visit(static_cast<const Expression&>(node));
       }
 
       void visit(const Expression& node) override {
@@ -182,8 +182,7 @@ namespace darcel {
       std::unordered_map<std::shared_ptr<Variable>,
         std::vector<std::shared_ptr<DataType>>> m_candidates;
 
-      ConstraintsVisitor(const Expression& e, const TypeMap& t,
-          const Scope& s)
+      ConstraintsVisitor(const Expression& e, const TypeMap& t, const Scope& s)
           : m_types(&t),
             m_scope(&s) {
         e.apply(*this);

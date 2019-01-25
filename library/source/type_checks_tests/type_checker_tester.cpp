@@ -1,4 +1,5 @@
 #include <catch.hpp>
+#include "darcel/semantics/builtin_scope.hpp"
 #include "darcel/syntax/syntax_builders.hpp"
 #include "darcel/syntax_tests/syntax_tests.hpp"
 #include "darcel/type_checks/type_checker.hpp"
@@ -7,92 +8,92 @@ using namespace darcel;
 using namespace darcel::tests;
 
 namespace {
-  auto register_function(Scope& s, TypeMap& t, std::string name,
+  auto register_function(Scope& scope, TypeMap& types, std::string name,
       std::vector<FunctionDataType::Parameter> parameters,
       const ExpressionBuilder& body) {
-    auto f = bind_function(s, std::move(name), parameters,
-      [&] (auto& s) {
+    auto f = bind_function(scope, std::move(name), parameters,
+      [&] (auto& scope) {
         for(auto& parameter : parameters) {
-          t.add(*s.find<Variable>(parameter.m_name), parameter.m_type);
+          types.add(*scope.find<Variable>(parameter.m_name), parameter.m_type);
         }
-        return body(s);
+        return body(scope);
       });
     auto definition = std::make_shared<FunctionDefinition>(Location::global(),
       f->get_function(), std::make_shared<FunctionDataType>(
-      std::move(parameters), t.get_type(f->get_expression())));
-    s.add(definition);
-    auto callable = t.get_type(*f->get_function());
+      std::move(parameters), types.get_type(f->get_expression())));
+    scope.add(definition);
+    auto callable = types.get_type(*f->get_function());
     if(callable == nullptr) {
-      t.add(*f->get_function(),
+      types.add(*f->get_function(),
         std::make_shared<CallableDataType>(f->get_function()));
     }
-    t.add(definition);
+    types.add(definition);
     return f;
   }
 }
 
 TEST_CASE("test_bind_variable_type_checker", "[TypeChecker]") {
-  Scope s;
-  auto binding = bind_variable(s, "x", make_literal(123));
-  TypeChecker checker(s);
+  auto scope = Scope();
+  auto binding = bind_variable(scope, "x", make_literal(123));
+  auto checker = TypeChecker(scope);
   REQUIRE_NOTHROW(checker.check(*binding));
   REQUIRE(*checker.get_types().get_type(*binding->get_variable()) ==
     IntegerDataType());
 }
 
 TEST_CASE("test_bind_function_type_checker", "[TypeChecker]") {
-  Scope s;
-  auto binding = bind_function(s, "f",
+  auto scope = Scope();
+  auto binding = bind_function(scope, "f",
     {{"x", IntegerDataType::get_instance()}},
-    [&] (Scope& s) {
-      return find_term("x", s);
+    [&] (auto& scope) {
+      return find_term("x", scope);
     });
-  TypeChecker checker(s);
+  auto checker = TypeChecker(scope);
   REQUIRE_NOTHROW(checker.check(*binding));
 }
 
 TEST_CASE("test_call_type_checker", "[TypeChecker]") {
-  Scope s;
-  auto binding = bind_function(s, "f",
+  auto scope = Scope();
+  auto binding = bind_function(scope, "f",
     {{"x", IntegerDataType::get_instance()}},
-    [&] (Scope& s) {
-      return find_term("x", s);
+    [&] (auto& scope) {
+      return find_term("x", scope);
     });
-  auto expr1 = call(s, "f", make_literal(5));
-  auto expr2 = call(s, "f", make_literal(false));
-  TypeChecker checker(s);
+  auto expr1 = call(scope, "f", make_literal(5));
+  auto expr2 = call(scope, "f", make_literal(false));
+  auto checker = TypeChecker(scope);
   REQUIRE_NOTHROW(checker.check(*binding));
   REQUIRE_NOTHROW(checker.check(*expr1));
   REQUIRE_THROWS(checker.check(*expr2));
 }
 
 TEST_CASE("test_call_single_generic_type_checker", "[TypeChecker]") {
-  Scope s;
-  auto binding = bind_function(s, "f",
+  auto scope = Scope();
+  auto binding = bind_function(scope, "f",
     {{"x", std::make_shared<GenericDataType>(Location::global(), "`T", 0)}},
-    [&] (Scope& s) {
-      return find_term("x", s);
+    [&] (auto& scope) {
+      return find_term("x", scope);
     });
-  auto expr1 = call(s, "f", make_literal(5));
-  auto expr2 = call(s, "f", make_literal(false));
-  TypeChecker checker(s);
+  auto expr1 = call(scope, "f", make_literal(5));
+  auto expr2 = call(scope, "f", make_literal(false));
+  auto checker = TypeChecker(scope);
   REQUIRE_NOTHROW(checker.check(*binding));
   REQUIRE_NOTHROW(checker.check(*expr1));
   REQUIRE_NOTHROW(checker.check(*expr2));
 }
 
 TEST_CASE("test_call_two_equal_generics_type_checker", "[TypeChecker]") {
-  Scope s;
-  auto binding = bind_function(s, "f",
+  auto scope = Scope();
+  auto binding = bind_function(scope, "f",
     {{"x", std::make_shared<GenericDataType>(Location::global(), "`T", 0)},
      {"y", std::make_shared<GenericDataType>(Location::global(), "`T", 0)}},
-    [&] (Scope& s) {
-      return find_term("x", s);
+    [&] (auto& scope) {
+      return find_term("x", scope);
     });
-  auto expr1 = call(s, "f", make_literal(5), make_literal(10));
-  auto expr2 = call(s, "f", make_literal(false), make_literal(10));
-  auto expr3 = call(s, "f", make_literal(false));
-  TypeChecker checker(s);
+  auto expr1 = call(scope, "f", make_literal(5), make_literal(10));
+  auto expr2 = call(scope, "f", make_literal(false), make_literal(10));
+  auto expr3 = call(scope, "f", make_literal(false));
+  auto checker = TypeChecker(scope);
   REQUIRE_NOTHROW(checker.check(*binding));
   REQUIRE_NOTHROW(checker.check(*expr1));
   REQUIRE_THROWS(checker.check(*expr2));
@@ -100,17 +101,17 @@ TEST_CASE("test_call_two_equal_generics_type_checker", "[TypeChecker]") {
 }
 
 TEST_CASE("test_call_two_distinct_generics_type_checker", "[TypeChecker]") {
-  Scope s;
-  auto binding = bind_function(s, "f",
+  auto scope = Scope();
+  auto binding = bind_function(scope, "f",
     {{"x", std::make_shared<GenericDataType>(Location::global(), "`T", 0)},
      {"y", std::make_shared<GenericDataType>(Location::global(), "`U", 1)}},
-    [&] (Scope& s) {
-      return find_term("x", s);
+    [&] (auto& scope) {
+      return find_term("x", scope);
     });
-  auto expr1 = call(s, "f", make_literal(5), make_literal(10));
-  auto expr2 = call(s, "f", make_literal(false), make_literal(10));
-  auto expr3 = call(s, "f", make_literal(false));
-  TypeChecker checker(s);
+  auto expr1 = call(scope, "f", make_literal(5), make_literal(10));
+  auto expr2 = call(scope, "f", make_literal(false), make_literal(10));
+  auto expr3 = call(scope, "f", make_literal(false));
+  auto checker = TypeChecker(scope);
   REQUIRE_NOTHROW(checker.check(*binding));
   REQUIRE_NOTHROW(checker.check(*expr1));
   REQUIRE_NOTHROW(checker.check(*expr2));
@@ -118,28 +119,28 @@ TEST_CASE("test_call_two_distinct_generics_type_checker", "[TypeChecker]") {
 }
 
 TEST_CASE("test_nested_generics_type_checker", "[TypeChecker]") {
-  Scope s;
-  auto f = bind_function(s, "f", {{"x", make_generic_data_type("`T", 0)}},
-    [&] (auto& s) {
-      return find_term("x", s);
+  auto scope = Scope();
+  auto f = bind_function(scope, "f", {{"x", make_generic_data_type("`T", 0)}},
+    [&] (auto& scope) {
+      return find_term("x", scope);
     });
-  auto g = bind_function(s, "g", {{"x", make_generic_data_type("`T", 0)}},
-    [&] (auto& s) {
-      return call(s, "f", find_term("x", s));
+  auto g = bind_function(scope, "g", {{"x", make_generic_data_type("`T", 0)}},
+    [&] (auto& scope) {
+      return call(scope, "f", find_term("x", scope));
     });
-  TypeChecker checker(s);
+  auto checker = TypeChecker(scope);
   REQUIRE_NOTHROW(checker.check(*f));
   REQUIRE_NOTHROW(checker.check(*g));
 }
 
 TEST_CASE("test_function_variable_type_checker", "[TypeChecker]") {
-  Scope s;
-  auto f = bind_function(s, "f",
-    [&] (auto& s) {
+  auto scope = Scope();
+  auto f = bind_function(scope, "f",
+    [&] (auto& scope) {
       return make_literal(123);
     });
-  auto g = bind_variable(s, "g", find_term("f", s));
-  TypeChecker checker(s);
+  auto g = bind_variable(scope, "g", find_term("f", scope));
+  auto checker = TypeChecker(scope);
   REQUIRE_NOTHROW(checker.check(*f));
   REQUIRE_NOTHROW(checker.check(*g));
   REQUIRE(*checker.get_types().get_type(*g->get_variable()) ==
@@ -148,18 +149,18 @@ TEST_CASE("test_function_variable_type_checker", "[TypeChecker]") {
 
 TEST_CASE("test_passing_overloaded_function_type_checker", "[TypeChecker]") {
   SECTION("Concrete overloaded function.") {
-    Scope s;
+    auto scope = Scope();
     auto t1 = make_function_data_type({}, BoolDataType::get_instance());
-    auto f = bind_function(s, "f", {{"x", t1}},
-      [&] (auto& s) {
+    auto f = bind_function(scope, "f", {{"x", t1}},
+      [&] (auto& scope) {
         return make_literal(123);
       });
-    auto g = bind_function(s, "g",
-      [&] (auto& s) {
+    auto g = bind_function(scope, "g",
+      [&] (auto& scope) {
         return make_literal(true);
       });
-    auto c = call(s, "f", find_term("g", s));
-    TypeChecker checker(s);
+    auto c = call(scope, "f", find_term("g", scope));
+    auto checker = TypeChecker(scope);
     REQUIRE_NOTHROW(checker.check(*f));
     REQUIRE_NOTHROW(checker.check(*g));
     REQUIRE_NOTHROW(checker.check(*c));
@@ -167,18 +168,18 @@ TEST_CASE("test_passing_overloaded_function_type_checker", "[TypeChecker]") {
     REQUIRE(*r1 == *t1);
   }
   SECTION("Generic overloaded function.") {
-    Scope s;
+    auto scope = Scope();
     auto t1 = std::make_shared<GenericDataType>(Location::global(), "`T", 0);
-    auto f = bind_function(s, "f", {{"x", t1}},
-      [&] (auto& s) {
+    auto f = bind_function(scope, "f", {{"x", t1}},
+      [&] (auto& scope) {
         return make_literal(123);
       });
-    auto g = bind_function(s, "g",
-      [&] (auto& s) {
+    auto g = bind_function(scope, "g",
+      [&] (auto& scope) {
         return make_literal(true);
       });
-    auto c = call(s, "f", find_term("g", s));
-    TypeChecker checker(s);
+    auto c = call(scope, "f", find_term("g", scope));
+    auto checker = TypeChecker(scope);
     REQUIRE_NOTHROW(checker.check(*f));
     REQUIRE_NOTHROW(checker.check(*g));
     REQUIRE_NOTHROW(checker.check(*c));
@@ -416,4 +417,17 @@ TEST_CASE("test_generic_parameter_inference", "[TypeChecker]") {
     REQUIRE(*inferred_types.get_type(*x) == IntegerDataType());
     REQUIRE(*inferred_types.get_type(*y) == IntegerDataType());
   }
+}
+
+TEST_CASE("test_overloaded_generic_parameter_inference", "[TypeChecker]") {
+  auto scope = Scope();
+  auto types = TypeMap();
+  populate_builtins(scope);
+  auto a = std::make_shared<Variable>(Location::global(), "a");
+  scope.add(a);
+  auto b = std::make_shared<Variable>(Location::global(), "b");
+  scope.add(b);
+  auto e = call(scope, "fold", find_term("multiply", scope),
+    call(scope, "count", find_term("a", scope), find_term("b", scope)));
+  auto inferred_types = infer_types(*e, types, scope);
 }
